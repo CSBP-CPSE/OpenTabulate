@@ -1,0 +1,13 @@
+{
+    "filename": "msbtest.xml",
+    "type": "xml",
+    "info": {
+	"header": "MsbInformation",
+	"name": "Name",
+	"address": "StreetAddress",
+	"city": "CityName",
+	"region": "Province",
+	"phone": "PhoneNumber",
+	"postcode": "PostalZipCode"
+    }
+}
