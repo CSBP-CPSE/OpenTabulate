@@ -9,9 +9,6 @@ CURRENT ISSUES:
 - How do we associate child entries (e.g. leaves) to parent entries in .xml parsing?
   Some parent nodes may have missing data entries, so to correctly parse, each row in
   the processed .csv file must correspond to <estab> in uslist2018-05-24-18-25.xml
-- Missing fields from format.json must be handled correctly
-  * Data entries must be stored in a dictionary
-  * If the entry is not there, return None
 - Utilizing 'type' and 'filename/path' [for a more general script which calls modules]
 
 """
@@ -44,7 +41,7 @@ root = tree.getroot()
 new_file = filename.partition(".")[0] + ".csv"
 
 with open(new_file, 'w') as csvfile:
-    dp = csv.writer(csvfile, delimiter=' ', quotechar='"', quoting=csv.QUOTE_ALL)
+    dp = csv.writer(csvfile, delimiter=',', quotechar='\'', quoting=csv.QUOTE_ALL)
     for element in root.findall(header):
         row = []
         for key in data_field:

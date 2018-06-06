@@ -6,7 +6,7 @@
 	"name": "Name",
 	"address": "StreetAddress",
 	"city": "CityName",
-	"region": "Province",
+	"region": "AlphaProvinceCode",
 	"phone": "PhoneNumber",
 	"postcode": "PostalZipCode"
     }
