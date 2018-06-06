@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# A script to process the data.
+
+OBR_DIR=$(dirname "$0")
+
+echo -e "Be sure to have loaded each .json format file into './process/format' and the 
+corresponding data file(s) as specified in the format file into './processing/data'.
+
+Format files with invalid syntax will be ignored. Those with erroneous inputs may give
+unintended results during the data processing or cleaning. The integrity-checking tools
+provided are limited to checking syntax and the required fields, so THE INTEGRITY OF THE
+FORMAT FILES MUST BE CHECKED BY A HUMAN!\n"
+
+read -p "Proceed? Enter [Y/n]: " PROMPT
+if [[ ! $PROMPT = [y,Y]* ]]; then
+    exit 1
+fi
+
+#python ${OBR_DIR}/tools/tbp.py
+#python ${OBR_DIR}/tools/process.py
+#python ${OBR_DIR}/tools/clean.py
+
+echo "Done. Process details recorded in './process/log'."
