@@ -1,14 +1,17 @@
 """
-* Statistics Canada - Center for Special Business Projects - DEIL *
+Statistics Canada - Center for Special Business Projects - DEIL
 
-~ Maksym Neyra-Nesterenko
+Maksym Neyra-Nesterenko
 
 A collection of parsing functions for different file formats.
 
-ISSUES:
+ISSUES AND RESOLUTIONS:
 - How do we associate child entries (e.g. leaves) to parent entries in .xml parsing?
   Some parent nodes may have missing data entries, so to correctly parse, each row in
   the processed .csv file must correspond to <estab> in uslist2018-05-24-18-25.xml
+- Turn the hash table construction into a function (its used in all parsers)
+- Modify field_name for loop so that in "except KeyError", a missing data field is
+  assigned to be the empty string (or a space?)
 """
 
 from xml.etree import ElementTree
@@ -46,3 +49,20 @@ def xml_parse(data,obr_p_path):
                     row.append(" ")
             dp.writerow(row)
     csvfile.close()
+
+def csv_parse(data,obr_p_path):
+    # construct hash table for field names
+    field_names = ['name', 'address', 'city', 'region', 'postcode', 'phone']
+    data_field = dict()
+
+    header = data['info']['header']
+    filename = data['filename']
+
+    for i in field_names:
+        try:
+            data_field[i] = ".//" + data['info'][i]
+        except KeyError: # if a key is missing, ignore
+            continue
+
+    
+    # ...
