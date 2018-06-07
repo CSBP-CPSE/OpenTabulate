@@ -10,6 +10,7 @@ import json
 from sys import stdin
 from sys import stdout
 from os import path
+from parser import xml_parse
 
 # Checks if a key-value pair has an empty value
 def isEmpty(value):
@@ -20,15 +21,18 @@ def isEmpty(value):
 
 # ### --- script begins here --- ###
 
-# Absolute path of format file
-FORMAT_ABS_P_LIST = stdin.readlines()
+# Relative path of OpenBusinessRepository
+obr_p_path = input()
 
-for f_path in FORMAT_ABS_P_LIST:
+# Relative path of format file
+FORMAT_REL_P_LIST = stdin.readlines()
+
+# Data processing
+for f_path in FORMAT_REL_P_LIST:
     f_path = f_path[:-1]
     if not path.exists(f_path):
         print("File does not exist ->", f_path)
         continue
-
     # Parse .json file
     try:
         with open(f_path) as f:
@@ -36,7 +40,6 @@ for f_path in FORMAT_ABS_P_LIST:
     except ValueError as e: # failed parse
         print("Failed to parse ->", f_path)
         continue
-
     # These fields must exist and be non-empty in the format file!
     try:
         if isEmpty(data['filename']) or \
@@ -48,4 +51,6 @@ for f_path in FORMAT_ABS_P_LIST:
     except KeyError: # semantic error
         print("Missing required field ->", f_path)
     print("PASSED:", f_path)
-    f.close()
+    # Parse data
+    parser(data,obr_p_path)
+    

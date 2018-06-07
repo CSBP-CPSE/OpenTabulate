@@ -1,2 +1,2 @@
-PASSED: ./process/format/xml_sample_format.json
-PASSED: ./process/format/csv_sample_format.json
+PASSED: ./process/format/uslist2018.json
+PASSED: ./process/format/MsbRegistry.json

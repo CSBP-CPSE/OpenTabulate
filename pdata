@@ -4,6 +4,7 @@
 
 OBR=$(dirname "$0")
 
+
 echo -e "Be sure to have loaded each .json format file into './process/format' and the 
 corresponding data file(s) as specified in the format file into './processing/data'.
 
@@ -12,13 +13,14 @@ unintended results during the data processing or cleaning. The integrity-checkin
 provided are limited to checking syntax and the required fields, so THE INTEGRITY OF THE
 FORMAT FILES MUST BE CHECKED BY A HUMAN!\n"
 
+
 read -p "Proceed? Enter [Y/n]: " PROMPT
 if [[ ! $PROMPT = [y,Y]* ]]; then
     echo "Exiting prompt."
     exit
 fi
 
-{ # FILL THIS IN ;find ${OBR}/process/format/ -name "*.json"; } | python ${OBR}/tools/process.py > ${OBR}/process/log
+{ echo "${OBR}/process/"; find ${OBR}/process/format/ -name "*.json"; } | python ${OBR}/tools/process.py > ${OBR}/process/log
 #python ${OBR}/tools/clean.py
 
 echo "Done. Process details recorded in './process/log'."
