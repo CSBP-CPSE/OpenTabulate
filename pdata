@@ -2,7 +2,7 @@
 
 # A script to process the data.
 
-OBR_DIR=$(dirname "$0")
+OBR=$(dirname "$0")
 
 echo -e "Be sure to have loaded each .json format file into './process/format' and the 
 corresponding data file(s) as specified in the format file into './processing/data'.
@@ -14,11 +14,11 @@ FORMAT FILES MUST BE CHECKED BY A HUMAN!\n"
 
 read -p "Proceed? Enter [Y/n]: " PROMPT
 if [[ ! $PROMPT = [y,Y]* ]]; then
-    exit 1
+    echo "Exiting prompt."
+    exit
 fi
 
-#python ${OBR_DIR}/tools/tbp.py
-#python ${OBR_DIR}/tools/process.py
-#python ${OBR_DIR}/tools/clean.py
+{ # FILL THIS IN ;find ${OBR}/process/format/ -name "*.json"; } | python ${OBR}/tools/process.py > ${OBR}/process/log
+#python ${OBR}/tools/clean.py
 
 echo "Done. Process details recorded in './process/log'."

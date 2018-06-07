@@ -1,1 +1,0 @@
-./OpenBusinessRepository/preprocessing/format/format.json
