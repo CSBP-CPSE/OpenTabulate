@@ -3,14 +3,12 @@
 
 ~ Maksym Neyra-Nesterenko
 
-This script serves as a .xml file parser
+A collection of parsing functions for different file formats.
 
-CURRENT ISSUES:
+ISSUES:
 - How do we associate child entries (e.g. leaves) to parent entries in .xml parsing?
   Some parent nodes may have missing data entries, so to correctly parse, each row in
   the processed .csv file must correspond to <estab> in uslist2018-05-24-18-25.xml
-- Utilizing 'type' and 'filename/path' [for a more general script which calls modules]
-
 """
 
 from xml.etree import ElementTree

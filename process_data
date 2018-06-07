@@ -5,8 +5,8 @@
 OBR=$(dirname "$0")
 
 
-echo -e "Be sure to have loaded each .json format file into './process/format' and the 
-corresponding data file(s) as specified in the format file into './processing/data'.
+echo -e "Be sure to have loaded each .json format file into './sources' and the 
+corresponding data file(s) as specified in the format file into './data/preprocessed'.
 
 Format files with invalid syntax will be ignored. Those with erroneous inputs may give
 unintended results during the data processing or cleaning. The integrity-checking tools
@@ -20,7 +20,7 @@ if [[ ! $PROMPT = [y,Y]* ]]; then
     exit
 fi
 
-{ echo "${OBR}/process/"; find ${OBR}/process/format/ -name "*.json"; } | python ${OBR}/tools/process.py > ${OBR}/process/log
+{ echo "${OBR}/data/"; find ${OBR}/sources/ -name "*.json"; } | python ${OBR}/tools/process.py > ${OBR}/process/plog
 #python ${OBR}/tools/clean.py
 
-echo "Done. Process details recorded in './process/log'."
+echo "Done. Process details recorded in './data/plog'."
