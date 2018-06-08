@@ -4,65 +4,74 @@ Statistics Canada - Center for Special Business Projects - DEIL
 Maksym Neyra-Nesterenko
 
 A collection of parsing functions for different file formats.
-
-ISSUES AND RESOLUTIONS:
-- How do we associate child entries (e.g. leaves) to parent entries in .xml parsing?
-  Some parent nodes may have missing data entries, so to correctly parse, each row in
-  the processed .csv file must correspond to <estab> in uslist2018-05-24-18-25.xml
-- Turn the hash table construction into a function (its used in all parsers)
-- Modify field_name for loop so that in "except KeyError", a missing data field is
-  assigned to be the empty string (or a space?)
 """
 
 from xml.etree import ElementTree
+#from postal.parser import parse_address
 import csv
 
-def xml_parse(data,obr_p_path):
-    # construct hash table for field names
-    field_names = ['name', 'address', 'city', 'region', 'postcode', 'phone']
-    data_field = dict()
+# Global variables
+field = ['name', 'unit', 'st_number', 'st_name', 'address', 'city', 'region', 'postcode', 'phone']
 
-    header = data['info']['header']
-    filename = data['filename']
 
-    for i in field_names:
+def xml_hash_table_gen(json_data):
+    global field
+    field_dict = dict()
+    header_entry = json_data['info']['header']
+    filename = json_data['filename']
+    
+    for i in field:
         try:
-            data_field[i] = ".//" + data['info'][i]
+            field_dict[i] = ".//" + json_data['info'][i]
         except KeyError: # if a key is missing, ignore
             continue
+    return field_dict, header_entry, filename
 
-    # parse DATA.xml file and write output to DATA.csv
-    tree = ElementTree.parse(obr_p_path + '/ppdata/' + filename)
+
+def addr_parse():
+    # To do for later
+    print("STUB")
+
+
+def xml_parse(json_data, obr_p_path):
+    # build hash table
+    data_field, header, filename = xml_hash_table_gen(json_data)
+
+    # parse xml and write to csv
+    tree = ElementTree.parse(obr_p_path + '/preprocessed/' + filename)
     root = tree.getroot()
 
-    new_file = filename.partition(".")[0] + ".csv"
+    dirty_file = filename.partition(".")[0] + ".csv"
 
-    with open(obr_p_path + '/dirty/' + new_file, 'w') as csvfile:
-        dp = csv.writer(csvfile, delimiter=',', quotechar='\'', quoting=csv.QUOTE_ALL)
+    with open(obr_p_path + '/dirty/' + dirty_file, 'w') as csvfile:
+        dp = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
         for element in root.findall(header):
             row = []
             for key in data_field:
-                subelement = element.find(data_field[key])
-                if not subelement is None:
-                    row.append(subelement.text)
+                if (key == 'address') and isinstance(data_field[key], dict):
+                    # do a subelement search for street name, number, and unit number
+                    # inside this if statement
+                    print("STUB")
+                elif (key == 'address') and isinstance(data_field[key], str):
+                    # parse the address and then append street name, number, etc.
+                    # CURRENTLY A STUB, SOON TO CHANGE
+                    #tokens = parse_address(data_field[key])
+                    # SEARCH 'tokens' TO APPEND APPROPRIATE ITEMS
+                    subelement = element.find(data_field[key])
+                    if not subelement is None:
+                        row.append(subelement.text)
+                    else:
+                        row.append(" ")
                 else:
-                    row.append(" ")
+                    subelement = element.find(data_field[key])
+                    # handles missing data fields
+                    if not subelement is None:
+                        row.append(subelement.text)
+                    else:
+                        row.append(" ")
             dp.writerow(row)
     csvfile.close()
 
+
 def csv_parse(data,obr_p_path):
-    # construct hash table for field names
-    field_names = ['name', 'address', 'city', 'region', 'postcode', 'phone']
-    data_field = dict()
-
-    header = data['info']['header']
-    filename = data['filename']
-
-    for i in field_names:
-        try:
-            data_field[i] = ".//" + data['info'][i]
-        except KeyError: # if a key is missing, ignore
-            continue
-
-    
-    # ...
+    data_field, header, filename = xml_hash_table_gen(json_data)

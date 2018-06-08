@@ -52,5 +52,4 @@ for f_path in FORMAT_REL_P_LIST:
         print("Missing required field ->", f_path)
     print("PASSED:", f_path)
     # Parse data
-    parser(data,obr_p_path)
-    
+    xml_parse(data,obr_p_path)
