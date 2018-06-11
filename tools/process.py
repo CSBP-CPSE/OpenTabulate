@@ -10,7 +10,7 @@ import json
 from sys import stdin
 from sys import stdout
 from os import path
-from parser import xml_parse
+from obrparser import xml_parse
 
 # Checks if a key-value pair has an empty value
 def isEmpty(value):

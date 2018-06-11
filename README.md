@@ -20,4 +20,5 @@ The OpenBusinessRepository (OBuissR) is a listing of businesses records from ope
   - Handle replacing old data sets with new ones appropriately
   - For data processing files, 'address' must be a non-empty list, a string, or not included
   - Get address parser to handle unit numbers concatenated with street numbers e.g. 212-49 Road Street
+  - Replace some of the try/except's with proper handling (like if 'key' is in 'dictionary')
   - MORE ISSUES LISTED IN SCRIPTS

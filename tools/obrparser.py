@@ -81,7 +81,18 @@ def xml_parse(json_data, obr_p_path):
 
     with open(obr_p_path + '/dirty/' + dirty_file, 'w') as csvfile:
         dp = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
-        dp.writerow([f for f in data_field])
+
+        # write the initial row which identifies each column
+        if 'address' in data_field:
+            temp_var = [f for f in data_field].index('address')
+            temp_list = [f for f in data_field if f != 'address']
+            for i in lpsubf_order:
+                temp_list.insert(temp_var, i)
+                temp_var += 1
+            dp.writerow(temp_list)
+        else:
+            dp.writerow([f for f in data_field])
+
         for element in root.findall(header):
             row = []
             for key in data_field:
@@ -92,8 +103,8 @@ def xml_parse(json_data, obr_p_path):
                         row.append(" ")
                         row.append(" ")
                         continue
-                    # -- TESTING ~ handle countries properly --
-                    tokens = parse_address(subelement.text + " , Canada")
+                    # -- ~ handle countries properly - see pypostal doc --
+                    tokens = parse_address(subelement.text)
 
                     # add 'empty' tokens that were not added by parse_address
                     for i in lpsubf_order:
