@@ -30,6 +30,8 @@ FORMAT_REL_P_LIST = stdin.readlines()
 # Data processing
 for f_path in FORMAT_REL_P_LIST:
     f_path = f_path[:-1]
+    # safeguard depending on how you obtain the
+    # data processing instruction file paths
     if not path.exists(f_path):
         print("File does not exist ->", f_path)
         continue
@@ -48,8 +50,10 @@ for f_path in FORMAT_REL_P_LIST:
            isEmpty(data['info']['name']) or \
            isEmpty(data['info']['address']):
             print("Contains an empty field ->", f_path)
+            continue
     except KeyError: # semantic error
         print("Missing required field ->", f_path)
+        continue
     print("PASSED:", f_path)
     # Parse data
     xml_parse(data,obr_p_path)
