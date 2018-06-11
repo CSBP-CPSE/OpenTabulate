@@ -55,5 +55,6 @@ for f_path in FORMAT_REL_P_LIST:
         print("Missing required field ->", f_path)
         continue
     print("PASSED:", f_path)
-    # Parse data
+    # %%% alert %%% : see parser.py
+    # -- SUBJECT TO CHANGE! Must parse from inferring 'type' --
     xml_parse(data,obr_p_path)

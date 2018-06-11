@@ -34,8 +34,8 @@ def xml_hash_table_gen(json_data):
                 field_dict[i] = ".//" + json_data['info'][i]
         except KeyError: # if a key is missing, ignore
             continue
-        except TypeError: # if 'address' is a list, ignore
-            continue
+        except TypeError: # if 'address' is of type dict, ignore exception thrown in 'else'
+            continue      # if 'address' if of type str, ignore exception thrown in 'if'
 
     return field_dict, header_entry, filename
 
@@ -71,6 +71,9 @@ def xml_parse(json_data, obr_p_path):
     #data_field = order_hash_keys(data_field)
     
     # parse xml and write to csv
+
+    # -- HANDLE PARSING FAILURE HERE --
+    # -- ADDITIONALLY, HANDLE NON-EXISTENT FILE/PATH HERE OR IN PROCESS.PY AT %%% alert %%% --
     tree = ElementTree.parse(obr_p_path + '/preprocessed/' + filename)
     root = tree.getroot()
 
