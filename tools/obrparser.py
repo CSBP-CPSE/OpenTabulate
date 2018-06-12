@@ -27,16 +27,12 @@ def xml_hash_table_gen(json_data):
 
     # append existing data using XPath expressions (for parsing)
     for i in field:
-        try:
-            if i == 'st_number' or i == 'st_name' or i == 'unit':
-                field_dict[i] = ".//" + json_data['info']['address'][i]
-            else:
-                field_dict[i] = ".//" + json_data['info'][i]
-        except KeyError: # if a key is missing, ignore
-            continue
-        except TypeError: # if 'address' is of type dict, ignore exception thrown in 'else'
-            continue      # if 'address' if of type str, ignore exception thrown in 'if'
-
+        if i in json_data['info'] and i != 'address':
+            field_dict[i] = ".//" + json_data['info'][i]
+        elif i == 'address' and isinstance(json_data['info'][i], str):
+            field_dict[i] = ".//" + json_data['info'][i]
+        elif (i == 'st_number' or i == 'st_name' or i == 'unit') and isinstance(json_data['info']['address'], dict):
+            field_dict[i] = ".//" + json_data['info']['address'][i]
     return field_dict, header_entry, filename
 
 # -- IN DEVELOPMENT -- 
@@ -45,10 +41,10 @@ def addr_parse():
     print("STUB")
 
 # -- IN DEVELOPMENT --
-def order_hash_keys(dictionary):
-    # To do for later
-    print("STUB")
-    return dictionary
+#def order_hash_keys(dictionary):
+#    # To do for later
+#    print("STUB")
+#    return dictionary
 
 
 # handle elements of type 'None' in XML tree
@@ -103,14 +99,14 @@ def xml_parse(json_data, obr_p_path):
                         row.append(" ")
                         row.append(" ")
                         continue
+                    # ---- --
                     # -- ~ handle countries properly - see pypostal doc --
+                    # ---- --
                     tokens = parse_address(subelement.text)
 
                     # add 'empty' tokens that were not added by parse_address
                     for i in lpsubf_order:
-                        try:
-                            [t[1] for t in tokens].index(i)
-                        except ValueError:
+                        if not (i in [t[1] for t in tokens]):
                             tokens.append(('',i))
 
                     # keep address tokens

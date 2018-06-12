@@ -16,12 +16,11 @@ The OpenBusinessRepository (OBuissR) is a listing of businesses records from ope
 ## Program-specific issues
   - Removing the requirement for a header (mainly needed for XML parsing)
   - Require `for` loop in hash table definition to assign empty strings to non-existent fields
-  - Handle column merging in MySQL appropriately
-  - Handle replacing old data sets with new ones appropriately
-  - For data processing files, 'address' must be a non-empty list, a string, or not included
+  - Handle column merging in MySQL appropriately + replacing old data sets with new ones appropriately
   - Get address parser to handle unit numbers concatenated with street numbers e.g. 212-49 Road Street
-  - Replace some of the try/except's with proper handling (like if 'key' is in 'dictionary')
-  - MORE ISSUES LISTED IN SCRIPTS
+  - Specify a `data_field` key order (might not be needed if using SQL)
+  - Handle parsing failure in XML parsing
+  - Have a separate parser that does not handle address parsing
 
 ## Portability issues
   - the data process script is written in Bash

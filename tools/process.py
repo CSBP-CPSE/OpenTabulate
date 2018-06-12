@@ -39,7 +39,7 @@ for f_path in FORMAT_REL_P_LIST:
     try:
         with open(f_path) as f:
             data = json.load(f)
-    except ValueError as e: # failed parse
+    except ValueError: # failed parse
         print("Failed to parse ->", f_path)
         continue
     # These fields must exist and be non-empty in the format file!
