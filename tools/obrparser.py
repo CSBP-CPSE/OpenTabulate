@@ -35,6 +35,24 @@ def xml_hash_table_gen(json_data):
             field_dict[i] = ".//" + json_data['info']['address'][i]
     return field_dict, header_entry, filename
 
+# -- IN DEVELOPMENT --
+def csv_hash_table_gen(json_data):
+    global field
+    field_dict = dict()
+    # HEADER ENTRY NOT NEEDED FOR CSV !!!
+    header_entry = json_data['info']['header']
+    filename = json_data['filename']
+
+    for i in field:
+        if i in json_data['info'] and i != 'address':
+            field_dict[i] = json_data['info'][i]
+        elif i == 'address' and isinstance(json_data['info'][i], str):
+            field_dict[i] = json_data['info'][i]
+        elif (i == 'st_number' or i == 'st_name' or i == 'unit') and isinstance(json_data['info']['address'], dict):
+            field_dict[i] = json_data['info']['address'][i]
+    return field_dict, header_entry, filename
+    
+
 # -- IN DEVELOPMENT -- 
 def addr_parse():
     # To do for later
@@ -53,7 +71,7 @@ def xml_NoneType_handler(row_list, element):
     if (not element is None) and (not element.text is None):
         row_list.append(element.text.upper())
     else:
-        row_list.append(" ")
+        row_list.append('')
     return row_list
 
 
@@ -73,61 +91,128 @@ def xml_parse(json_data, obr_p_path):
     tree = ElementTree.parse(obr_p_path + '/preprocessed/' + filename)
     root = tree.getroot()
 
-    dirty_file = filename.partition(".")[0] + ".csv"
+    if len(filename.split('.')) == 1:
+        dirty_file = filename + ".csv"
+    else:
+        dirty_file = '.'.join(str(x) for x in filename.split('.')[:-1]) + ".csv"
 
-    with open(obr_p_path + '/dirty/' + dirty_file, 'w') as csvfile:
-        dp = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+    csvfile = open(obr_p_path + '/dirty/' + dirty_file, 'w')
+    dp = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
 
-        # write the initial row which identifies each column
-        if 'address' in data_field:
-            temp_var = [f for f in data_field].index('address')
-            temp_list = [f for f in data_field if f != 'address']
-            for i in lpsubf_order:
-                temp_list.insert(temp_var, i)
-                temp_var += 1
-            dp.writerow(temp_list)
-        else:
-            dp.writerow([f for f in data_field])
+    # write the initial row which identifies each column
+    if 'address' in data_field:
+        temp_var = [f for f in data_field].index('address')
+        temp_list = [f for f in data_field if f != 'address']
+        for i in lpsubf_order:
+            temp_list.insert(temp_var, i)
+            temp_var += 1
+        dp.writerow(temp_list)
+    else:
+        dp.writerow([f for f in data_field])
 
-        for element in root.findall(header):
-            row = []
-            for key in data_field:
-                if key == 'address':
-                    subelement = element.find(data_field[key])
-                    if (subelement is None) or (subelement.text is None):
-                        row.append(" ")
-                        row.append(" ")
-                        row.append(" ")
-                        continue
-                    # ---- --
-                    # -- ~ handle countries properly - see pypostal doc --
-                    # ---- --
-                    tokens = parse_address(subelement.text)
+    for element in root.findall(header):
+        row = []
+        for key in data_field:
+            if key == 'address':
+                subelement = element.find(data_field[key])
+                if (subelement is None) or (subelement.text is None):
+                    row.append('')
+                    row.append('')
+                    row.append('')
+                    continue
+                # ---- --
+                # -- ~ handle countries properly - see pypostal doc --
+                # ---- --
+                tokens = parse_address(subelement.text)
 
-                    # add 'empty' tokens that were not added by parse_address
-                    for i in lpsubf_order:
-                        if not (i in [t[1] for t in tokens]):
-                            tokens.append(('',i))
+                # add 'empty' tokens that were not added by parse_address
+                for i in lpsubf_order:
+                    if not (i in [t[1] for t in tokens]):
+                        tokens.append(('',i))
 
-                    # keep address tokens
-                    tokens = [t for t in tokens if t[1] == 'unit' or \
-                              t[1] == 'house_number' or t[1] == 'road']
+                # keep address tokens
+                tokens = [t for t in tokens if t[1] == 'unit' or \
+                          t[1] == 'house_number' or t[1] == 'road']
 
-                    # sort tokens
-                    tokens = sorted(tokens, key=lambda x: lpsubf_order[x[1]])
+                # sort tokens
+                tokens = sorted(tokens, key=lambda x: lpsubf_order[x[1]])
 
-                    # add data to csv
-                    for t in tokens:
-                        if t[0] != '':
-                            row.append(t[0].upper())
-                        else:
-                            row.append(" ")
-                else: # non-address keys
-                    subelement = element.find(data_field[key])
-                    row = xml_NoneType_handler(row, subelement)
-            dp.writerow(row)
+                # add data to csv
+                for t in tokens:
+                    if t[0] != '':
+                        row.append(t[0].upper())
+                    else:
+                        row.append('')
+            else: # non-address keys
+                subelement = element.find(data_field[key])
+                row = xml_NoneType_handler(row, subelement)
+        dp.writerow(row)
     csvfile.close()
 
 # -- IN DEVELOPMENT --
 def csv_parse(data,obr_p_path):
-    data_field, header, filename = xml_hash_table_gen(json_data)
+    data_field, header, filename = csv_hash_table_gen(data)
+    
+    # -- REDEFINE ORDER OF KEYS OF 'data_field' HERE --
+    # CURRENTLY STUBBED
+    #data_field = order_hash_keys(data_field)
+    
+    # construct csv parser
+    csv_file_read = open(obr_p_path + '/preprocessed/' + filename, 'r', encoding='latin-1', newline='')
+    cparse = csv.DictReader(csv_file_read)
+
+    # consruct csv writer to dirty
+    if len(filename.split('.')) == 1:
+        dirty_file = filename + ".csv"
+    else:
+        dirty_file = '.'.join(str(x) for x in filename.split('.')[:-1]) + ".csv"
+    
+    csv_file_write = open(obr_p_path + '/dirty/' + dirty_file, 'w')
+    cprint = csv.writer(csv_file_write, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+
+    # write the initial row which identifies each column
+    if 'address' in data_field:
+        temp_var = [f for f in data_field].index('address')
+        temp_list = [f for f in data_field if f != 'address']
+        for i in lpsubf_order:
+            temp_list.insert(temp_var, i)
+            temp_var += 1
+        cprint.writerow(temp_list)
+    else:
+        cprint.writerow([f for f in data_field])
+
+    for entity in cparse:
+        row = []
+        for key in data_field:
+            if key == 'address':
+                entry = entity[data_field[key]]
+                # ---- --
+                # -- ~ handle countries properly - see pypostal doc --
+                # ---- --
+                tokens = parse_address(entry)
+
+                # add 'empty' tokens that were not added by parse_address
+                for i in lpsubf_order:
+                    if not (i in [t[1] for t in tokens]):
+                        tokens.append(('',i))
+
+                # keep address tokens
+                tokens = [t for t in tokens if t[1] == 'unit' or \
+                          t[1] == 'house_number' or t[1] == 'road']
+
+                # sort tokens
+                tokens = sorted(tokens, key=lambda x: lpsubf_order[x[1]])
+
+                # add data to csv
+                for t in tokens:
+                    if t[0] != '':
+                        row.append(t[0].upper())
+                    else:
+                        row.append('')
+            else: # non-address keys
+                entry = entity[data_field[key]]
+                row.append(entry)
+        cprint.writerow(row)
+        
+    csv_file_read.close()
+    csv_file_write.close()

@@ -10,7 +10,7 @@ import json
 from sys import stdin
 from sys import stdout
 from os import path
-from obrparser import xml_parse
+import obrparser
 
 # Checks if a key-value pair has an empty value
 def isEmpty(value):
@@ -56,5 +56,7 @@ for f_path in FORMAT_REL_P_LIST:
         continue
     print("PASSED:", f_path)
     # %%% alert %%% : see parser.py
-    # -- SUBJECT TO CHANGE! Must parse from inferring 'type' --
-    xml_parse(data,obr_p_path)
+    if data['type'] == 'xml':
+        obrparser.xml_parse(data,obr_p_path)
+    elif data['type'] == 'csv':
+        obrparser.csv_parse(data,obr_p_path)

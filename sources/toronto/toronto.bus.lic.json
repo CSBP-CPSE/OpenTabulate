@@ -1,0 +1,11 @@
+{
+    "filename": "toronto.business.licenses.csv",
+    "type": "csv",
+    "info": {
+	"header": "STUB",
+	"name": "Client Name",
+	"address": "Licence Address Line 1",
+	"phone": "Business Phone",
+	"postcode": "Licence Address Line 3"
+    }
+}
