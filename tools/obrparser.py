@@ -50,7 +50,7 @@ def csv_hash_table_gen(json_data):
             field_dict[i] = json_data['info'][i]
         elif (i == 'st_number' or i == 'st_name' or i == 'unit') and isinstance(json_data['info']['address'], dict):
             field_dict[i] = json_data['info']['address'][i]
-    return field_dict, header_entry, filename
+    return kfield_dict, header_entry, filename
     
 
 # -- IN DEVELOPMENT -- 
@@ -161,7 +161,7 @@ def csv_parse(data,obr_p_path):
     csv_file_read = open(obr_p_path + '/preprocessed/' + filename, 'r', encoding='latin-1', newline='')
     cparse = csv.DictReader(csv_file_read)
 
-    # consruct csv writer to dirty
+    # construct csv writer to dirty
     if len(filename.split('.')) == 1:
         dirty_file = filename + ".csv"
     else:
