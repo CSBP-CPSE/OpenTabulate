@@ -1,0 +1,16 @@
+{
+    "filename": "vancouver_business_licenses.xml",
+    "type": "xml",
+    "info": {
+	"header": "BusinessLicence",
+	"name": "BusinessName",
+	"address": {
+	    "st_number": "House",
+	    "st_name": "Street",
+	    "unit": "Unit"
+	},
+	"city": "City",
+	"region": "Province",
+	"postcode": "PostalCode"
+    }
+}

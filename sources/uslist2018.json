@@ -1,0 +1,12 @@
+{
+    "filename": "uslist2018-05-24-18-25.xml",
+    "type": "xml",
+    "info": {
+	"header": "estab",
+	"name": "Name",
+	"address": "Address",
+	"city": "City",
+	"region": "Province",
+	"postcode": "PostalCode"
+    }
+}
