@@ -54,7 +54,8 @@ for f_path in FORMAT_REL_P_LIST:
     except KeyError: # semantic error
         print("Missing required field ->", f_path)
         continue
-    print("PASSED:", f_path)
+
+    print("Acceptable syntax:", f_path)
 
     if data['type'] == 'xml':
         es = obrparser.xml_parse(data,obr_p_path)

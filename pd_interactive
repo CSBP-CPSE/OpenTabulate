@@ -20,7 +20,7 @@ if [[ ! $PROMPT = [y,Y]* ]]; then
     exit
 fi
 
-time { echo "${OBR}/data/"; find ${OBR}/sources/ -name "*.json"; } | python ${OBR}/tools/process.py > ${OBR}/data/plog
+{ echo "${OBR}/data/"; find ${OBR}/sources/ -name "*.json"; } | python ${OBR}/tools/process.py > ${OBR}/data/log
 #python ${OBR}/tools/clean.py
 
-echo "Done. Process details recorded in './data/plog'."
+echo "Done. Process details recorded in './data/log'."
