@@ -1,25 +1,36 @@
 """
-Statistics Canada - Center for Special Business Projects - DEIL
+A data processing tool for OpenBusinessRepository.
 
-Maksym Neyra-Nesterenko
+This module consists of tools to parse different file formats and convert them to CSVs based on 
+the standards defined by the Data Exploration and Integration Lab at Statistics Canada (DEIL).
 
-A collection of parsing functions for different file formats.
+Written by Maksym Neyra-Nesterenko.
 """
 
 from xml.etree import ElementTree
 from postal.parser import parse_address
+import os
 import csv
 import copy
 
-# Global variables
 field = ['name', 'address', 'st_number', 'st_name', 'unit', \
          'city', 'region', 'phone', 'postcode']
 
-# Address parse ordering
 lpsubf_order = {'house_number' : 0, 'road' : 1, 'unit' : 2}
 
-# Hash table generation
 def xml_hash_table_gen(json_data):
+    """
+    Constructs a filtered dictionary to be used by the XML parser.
+
+    Note:
+        This function is used by 'xml_parse'.
+
+    Args:
+        json_data: dictionary obtained by json.load when read from DPI.
+
+    Returns:
+        The filtered dictionary, header entry, and filename of the dataset to be parsed.
+    """
     global field
     field_dict = dict()
     header_entry = json_data['info']['header']
@@ -37,6 +48,18 @@ def xml_hash_table_gen(json_data):
 
 # -- IN DEVELOPMENT --
 def csv_hash_table_gen(json_data):
+    """
+    Constructs a filtered dictionary to be used by the CSV parser.
+
+    Note:
+        This function is used by 'csv_parse'.
+
+    Args:
+        json_data: dictionary obtained by json.load when read from DPI.
+
+    Returns:
+        The filtered dictionary, header entry, and filename of the dataset to be parsed.
+    """
     global field
     field_dict = dict()
     # HEADER ENTRY NOT NEEDED FOR CSV !!!
@@ -50,13 +73,40 @@ def csv_hash_table_gen(json_data):
             field_dict[i] = json_data['info'][i]
         elif (i == 'st_number' or i == 'st_name' or i == 'unit') and isinstance(json_data['info']['address'], dict):
             field_dict[i] = json_data['info']['address'][i]
-    return kfield_dict, header_entry, filename
+    return field_dict, header_entry, filename
     
 
-# -- IN DEVELOPMENT -- 
-def addr_parse():
-    # To do for later
-    print("STUB")
+def canadian_Address_Parse(line):
+    tokens = parse_address(line)
+    
+    # add 'empty' tokens that were not added by parse_address
+    for i in lpsubf_order:
+        if not (i in [t[1] for t in tokens]):
+            tokens.append(('',i))
+            
+    # keep address tokens
+    tokens = [t for t in tokens if t[1] == 'unit' or \
+              t[1] == 'house_number' or t[1] == 'road']
+
+    # split house numbers separated by hyphen
+    TEMP = ([t for t in tokens if t[1] == 'house_number'][0])[0]
+    if '-' in TEMP:
+        sp = TEMP.split('-')
+        UNIT = sp[0]
+        STREET_NO = sp[1]
+
+        for i in tokens:
+            if i[1] == 'house_number':
+                tokens.remove(i)
+                tokens.append((STREET_NO,'house_number'))
+            elif i[1] == 'unit':
+                tokens.remove(i)
+                tokens.append((UNIT,'unit'))
+
+    # sort tokens
+    tokens = sorted(tokens, key=lambda x: lpsubf_order[x[1]])
+
+    return tokens
 
 # -- IN DEVELOPMENT --
 #def order_hash_keys(dictionary):
@@ -67,7 +117,21 @@ def addr_parse():
 
 # handle elements of type 'None' in XML tree
 def xml_NoneType_handler(row_list, element):
-    # append data to csv and handle missing subelements
+    """
+    Handles XML data that has missing or empty elements. Such elements have an empty string
+    appended to the CSV file to avoid error calls. Otherwise, valid elements are appended
+    without concern.
+
+    Note:
+        This function is used by 'xml_parse'.
+
+    Args:
+        row_list: A list of fields that will appended to the CSV file as a row.
+        element: A node in the XML tree.
+
+    Returns:
+        The list to be appended as a row in the resulting CSV file.
+    """
     if (not element is None) and (not element.text is None):
         row_list.append(element.text.upper())
     else:
@@ -75,20 +139,30 @@ def xml_NoneType_handler(row_list, element):
     return row_list
 
 
-# XML data processing
 def xml_parse(json_data, obr_p_path):
-    # build hash table
-    data_field, header, filename = xml_hash_table_gen(json_data)
+    """
+    Parses an XML file using the xml.etree.ElementTree module and extracts the necessary 
+    information to rewrite the data set into a CSV file.
 
+    Args:
+        json_data: dictionary obtained by json.load when read from DPI.
+        obr_p_path: the root folder of the OpenBusinessRepository folder hierarchy
+
+    Raises:
+        ...
+    """
+    data_field, header, filename = xml_hash_table_gen(json_data)
     # -- REDEFINE ORDER OF KEYS OF 'data_field' HERE --
     # CURRENTLY STUBBED
     #data_field = order_hash_keys(data_field)
     
-    # parse xml and write to csv
-
-    # -- HANDLE PARSING FAILURE HERE --
-    # -- ADDITIONALLY, HANDLE NON-EXISTENT FILE/PATH HERE OR IN PROCESS.PY AT %%% alert %%% --
-    tree = ElementTree.parse(obr_p_path + '/preprocessed/' + filename)
+    try:
+        tree = ElementTree.parse(obr_p_path + '/preprocessed/' + filename)
+    except ElementTree.ParseError:
+        return 1
+    except FileNotFoundError:
+        return 2
+    
     root = tree.getroot()
 
     if len(filename.split('.')) == 1:
@@ -120,23 +194,9 @@ def xml_parse(json_data, obr_p_path):
                     row.append('')
                     row.append('')
                     continue
-                # ---- --
-                # -- ~ handle countries properly - see pypostal doc --
-                # ---- --
-                tokens = parse_address(subelement.text)
-
-                # add 'empty' tokens that were not added by parse_address
-                for i in lpsubf_order:
-                    if not (i in [t[1] for t in tokens]):
-                        tokens.append(('',i))
-
-                # keep address tokens
-                tokens = [t for t in tokens if t[1] == 'unit' or \
-                          t[1] == 'house_number' or t[1] == 'road']
-
-                # sort tokens
-                tokens = sorted(tokens, key=lambda x: lpsubf_order[x[1]])
-
+                # parse address
+                tokens = canadian_Address_Parse(subelement.text)
+                
                 # add data to csv
                 for t in tokens:
                     if t[0] != '':
@@ -148,8 +208,9 @@ def xml_parse(json_data, obr_p_path):
                 row = xml_NoneType_handler(row, subelement)
         dp.writerow(row)
     csvfile.close()
+    return 0
 
-# -- IN DEVELOPMENT --
+
 def csv_parse(data,obr_p_path):
     data_field, header, filename = csv_hash_table_gen(data)
     
@@ -158,7 +219,11 @@ def csv_parse(data,obr_p_path):
     #data_field = order_hash_keys(data_field)
     
     # construct csv parser
-    csv_file_read = open(obr_p_path + '/preprocessed/' + filename, 'r', encoding='latin-1', newline='')
+    try:
+        csv_file_read = open(obr_p_path + '/preprocessed/' + filename, 'r', encoding='latin-1', newline='')
+    except FileNotFoundError:
+        return 1
+    
     cparse = csv.DictReader(csv_file_read)
 
     # construct csv writer to dirty
@@ -180,39 +245,31 @@ def csv_parse(data,obr_p_path):
         cprint.writerow(temp_list)
     else:
         cprint.writerow([f for f in data_field])
-
-    for entity in cparse:
-        row = []
-        for key in data_field:
-            if key == 'address':
-                entry = entity[data_field[key]]
-                # ---- --
-                # -- ~ handle countries properly - see pypostal doc --
-                # ---- --
-                tokens = parse_address(entry)
-
-                # add 'empty' tokens that were not added by parse_address
-                for i in lpsubf_order:
-                    if not (i in [t[1] for t in tokens]):
-                        tokens.append(('',i))
-
-                # keep address tokens
-                tokens = [t for t in tokens if t[1] == 'unit' or \
-                          t[1] == 'house_number' or t[1] == 'road']
-
-                # sort tokens
-                tokens = sorted(tokens, key=lambda x: lpsubf_order[x[1]])
-
-                # add data to csv
-                for t in tokens:
-                    if t[0] != '':
-                        row.append(t[0].upper())
-                    else:
-                        row.append('')
-            else: # non-address keys
-                entry = entity[data_field[key]]
-                row.append(entry)
-        cprint.writerow(row)
-        
+    try:
+        for entity in cparse:
+            row = []
+            for key in data_field:
+                if key == 'address':
+                    entry = entity[data_field[key]]
+                    tokens = canadian_Address_Parse(entry)
+                    # add data to csv
+                    for t in tokens:
+                        if t[0] != '':
+                            row.append(t[0].upper())
+                        else:
+                            row.append('')
+                else: # non-address keys
+                    entry = entity[data_field[key]]
+                    row.append(entry)
+            cprint.writerow(row)
+    except ValueError:
+        # close reader / writer and delete the partially written data file
+        csv_file_read.close()
+        csv_file_write.close()
+        os.remove(obr_p_path + '/dirty/' + dirty_file)
+        return 2
+    
+    # success
     csv_file_read.close()
     csv_file_write.close()
+    return 0

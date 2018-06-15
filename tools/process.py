@@ -55,8 +55,17 @@ for f_path in FORMAT_REL_P_LIST:
         print("Missing required field ->", f_path)
         continue
     print("PASSED:", f_path)
-    # %%% alert %%% : see parser.py
+
     if data['type'] == 'xml':
-        obrparser.xml_parse(data,obr_p_path)
+        es = obrparser.xml_parse(data,obr_p_path)
+        if es == 1:
+            print("Could not parse XML file ->", f_path)
+        elif es == 2:
+            print("Could not find XML file in preprocessing ->", f_path)
     elif data['type'] == 'csv':
-        obrparser.csv_parse(data,obr_p_path)
+        es = obrparser.csv_parse(data,obr_p_path)
+        if es == 1:
+            print("Could not find CSV file in preprocessing ->", f_path)
+        elif es == 2:
+            print("DPI fields and CSV column names disagree ->", f_path)
+            
