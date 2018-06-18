@@ -1,0 +1,19 @@
+{
+    "filename": "2016_Mississauga_Business_Directory.csv",
+    "type": "csv",
+    "info": {
+	"header": "NULL",
+	"name": "Name",
+	"address": {
+	    "st_number": "StreetNo",
+	    "st_name": "StreetName",
+	    "unit": "UnitNo"
+	},
+     "phone": "Phone",
+     "postcode": "PostalCode",
+     "email": "EMail",
+     "website": "WebAddress",
+     "longitude": "X",
+     "latitude": "Y"
+    }
+}

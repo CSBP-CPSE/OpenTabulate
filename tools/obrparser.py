@@ -9,12 +9,13 @@ Written by Maksym Neyra-Nesterenko.
 
 from xml.etree import ElementTree
 from postal.parser import parse_address
-import os
+from os import remove
+import subprocess
 import csv
 import copy
 
-field = ['name', 'address', 'st_number', 'st_name', 'unit', \
-         'city', 'region', 'phone', 'postcode']
+field = ['name', 'address', 'st_number', 'st_name', 'postcode', 'unit', \
+         'city', 'region', 'phone', 'email', 'website', 'longitude', 'latitude']
 
 lpsubf_order = {'house_number' : 0, 'road' : 1, 'unit' : 2}
 
@@ -217,13 +218,13 @@ def csv_parse(data,obr_p_path):
     # -- REDEFINE ORDER OF KEYS OF 'data_field' HERE --
     # CURRENTLY STUBBED
     #data_field = order_hash_keys(data_field)
-    
+
     # construct csv parser
     try:
-        csv_file_read = open(obr_p_path + '/preprocessed/' + filename, 'r', encoding='latin-1', newline='')
+        csv_file_read = open(obr_p_path + '/preprocessed/' + filename, 'r', newline='')
     except FileNotFoundError:
         return 1
-    
+
     cparse = csv.DictReader(csv_file_read)
 
     # construct csv writer to dirty
@@ -262,11 +263,11 @@ def csv_parse(data,obr_p_path):
                     entry = entity[data_field[key]]
                     row.append(entry)
             cprint.writerow(row)
-    except ValueError:
+    except KeyError:
         # close reader / writer and delete the partially written data file
         csv_file_read.close()
         csv_file_write.close()
-        os.remove(obr_p_path + '/dirty/' + dirty_file)
+        remove(obr_p_path + '/dirty/' + dirty_file)
         return 2
     
     # success

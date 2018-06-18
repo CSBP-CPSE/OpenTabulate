@@ -10,6 +10,7 @@ import json
 from sys import stdin
 from sys import stdout
 from os import path
+import subprocess
 import obrparser
 
 # Checks if a key-value pair has an empty value
@@ -33,14 +34,14 @@ for f_path in FORMAT_REL_P_LIST:
     # safeguard depending on how you obtain the
     # data processing instruction file paths
     if not path.exists(f_path):
-        print("File does not exist ->", f_path)
+        print("ERROR: DPI does not exist ->", f_path)
         continue
     # Parse .json file
     try:
         with open(f_path) as f:
             data = json.load(f)
     except ValueError: # failed parse
-        print("Failed to parse ->", f_path)
+        print("ERROR: Failed to parse DPI ->", f_path)
         continue
     # These fields must exist and be non-empty in the format file!
     try:
@@ -49,24 +50,24 @@ for f_path in FORMAT_REL_P_LIST:
            isEmpty(data['info']['header']) or \
            isEmpty(data['info']['name']) or \
            isEmpty(data['info']['address']):
-            print("Contains an empty field ->", f_path)
+            print("ERROR: Contains an empty field ->", f_path)
             continue
     except KeyError: # semantic error
-        print("Missing required field ->", f_path)
+        print("ERROR: Missing required field ->", f_path)
         continue
-
+    
     print("Acceptable syntax:", f_path)
 
     if data['type'] == 'xml':
         es = obrparser.xml_parse(data,obr_p_path)
         if es == 1:
-            print("Could not parse XML file ->", f_path)
+            print("ERROR: Could not parse XML file ->", f_path)
         elif es == 2:
-            print("Could not find XML file in preprocessing ->", f_path)
+            print("ERROR: Could not find XML file in preprocessing ->", f_path)
     elif data['type'] == 'csv':
         es = obrparser.csv_parse(data,obr_p_path)
         if es == 1:
-            print("Could not find CSV file in preprocessing ->", f_path)
+            print("ERROR: Could not find CSV file in preprocessing ->", f_path)
         elif es == 2:
-            print("DPI fields and CSV column names disagree ->", f_path)
+            print("ERROR: DPI fields and CSV column names disagree ->", f_path)
             
