@@ -65,6 +65,8 @@ for f_path in FORMAT_REL_P_LIST:
         elif es == 2:
             print("ERROR: Could not find XML file in preprocessing ->", f_path)
     elif data['type'] == 'csv':
+        # handle unicode decoding errors before parsing
+        
         es = obrparser.csv_parse(data,obr_p_path)
         if es == 1:
             print("ERROR: Could not find CSV file in preprocessing ->", f_path)
