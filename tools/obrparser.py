@@ -14,8 +14,9 @@ import subprocess
 import csv
 import copy
 
-field = ['name', 'address', 'st_number', 'st_name', 'postcode', 'unit', \
-         'city', 'region', 'phone', 'email', 'website', 'longitude', 'latitude']
+field = ['name', 'bus_type', 'address', 'st_number', 'st_name', 'postcode', 'unit', \
+         'city', 'region', 'country', 'phone', 'email', 'website', \
+         'longitude', 'latitude', 'reg_date', 'exp_date', 'status', 'specid']
 
 lpsubf_order = {'house_number' : 0, 'road' : 1, 'unit' : 2}
 
@@ -140,14 +141,13 @@ def xml_NoneType_handler(row_list, element):
     return row_list
 
 
-def xml_parse(json_data, obr_p_path):
+def xml_parse(json_data):
     """
     Parses an XML file using the xml.etree.ElementTree module and extracts the necessary 
     information to rewrite the data set into a CSV file.
 
     Args:
         json_data: dictionary obtained by json.load when read from DPI.
-        obr_p_path: the root folder of the OpenBusinessRepository folder hierarchy
 
     Raises:
         ...
@@ -158,7 +158,7 @@ def xml_parse(json_data, obr_p_path):
     #data_field = order_hash_keys(data_field)
     
     try:
-        tree = ElementTree.parse(obr_p_path + '/preprocessed/' + filename)
+        tree = ElementTree.parse(filename)
     except ElementTree.ParseError:
         return 1
     except FileNotFoundError:
@@ -169,9 +169,9 @@ def xml_parse(json_data, obr_p_path):
     if len(filename.split('.')) == 1:
         dirty_file = filename + ".csv"
     else:
-        dirty_file = '.'.join(str(x) for x in filename.split('.')[:-1]) + ".csv"
+        dirty_file = '.'.join(str(x) for x in filename.split('.')[:-1]) + "-DIRTY.csv"
 
-    csvfile = open(obr_p_path + '/dirty/' + dirty_file, 'w')
+    csvfile = open('../dirty/' + dirty_file, 'w')
     dp = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
 
     # write the initial row which identifies each column
@@ -212,7 +212,7 @@ def xml_parse(json_data, obr_p_path):
     return 0
 
 
-def csv_parse(data,obr_p_path):
+def csv_parse(data):
     data_field, header, filename = csv_hash_table_gen(data)
     
     # -- REDEFINE ORDER OF KEYS OF 'data_field' HERE --
@@ -221,7 +221,7 @@ def csv_parse(data,obr_p_path):
 
     # construct csv parser
     try:
-        csv_file_read = open(obr_p_path + '/preprocessed/' + filename, 'r', newline='')
+        csv_file_read = open(filename, 'r', newline='')
     except FileNotFoundError:
         return 1
 
@@ -231,9 +231,9 @@ def csv_parse(data,obr_p_path):
     if len(filename.split('.')) == 1:
         dirty_file = filename + ".csv"
     else:
-        dirty_file = '.'.join(str(x) for x in filename.split('.')[:-1]) + ".csv"
+        dirty_file = '.'.join(str(x) for x in filename.split('.')[:-1]) + "-DIRTY.csv"
     
-    csv_file_write = open(obr_p_path + '/dirty/' + dirty_file, 'w')
+    csv_file_write = open('../dirty/' + dirty_file, 'w')
     cprint = csv.writer(csv_file_write, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
 
     # write the initial row which identifies each column
@@ -267,7 +267,7 @@ def csv_parse(data,obr_p_path):
         # close reader / writer and delete the partially written data file
         csv_file_read.close()
         csv_file_write.close()
-        remove(obr_p_path + '/dirty/' + dirty_file)
+        remove('../dirty/' + dirty_file)
         return 2
     
     # success

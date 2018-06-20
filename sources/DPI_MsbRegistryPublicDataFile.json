@@ -8,6 +8,10 @@
 	"city": "CityName",
 	"region": "AlphaProvinceCode",
 	"phone": "PhoneNumber",
-	"postcode": "PostalZipCode"
+	"postcode": "PostalZipCode",
+	"country": "AlphaCountryCode",
+	"status": "StatusDescriptionEnglish",
+	"reg_date": "MsbRegistrationDate",
+	"exp_date": "MsbRegistrationExpirationDate"
     }
 }

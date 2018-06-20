@@ -20,7 +20,7 @@ The OpenBusinessRepository (OBuissR) is a listing of businesses records from ope
   - Specify a `data_field` key order (might not be needed if using SQL)
   - Have a separate parser that does not handle address parsing.
   - Handle non-existent DPI fields (e.g. "phone" : "Phone", but "Phone" does not exist in data set)
-
+  - For parallelization, the current cheap knock-off is putting `bash` processes in the background -> need a way to determine CPU cores
 ## Character encoding issues
   - Some data sets are using the legacy encoding ISO 8859-1 (or CP863) instead of UTF-8. The current workaround is to search each data set for 'odd' characters, and if these are found, assume the file is encoded in ISO 8859-1.
   - Some data sets contain the byte order mark (BOM). This breaks the automation process if a field specified by the DPI occurs as the first column, since this first row/column is read. The current workaround is to use a `sed` script to erase the BOM, however, data loss may need to be inspected. 

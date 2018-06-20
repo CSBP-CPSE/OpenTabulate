@@ -1,0 +1,25 @@
+{
+    "filename": "vancouverbusiness_licences.xml",
+    "type": "xml",
+    "info": {
+	"header": "BusinessLicence",
+	"specid": "LicenceNumber",
+	"name": "BusinessName",
+	"bus_type": "BusinessType",
+	"status": "Status",
+	"address": {
+	    "st_number": "House",
+	    "st_name": "Street",
+	    "unit": "Unit"
+	},
+	"city": "City",
+	"region": "Province",
+	"country": "Country",
+	"postcode": "PostalCode",
+	"latitude": "Latitude",
+	"longitude": "Longitude",
+	"reg_date": "IssuedDate",
+	"exp_date": "ExpiredDate"
+    }
+	
+}

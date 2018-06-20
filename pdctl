@@ -1,0 +1,84 @@
+#!/bin/bash
+
+# An interactive script to process the data.
+
+# Parameter flags
+INTERACTIVE_FLAG=0
+LOG_FLAG=0
+VERBOSE_FLAG=0
+PARALLEL_FLAG=0
+
+# Available resources for parallelization
+CORES=1
+
+# Paths
+OBR=$(cd $(dirname $0); pwd -P) # subject to change for flexibility
+DATA_P_DIR_NAME="pddir" # data processing directory name
+
+
+while [ "$#" != "0" ]; do
+    # handle repeated positional parameters
+    if [ INTERACTIVE_FLAG -gt 1 ] || [ LOG_FLAG -gt 1 ] || \
+	   [ VERBOSE_FLAG -gt 1 ] || [ PARALLEL_FLAG -gt 1 ]; then
+	echo "Error: repeated parameters" 1>&2
+	exit 1
+    fi
+
+    case $1 in
+	'-p' | '--parallel' )
+	    echo "Run this in parallel using $(nproc) available cores"
+	    CORES=$(nproc)
+	    PARALLEL_FLAG=$[$PARALLEL_FLAG + 1]
+	    ;;
+	'-i' | '--interactive' )
+	    echo "Run the script in interactive mode"
+	    INTERACTIVE_FLAG=$[$INTERACTIVE_FLAG + 1]
+	    ;;
+	'-w' | '--log' )
+	    echo "Log process execution"
+	    LOG_FLAG=$[$LOG_FLAG + 1]
+	    VERBOSE_FLAG=$[$VERBOSE_FLAG + 1]
+	    arg="$2"
+	    if [ "${arg:0:1}" == '-' ]; then
+		echo "Do not process this argument"
+	    else
+		echo "Create file (ASSUMING PATH IS VALID)"
+		# do error handling here
+		shift
+	    fi
+	    unset arg
+	    ;;
+	'-v' | '--verbose' )
+	    echo "Verbose output. This is default when logging output"
+	    VERBOSE_FLAG=$[$VERBOSE_FLAG + 1]
+	    ;;
+	'-h' | '--help' )
+	    # If the help option is used, all parameters entered are ignored,
+	    # help text is sent to STDOUT, and the script terminates
+	    echo "Usage : ..."
+	    exit 0
+	    ;;
+	* )
+	    echo "Error: invalid parameters; type -h/--help for usage" 1>&2
+	    exit 1
+	    ;;
+    esac
+    # shift to next positional parameter
+    shift
+done
+
+echo "Process data?"
+read -r PROMPT
+if [[ ! $PROMPT = [y,Y]* ]]; then
+    echo "Exiting prompt."
+    exit
+fi
+
+# DPI_ prefix is for --- DEBUG ---
+list=$(find ${OBR}/sources/ -name "DPI_*.json" -type f)
+
+for src in $list; do
+    # CHANGE RAW TO PP LATER --- DEBUG ---
+    (cd ${OBR}/${DATA_P_DIR_NAME}/raw; echo $src | python ${OBR}/tools/process.py) &
+    wait "$!"
+done
