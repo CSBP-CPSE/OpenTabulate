@@ -10,7 +10,6 @@ Written by Maksym Neyra-Nesterenko.
 from xml.etree import ElementTree
 from postal.parser import parse_address
 from os import remove
-import subprocess
 import csv
 import copy
 
@@ -158,11 +157,9 @@ def xml_parse(json_data):
     #data_field = order_hash_keys(data_field)
     
     try:
-        tree = ElementTree.parse(filename)
+        tree = ElementTree.parse('./raw/' + filename)
     except ElementTree.ParseError:
         return 1
-    except FileNotFoundError:
-        return 2
     
     root = tree.getroot()
 
@@ -171,7 +168,7 @@ def xml_parse(json_data):
     else:
         dirty_file = '.'.join(str(x) for x in filename.split('.')[:-1]) + "-DIRTY.csv"
 
-    csvfile = open('../dirty/' + dirty_file, 'w')
+    csvfile = open('./dirty/' + dirty_file, 'w')
     dp = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
 
     # write the initial row which identifies each column
@@ -220,10 +217,7 @@ def csv_parse(data):
     #data_field = order_hash_keys(data_field)
 
     # construct csv parser
-    try:
-        csv_file_read = open(filename, 'r', newline='')
-    except FileNotFoundError:
-        return 1
+    csv_file_read = open('./pp/' + filename, 'r', newline='')
 
     cparse = csv.DictReader(csv_file_read)
 
@@ -233,7 +227,7 @@ def csv_parse(data):
     else:
         dirty_file = '.'.join(str(x) for x in filename.split('.')[:-1]) + "-DIRTY.csv"
     
-    csv_file_write = open('../dirty/' + dirty_file, 'w')
+    csv_file_write = open('./dirty/' + dirty_file, 'w')
     cprint = csv.writer(csv_file_write, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
 
     # write the initial row which identifies each column
@@ -267,7 +261,7 @@ def csv_parse(data):
         # close reader / writer and delete the partially written data file
         csv_file_read.close()
         csv_file_write.close()
-        remove('../dirty/' + dirty_file)
+        remove('./dirty/' + dirty_file)
         return 2
     
     # success
