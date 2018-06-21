@@ -18,6 +18,7 @@ field = ['name', 'bus_type', 'address', 'st_number', 'st_name', 'postcode', 'uni
          'longitude', 'latitude', 'reg_date', 'exp_date', 'status', 'specid']
 
 lpsubf_order = {'house_number' : 0, 'road' : 1, 'unit' : 2}
+# , 'city' : 3, 'region' : 4, 'postcode' : 5} -- RESERVED --
 
 def xml_hash_table_gen(json_data):
     """
@@ -47,7 +48,7 @@ def xml_hash_table_gen(json_data):
             field_dict[i] = ".//" + json_data['info']['address'][i]
     return field_dict, header_entry, filename
 
-# -- IN DEVELOPMENT --
+
 def csv_hash_table_gen(json_data):
     """
     Constructs a filtered dictionary to be used by the CSV parser.
@@ -59,12 +60,10 @@ def csv_hash_table_gen(json_data):
         json_data: dictionary obtained by json.load when read from DPI.
 
     Returns:
-        The filtered dictionary, header entry, and filename of the dataset to be parsed.
+        The filtered dictionary and filename of the dataset to be parsed.
     """
     global field
     field_dict = dict()
-    # HEADER ENTRY NOT NEEDED FOR CSV !!!
-    header_entry = json_data['info']['header']
     filename = json_data['filename']
 
     for i in field:
@@ -74,7 +73,7 @@ def csv_hash_table_gen(json_data):
             field_dict[i] = json_data['info'][i]
         elif (i == 'st_number' or i == 'st_name' or i == 'unit') and isinstance(json_data['info']['address'], dict):
             field_dict[i] = json_data['info']['address'][i]
-    return field_dict, header_entry, filename
+    return field_dict, filename
     
 
 def canadian_Address_Parse(line):
@@ -133,7 +132,9 @@ def xml_NoneType_handler(row_list, element):
     Returns:
         The list to be appended as a row in the resulting CSV file.
     """
-    if (not element is None) and (not element.text is None):
+    if element is None: # if the element is missing, return error
+        return True
+    if (not element.text is None):
         row_list.append(element.text.upper())
     else:
         row_list.append('')
@@ -203,21 +204,28 @@ def xml_parse(json_data):
                         row.append('')
             else: # non-address keys
                 subelement = element.find(data_field[key])
-                row = xml_NoneType_handler(row, subelement)
+                IS_NONE = xml_NoneType_handler(row, subelement)
+                if IS_NONE == True:
+                    print("[E] Header", element.tag, element.attrib, "is missing", data_field[key])
+                    csvfile.close()
+                    remove('./dirty/' + dirty_file)
+                    return 2
+                else:
+                    row = IS_NONE
         dp.writerow(row)
     csvfile.close()
     return 0
 
 
 def csv_parse(data):
-    data_field, header, filename = csv_hash_table_gen(data)
+    data_field, filename = csv_hash_table_gen(data)
     
     # -- REDEFINE ORDER OF KEYS OF 'data_field' HERE --
     # CURRENTLY STUBBED
     #data_field = order_hash_keys(data_field)
 
     # construct csv parser
-    csv_file_read = open('./pp/' + filename, 'r', encoding='utf-8', newline='') # errors='ignore'
+    csv_file_read = open('./pp/' + filename, 'r', encoding='utf-8', errors='ignore', newline='') 
     cparse = csv.DictReader(csv_file_read)
 
     # construct csv writer to dirty
@@ -257,11 +265,12 @@ def csv_parse(data):
                     row.append(entry)
             cprint.writerow(row)
     except KeyError:
+        print("[E] '", data_field[key], "' is not a field name in the CSV file.", sep='')
         # close reader / writer and delete the partially written data file
         csv_file_read.close()
         csv_file_write.close()
         remove('./dirty/' + dirty_file)
-        return 2
+        return 1
     
     # success
     csv_file_read.close()

@@ -22,7 +22,8 @@ import obrparser
 # -- FUNCTIONS --
 # ---------------
 
-def isEmpty(value): # Checks if value is an empty string
+def isEmpty(value):
+    # Checks if value is an empty string
     if value == '':
         return True
     else:
@@ -50,49 +51,56 @@ TOOLS_PATH = path.dirname(path.realpath(__file__))
 # safeguard depending on how you obtain the
 # data processing instruction file paths
 if not path.exists(SRC_PATH):
-    print("ERROR: DPI does not exist! ->", SRC_PATH)
+    print("[E] Input path does not exist >", SRC_PATH)
     exit(1)
 # Parse .json file
 try:
     with open(SRC_PATH) as f:
         data = json.load(f)
 except ValueError: # failed parse
-    print("ERROR: Failed to parse DPI ->", SRC_PATH)
+    print("[E] Wrong JSON format for DPI >", SRC_PATH)
     exit(1)
 # These fields must exist and be non-empty in the format file!
 try:
+    if isEmpty(data['type']):
+        print("[E] Missing 'type' > ", SRC_PATH)
+        exit(1)
+
     if isEmpty(data['filename']) or \
-       isEmpty(data['type']) or \
        isEmpty(data['info']['header']) or \
        isEmpty(data['info']['name']) or \
        isEmpty(data['info']['address']):
-        print("ERROR: Contains an empty field ->", SRC_PATH)
+        print("[E] Missing required field in", SRC_PATH)
         exit(1)
+
 except KeyError: # semantic error
-    print("ERROR: Missing required field ->", SRC_PATH)
+    print("[E] Missing REQUIRED field >", SRC_PATH)
     exit(1)
 
-# Check for existence of 'filename' in the raw directory
 if not path.exists('./raw/' + data['filename']):
-    print("ERROR: DPI filename not found in 'raw'! ->", SRC_PATH)
+    print("[E] 'filename' not found in raw folder > ", SRC_PATH)
     exit(1)
 
-print("Acceptable syntax:", SRC_PATH)
+print("[ ] DPI check passed > ", SRC_PATH)
 
 if data['type'] == 'xml':
     es = obrparser.xml_parse(data)
     if es == 1:
-        print("ERROR: Could not parse XML file ->", SRC_PATH)
-    elif es == 2:
-        print("ERROR: Could not find XML file in preprocessing ->", SRC_PATH)
+        print("[E] Failed to parse XML >", SRC_PATH)
+        exit(1)
+    if es == 2:
+        print("[E] Missing element in header >", SRC_PATH)
+        exit(1)
 elif data['type'] == 'csv':
     # remove byte order mark from files 
     subprocess.check_call([TOOLS_PATH + '/rmByteOrderMark', './raw/' + data['filename'], './pp/' + data['filename']])
     # handle unicode decoding errors before parsing
     if not UTF8_check('./pp/' + data['filename']):
         subprocess.check_call([TOOLS_PATH + '/fixCharEncoding', './pp/' + data['filename']])
+
     es = obrparser.csv_parse(data)
     if es == 1:
-        print("ERROR: Could not find CSV file in preprocessing ->", SRC_PATH)
-    elif es == 2:
-        print("ERROR: DPI fields and CSV column names disagree ->", SRC_PATH)
+        print("[E] DPI and CSV field names disagree >", SRC_PATH)
+        exit(1)
+
+print("[!] Successful process >", SRC_PATH)
