@@ -217,8 +217,7 @@ def csv_parse(data):
     #data_field = order_hash_keys(data_field)
 
     # construct csv parser
-    csv_file_read = open('./pp/' + filename, 'r', newline='')
-
+    csv_file_read = open('./pp/' + filename, 'r', encoding='utf-8', newline='') # errors='ignore'
     cparse = csv.DictReader(csv_file_read)
 
     # construct csv writer to dirty
