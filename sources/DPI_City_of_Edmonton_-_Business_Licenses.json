@@ -2,7 +2,6 @@
     "filename": "City_of_Edmonton_-_Business_Licenses.csv",
     "type": "csv",
     "info": {
-	"header": "EMPTY",
 	"specid": "Licence Number",
 	"name": "Trade Name",
 	"bus_type": "Category",

@@ -2,7 +2,6 @@
     "filename": "toronto.business.licences.csv",
     "type": "csv",
     "info": {
-	"header": "EMPTY",
 	"specid": "Licence No.",
 	"name": "Operating Name",
 	"bus_type": "Category",

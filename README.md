@@ -19,8 +19,6 @@ The OpenBusinessRepository (OBuissR) is a listing of businesses records from ope
   - Have a separate parser that does not handle address parsing.
   - Perform 'complete address parsing' (concatenate all address related fields and use `address_parse`
   - For fields NOT specified by the DPI, append them anyway with blank fields
-## Character encoding issues
-  - Some data sets are using some kind of legacy encoding (tested ISO 8859-1 and CP863) instead of UTF-8. There has been no success with the ISO encoding, and the Surrey business licenses dataset returns the incorrect characters for both assumed encodings.
 ## Portability issues
-  - the data process script is written in Bash / uses scripts that use bash tools, e.g. `nproc`, `sed`, etc.
+  - many tools are currently written in Bash, mainly for text manipulation and interactive processing 
   - libpostal requires administrative access to your machine for installation

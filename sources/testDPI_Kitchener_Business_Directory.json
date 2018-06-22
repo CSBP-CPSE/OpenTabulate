@@ -2,7 +2,6 @@
     "filename": "Kitchener_Business_Directory.csv",
     "type": "csv",
     "info": {
-	"header": "EMPTY",
 	"specid": "ID",
 	"name": "COMPANY_NAME",
 	"bus_type": "PRIMARY_NAICS_DESCRIPTION",

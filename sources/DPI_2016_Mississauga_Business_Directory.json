@@ -2,7 +2,6 @@
     "filename": "2016_Mississauga_Business_Directory.csv",
     "type": "csv",
     "info": {
-	"header": "EMPTY",
 	"specid": "BusinessID",
 	"name": "Name",
 	"bus_type": "NAICSTitle",

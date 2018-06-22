@@ -65,14 +65,23 @@ try:
     if isEmpty(data['type']):
         print("[E] Missing 'type' > ", SRC_PATH)
         exit(1)
-
-    if isEmpty(data['filename']) or \
-       isEmpty(data['info']['header']) or \
-       isEmpty(data['info']['name']) or \
-       isEmpty(data['info']['address']):
-        print("[E] Missing required field in", SRC_PATH)
+    if data['type'] == 'xml':
+        if isEmpty(data['filename']) or \
+           isEmpty(data['info']['header']) or \
+           isEmpty(data['info']['name']) or \
+           isEmpty(data['info']['address']):
+            print("[E] Missing required field >", SRC_PATH)
+            exit(1)
+    elif data['type'] == 'csv':
+        if isEmpty(data['filename']) or \
+           isEmpty(data['info']['name']) or \
+           isEmpty(data['info']['address']):
+            print("[E] Missing required field >", SRC_PATH)
+            exit(1)
+    else:
+        print("[E] Unsupported data format ('type') >", SRC_PATH)
         exit(1)
-
+        
 except KeyError: # semantic error
     print("[E] Missing REQUIRED field >", SRC_PATH)
     exit(1)
