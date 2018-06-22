@@ -1,0 +1,18 @@
+{
+    "filename": "City_of_Edmonton_-_Business_Licenses.csv",
+    "type": "csv",
+    "info": {
+	"header": "EMPTY",
+	"specid": "Licence Number",
+	"name": "Trade Name",
+	"bus_type": "Category",
+	"status": "Licence Status",
+	"address": {
+	    "st_number": "Neighbourhood ID",
+	    "st_name": "Neighbourhood"
+	},
+	"reg_date": "Issue Date",
+	"exp_date": "Expiry Date"
+    }
+	
+}

@@ -44,7 +44,7 @@ def xml_hash_table_gen(json_data):
             field_dict[i] = ".//" + json_data['info'][i]
         elif i == 'address' and isinstance(json_data['info'][i], str):
             field_dict[i] = ".//" + json_data['info'][i]
-        elif (i == 'st_number' or i == 'st_name' or i == 'unit') and isinstance(json_data['info']['address'], dict):
+        elif isinstance(json_data['info']['address'], dict) and i in json_data['info']['address']:
             field_dict[i] = ".//" + json_data['info']['address'][i]
     return field_dict, header_entry, filename
 
@@ -71,7 +71,7 @@ def csv_hash_table_gen(json_data):
             field_dict[i] = json_data['info'][i]
         elif i == 'address' and isinstance(json_data['info'][i], str):
             field_dict[i] = json_data['info'][i]
-        elif (i == 'st_number' or i == 'st_name' or i == 'unit') and isinstance(json_data['info']['address'], dict):
+        elif isinstance(json_data['info']['address'], dict) and i in json_data['info']['address']:
             field_dict[i] = json_data['info']['address'][i]
     return field_dict, filename
     
@@ -206,7 +206,7 @@ def xml_parse(json_data):
                 subelement = element.find(data_field[key])
                 IS_NONE = xml_NoneType_handler(row, subelement)
                 if IS_NONE == True:
-                    print("[E] Header", element.tag, element.attrib, "is missing", data_field[key])
+                    print("[E] Header '", element.tag, ' ', element.attrib, "' is missing '", data_field[key], "'.", sep='')
                     csvfile.close()
                     remove('./dirty/' + dirty_file)
                     return 2

@@ -1,0 +1,15 @@
+{
+    "filename": "Calgary_Business_Licenses.csv",
+    "type": "csv",
+    "info": {
+	"header": "EMPTY",
+	"name": "TRADENAME",
+	"bus_type": "LICENCETYPES",
+	"status": "JOBSTATUSDESC",
+	"address": "ADDRESS", 
+	"latitude": "latitude",
+	"longitude": "longitude",
+	"reg_date": "JOBCREATED"
+    }
+	
+}

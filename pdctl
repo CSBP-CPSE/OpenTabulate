@@ -75,7 +75,7 @@ if [[ ! $PROMPT = [y,Y]* ]]; then
 fi
 
 # DPI_ prefix is for --- DEBUG ---
-list=$(find ${OBR}/sources/ -name "DPI_*.json" -type f)
+list=$(find ${OBR}/sources/ -name "testDPI_*.json" -type f)
 
 for src in $list; do
     # CHANGE RAW TO PP LATER --- DEBUG ---
