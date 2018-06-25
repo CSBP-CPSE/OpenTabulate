@@ -8,19 +8,24 @@ Written by Maksym Neyra-Nesterenko.
 """
 
 from xml.etree import ElementTree
-from postal.parser import parse_address
 from os import remove
 import csv
+# from postal.parser import parse_address
 import copy
 
-field = ['name', 'bus_type', 'address', 'st_number', 'st_name', 'postcode', 'unit', \
-         'city', 'region', 'country', 'phone', 'email', 'website', \
-         'longitude', 'latitude', 'reg_date', 'exp_date', 'status', 'specid']
+# The column names for the to-be-created CSV files
+FIELD_LABEL = ['name', 'bus_type', 'address', 'house_number', 'road', 'postcode', 'unit', \
+         'city', 'region', 'country', 'phone', 'email', 'website', 'longitude', \
+         'latitude', 'reg_date', 'exp_date', 'status', 'specid']
 
-lpsubf_order = {'house_number' : 0, 'road' : 1, 'unit' : 2}
-# , 'city' : 3, 'region' : 4, 'postcode' : 5} -- RESERVED --
+# Address fields, boolean values required for parsers to handle duplicate entries correctly
+ADDR_FIELD_LABEL = ['unit', 'house_number', 'road', 'city', 'region', 'country', 'postcode']
 
-def xml_hash_table_gen(json_data):
+# Column order, keys expressed as libpostal parser labels
+#lpsubf_order = {'house_number' : 0, 'road' : 1, 'unit' : 2, 'city' : 3, \
+#                'region' : 4, 'country' : 5, 'postcode' : 6}
+
+def xml_extract_labels(json_data):
     """
     Constructs a filtered dictionary to be used by the XML parser.
 
@@ -33,20 +38,20 @@ def xml_hash_table_gen(json_data):
     Returns:
         The filtered dictionary, header entry, and filename of the dataset to be parsed.
     """
-    global field
-    field_dict = dict()
-    header_entry = json_data['info']['header']
+    global ADDR_FIELD_LABEL
+    global FIELD_LABEL
+    xml_fl = dict()
+    header_label = json_data['info']['header']
     filename = json_data['filename']
 
     # append existing data using XPath expressions (for parsing)
-    for i in field:
-        if i in json_data['info'] and i != 'address':
-            field_dict[i] = ".//" + json_data['info'][i]
-        elif i == 'address' and isinstance(json_data['info'][i], str):
-            field_dict[i] = ".//" + json_data['info'][i]
-        elif isinstance(json_data['info']['address'], dict) and i in json_data['info']['address']:
-            field_dict[i] = ".//" + json_data['info']['address'][i]
-    return field_dict, header_entry, filename
+    for i in FIELD_LABEL:
+        if i in json_data['info'] and (not (i in ADDR_FIELD_LABEL)) and i != 'address':
+            xml_fl[i] = ".//" + json_data['info'][i]
+        elif i in json_data['info']['address']:
+            XPathString = ".//" + json_data['info']['address'][i]
+            xml_fl[i] = XPathString
+    return xml_fl, header_label, filename
 
 
 def csv_hash_table_gen(json_data):
@@ -62,52 +67,19 @@ def csv_hash_table_gen(json_data):
     Returns:
         The filtered dictionary and filename of the dataset to be parsed.
     """
-    global field
-    field_dict = dict()
+    global FIELD_LABEL
+    global ADDR_FIELD_LABEL
+    fd = dict()
     filename = json_data['filename']
 
-    for i in field:
-        if i in json_data['info'] and i != 'address':
-            field_dict[i] = json_data['info'][i]
-        elif i == 'address' and isinstance(json_data['info'][i], str):
-            field_dict[i] = json_data['info'][i]
-        elif isinstance(json_data['info']['address'], dict) and i in json_data['info']['address']:
-            field_dict[i] = json_data['info']['address'][i]
-    return field_dict, filename
+    for i in FIELD_LABEL:
+        if i in json_data['info'] and (not (i in ADDR_FIELD_LABEL)):
+            fd[i] = json_data['info'][i]
+        elif i in json_data['info']['address']:
+            AddressVarField = json_data['info']['address'][i]
+            fd[i] = AddressVarField
+    return fd, filename
     
-
-def canadian_Address_Parse(line):
-    tokens = parse_address(line)
-    
-    # add 'empty' tokens that were not added by parse_address
-    for i in lpsubf_order:
-        if not (i in [t[1] for t in tokens]):
-            tokens.append(('',i))
-            
-    # keep address tokens
-    tokens = [t for t in tokens if t[1] == 'unit' or \
-              t[1] == 'house_number' or t[1] == 'road']
-
-    # split house numbers separated by hyphen
-    TEMP = ([t for t in tokens if t[1] == 'house_number'][0])[0]
-    if '-' in TEMP:
-        sp = TEMP.split('-')
-        UNIT = sp[0]
-        STREET_NO = sp[1]
-
-        for i in tokens:
-            if i[1] == 'house_number':
-                tokens.remove(i)
-                tokens.append((STREET_NO,'house_number'))
-            elif i[1] == 'unit':
-                tokens.remove(i)
-                tokens.append((UNIT,'unit'))
-
-    # sort tokens
-    tokens = sorted(tokens, key=lambda x: lpsubf_order[x[1]])
-
-    return tokens
-
 # -- IN DEVELOPMENT --
 #def order_hash_keys(dictionary):
 #    # To do for later
@@ -134,7 +106,7 @@ def xml_NoneType_handler(row_list, element):
     """
     if element is None: # if the element is missing, return error
         return True
-    if (not element.text is None):
+    if not (element.text is None):
         row_list.append(element.text.upper())
     else:
         row_list.append('')
@@ -152,11 +124,9 @@ def xml_parse(json_data):
     Raises:
         ...
     """
-    data_field, header, filename = xml_hash_table_gen(json_data)
-    # -- REDEFINE ORDER OF KEYS OF 'data_field' HERE --
-    # CURRENTLY STUBBED
-    #data_field = order_hash_keys(data_field)
-    
+    global ADDR_FIELD_LABEL
+    data_field, header, filename = xml_extract_labels(json_data)
+
     try:
         tree = ElementTree.parse('./raw/' + filename)
     except ElementTree.ParseError:
@@ -173,57 +143,30 @@ def xml_parse(json_data):
     dp = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
 
     # write the initial row which identifies each column
-    if 'address' in data_field:
-        temp_var = [f for f in data_field].index('address')
-        temp_list = [f for f in data_field if f != 'address']
-        for i in lpsubf_order:
-            temp_list.insert(temp_var, i)
-            temp_var += 1
-        dp.writerow(temp_list)
-    else:
-        dp.writerow([f for f in data_field])
-
+    first_row = [f for f in data_field]
+    dp.writerow(first_row)
+        
     for element in root.findall(header):
         row = []
         for key in data_field:
-            if key == 'address':
-                subelement = element.find(data_field[key])
-                if (subelement is None) or (subelement.text is None):
-                    row.append('')
-                    row.append('')
-                    row.append('')
-                    continue
-                # parse address
-                tokens = canadian_Address_Parse(subelement.text)
-                
-                # add data to csv
-                for t in tokens:
-                    if t[0] != '':
-                        row.append(t[0].upper())
-                    else:
-                        row.append('')
-            else: # non-address keys
-                subelement = element.find(data_field[key])
-                IS_NONE = xml_NoneType_handler(row, subelement)
-                if IS_NONE == True:
-                    print("[E] Header '", element.tag, ' ', element.attrib, "' is missing '", data_field[key], "'.", sep='')
-                    csvfile.close()
-                    remove('./dirty/' + dirty_file)
-                    return 2
-                else:
-                    row = IS_NONE
+            subelement = element.find(data_field[key])
+            XML_VALID_ENTRY = xml_NoneType_handler(row, subelement)
+            if XML_VALID_ENTRY == True:
+                print("[E] Header '", element.tag, ' ', element.attrib, "' is missing '", data_field[key], "'.", sep='')
+                csvfile.close()
+                remove('./dirty/' + dirty_file)
+                return 2
+            else:
+                row = XML_VALID_ENTRY
         dp.writerow(row)
     csvfile.close()
     return 0
 
 
 def csv_parse(data):
+    global ADDR_FIELD_LABEL
     data_field, filename = csv_hash_table_gen(data)
     
-    # -- REDEFINE ORDER OF KEYS OF 'data_field' HERE --
-    # CURRENTLY STUBBED
-    #data_field = order_hash_keys(data_field)
-
     # construct csv parser
     csv_file_read = open('./pp/' + filename, 'r', encoding='utf-8', errors='ignore', newline='') 
     cparse = csv.DictReader(csv_file_read)
@@ -238,31 +181,15 @@ def csv_parse(data):
     cprint = csv.writer(csv_file_write, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
 
     # write the initial row which identifies each column
-    if 'address' in data_field:
-        temp_var = [f for f in data_field].index('address')
-        temp_list = [f for f in data_field if f != 'address']
-        for i in lpsubf_order:
-            temp_list.insert(temp_var, i)
-            temp_var += 1
-        cprint.writerow(temp_list)
-    else:
-        cprint.writerow([f for f in data_field])
+    first_row = [f for f in data_field]
+    cprint.writerow(first_row)
+
     try:
         for entity in cparse:
             row = []
             for key in data_field:
-                if key == 'address':
-                    entry = entity[data_field[key]]
-                    tokens = canadian_Address_Parse(entry)
-                    # add data to csv
-                    for t in tokens:
-                        if t[0] != '':
-                            row.append(t[0].upper())
-                        else:
-                            row.append('')
-                else: # non-address keys
-                    entry = entity[data_field[key]]
-                    row.append(entry)
+                entry = entity[data_field[key]]
+                row.append(entry)
             cprint.writerow(row)
     except KeyError:
         print("[E] '", data_field[key], "' is not a field name in the CSV file.", sep='')
@@ -276,3 +203,37 @@ def csv_parse(data):
     csv_file_read.close()
     csv_file_write.close()
     return 0
+
+
+"""
+def CA_Address_Split(line, flist):
+    tokens = parse_address(line, flist)
+    
+    # add 'empty' tokens that were not added by parse_address
+    for i in flist:
+        if not (i in [t[1] for t in tokens]):
+            tokens.append(('',i))
+            
+    # keep address tokens
+    tokens = [t for t in tokens if t[1] in flist]
+
+    # split house numbers separated by hyphen
+    TEMP = ([t for t in tokens if t[1] == 'house_number'][0])[0]
+    if '-' in TEMP:
+        sp = TEMP.split('-')
+        UNIT = sp[0]
+        STREET_NO = sp[1]
+
+        for i in tokens:
+            if i[1] == 'house_number':
+                tokens.remove(i)
+                tokens.append((STREET_NO,'house_number'))
+            elif i[1] == 'unit':
+                tokens.remove(i)
+                tokens.append((UNIT,'unit'))
+
+    # sort tokens
+    tokens = sorted(tokens, key=lambda x: lpsubf_order[x[1]])
+
+    return tokens
+"""

@@ -14,7 +14,6 @@ The OpenBusinessRepository (OBuissR) is a listing of businesses records from ope
 ...
 
 ## General program-specific issues and to-do list
-  - Require `for` loop in hash table definition to assign empty strings to non-existent fields
   - Handle column merging in MySQL appropriately + replacing old data sets with new ones appropriately
   - Have a separate parser that does not handle address parsing.
   - Perform 'complete address parsing' (concatenate all address related fields and use `address_parse`

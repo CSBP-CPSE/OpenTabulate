@@ -1,0 +1,21 @@
+{
+    "filename": "toronto.business.licences.csv",
+    "type": "csv",
+    "info": {
+	"specid": "Licence No.",
+	"name": "Operating Name",
+	"bus_type": "Category",
+	"address": {
+	    "st_number": "Licence Address Line 1",
+	    "st_name": "Licence Address Line 1",
+	    "unit": "Licence Address Line 1",
+	    "city": "Licence Address Line 2",
+	    "region": "Licence Address Line 2",
+	    "postcode": "Licence Address Line 3"
+	},
+	"phone": "Business Phone",
+	"reg_date": "Issued",
+	"exp_date": "Cancel Date"
+    }
+	
+}

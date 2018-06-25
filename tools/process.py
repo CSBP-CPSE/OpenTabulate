@@ -68,20 +68,24 @@ try:
     if data['type'] == 'xml':
         if isEmpty(data['filename']) or \
            isEmpty(data['info']['header']) or \
-           isEmpty(data['info']['name']) or \
-           isEmpty(data['info']['address']):
+           isEmpty(data['info']['name']):
             print("[E] Missing required field >", SRC_PATH)
             exit(1)
     elif data['type'] == 'csv':
         if isEmpty(data['filename']) or \
-           isEmpty(data['info']['name']) or \
-           isEmpty(data['info']['address']):
+           isEmpty(data['info']['name']):
             print("[E] Missing required field >", SRC_PATH)
             exit(1)
     else:
-        print("[E] Unsupported data format ('type') >", SRC_PATH)
+        print("[E] Unsupported data format '", data['type'],"' > ", SRC_PATH, sep='')
         exit(1)
-        
+    if not (isinstance(data['info']['address'], dict)):
+        print("[E] Address entry is not a list >", SRC_PATH)
+        exit(1)
+    for i in data['info']['address']:
+        if not (i in obrparser.ADDR_FIELD_LABEL):
+            print("[E] Address entry contains an invalid field type >", SRC_PATH)
+            exit(1)
 except KeyError: # semantic error
     print("[E] Missing REQUIRED field >", SRC_PATH)
     exit(1)

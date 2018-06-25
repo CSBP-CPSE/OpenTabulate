@@ -8,14 +8,14 @@
 	"bus_type": "BusinessType",
 	"status": "Status",
 	"address": {
-	    "st_number": "House",
-	    "st_name": "Street",
-	    "unit": "Unit"
+	    "house_number": "House",
+	    "road": "Street",
+	    "unit": "Unit",
+	    "city": "City",
+	    "region": "Province",
+	    "country": "Country",
+	    "postcode": "PostalCode"
 	},
-	"city": "City",
-	"region": "Province",
-	"country": "Country",
-	"postcode": "PostalCode",
 	"latitude": "Latitude",
 	"longitude": "Longitude",
 	"reg_date": "IssuedDate",
