@@ -15,7 +15,6 @@ import json
 import csv
 from os import path
 import subprocess
-
 import obrparser
 
 # ---------------
@@ -67,7 +66,7 @@ try:
         exit(1)
     if data['type'] == 'xml':
         if isEmpty(data['filename']) or \
-           isEmpty(data['info']['header']) or \
+           isEmpty(data['header']) or \
            isEmpty(data['info']['name']):
             print("[E] Missing required field >", SRC_PATH)
             exit(1)

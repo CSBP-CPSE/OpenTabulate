@@ -1,20 +1,20 @@
 """
 A data processing tool for OpenBusinessRepository.
 
-This module consists of tools to parse different file formats and convert them to CSVs based on 
-the standards defined by the Data Exploration and Integration Lab at Statistics Canada (DEIL).
+This module consists of tools to parse different file formats and convert 
+them to CSVs based on the standards defined by the Data Exploration and 
+Integration Lab at Statistics Canada (DEIL).
 
 Written by Maksym Neyra-Nesterenko.
 """
 
 from xml.etree import ElementTree
-from os import remove
+from os import remove as _rm
 import csv
-# from postal.parser import parse_address
 import copy
 
 # The column names for the to-be-created CSV files
-FIELD_LABEL = ['name', 'bus_type', 'address', 'house_number', 'road', 'postcode', 'unit', \
+_FIELD_LABEL = ['name', 'industry', 'address', 'house_number', 'road', 'postcode', 'unit', \
          'city', 'region', 'country', 'phone', 'email', 'website', 'longitude', \
          'latitude', 'reg_date', 'exp_date', 'status', 'specid']
 
@@ -25,27 +25,30 @@ ADDR_FIELD_LABEL = ['unit', 'house_number', 'road', 'city', 'region', 'country',
 #lpsubf_order = {'house_number' : 0, 'road' : 1, 'unit' : 2, 'city' : 3, \
 #                'region' : 4, 'country' : 5, 'postcode' : 6}
 
-def xml_extract_labels(json_data):
-    """
-    Constructs a filtered dictionary to be used by the XML parser.
 
+def _xml_extract_labels(json_data):
+    """
+    Constructs a dictionary that stores only tags that were exclusively used in 
+    a source file. This function is specific to the XML format since it returns 
+    a header tag and uses XPath expressions.
+                                                                                
     Note:
         This function is used by 'xml_parse'.
 
     Args:
-        json_data: dictionary obtained by json.load when read from DPI.
+        json_data: dictionary obtained by json.load when read from a source file.
 
     Returns:
-        The filtered dictionary, header entry, and filename of the dataset to be parsed.
+        The tag dictionary, header tag, and filename tag of the dataset to be parsed.
     """
     global ADDR_FIELD_LABEL
-    global FIELD_LABEL
-    xml_fl = dict()
-    header_label = json_data['info']['header']
-    filename = json_data['filename']
+    global _FIELD_LABEL
+    xml_fl = dict()                            # tag dictionary
+    header_label = json_data['header']         # header tag
+    filename = json_data['filename']           # filename tag
 
     # append existing data using XPath expressions (for parsing)
-    for i in FIELD_LABEL:
+    for i in _FIELD_LABEL:
         if i in json_data['info'] and (not (i in ADDR_FIELD_LABEL)) and i != 'address':
             xml_fl[i] = ".//" + json_data['info'][i]
         elif i in json_data['info']['address']:
@@ -54,25 +57,27 @@ def xml_extract_labels(json_data):
     return xml_fl, header_label, filename
 
 
-def csv_hash_table_gen(json_data):
+def _csv_extract_labels(json_data):
     """
-    Constructs a filtered dictionary to be used by the CSV parser.
-
+    Constructs a dictionary that stores only tags that were exclusively used in 
+    a source file. In contrast to 'xml_extract_labels', a header is not required 
+    in the source file.
+                                                                                
     Note:
         This function is used by 'csv_parse'.
 
     Args:
-        json_data: dictionary obtained by json.load when read from DPI.
+        json_data: dictionary obtained by json.load when read from a source file.
 
     Returns:
-        The filtered dictionary and filename of the dataset to be parsed.
+        The tag dictionary and filename tag of the dataset to be parsed.
     """
-    global FIELD_LABEL
+    global _FIELD_LABEL
     global ADDR_FIELD_LABEL
-    fd = dict()
-    filename = json_data['filename']
+    fd = dict()                      # tag dictionary
+    filename = json_data['filename'] # filename tag
 
-    for i in FIELD_LABEL:
+    for i in _FIELD_LABEL:
         if i in json_data['info'] and (not (i in ADDR_FIELD_LABEL)):
             fd[i] = json_data['info'][i]
         elif i in json_data['info']['address']:
@@ -80,52 +85,56 @@ def csv_hash_table_gen(json_data):
             fd[i] = AddressVarField
     return fd, filename
     
-# -- IN DEVELOPMENT --
-#def order_hash_keys(dictionary):
-#    # To do for later
-#    print("STUB")
-#    return dictionary
 
-
-# handle elements of type 'None' in XML tree
-def xml_NoneType_handler(row_list, element):
+def _xml_empty_element_handler(row, element):
     """
-    Handles XML data that has missing or empty elements. Such elements have an empty string
-    appended to the CSV file to avoid error calls. Otherwise, valid elements are appended
-    without concern.
+    The 'xml.etree' module returns 'None' for text of empty-element tags. Moreover, 
+    if the element cannot be found, the element is 'None'. This function is defined 
+    to handle these cases.
 
     Note:
         This function is used by 'xml_parse'.
 
     Args:
-        row_list: A list of fields that will appended to the CSV file as a row.
+        row: A list of fields that will appended to the resulting CSV file as a row.
         element: A node in the XML tree.
 
     Returns:
-        The list to be appended as a row in the resulting CSV file.
+        'True' is returned if element's tag is missing from the header. From here,
+        'xml_parse' returns a detailed error message of the missing tag and 
+        terminates the data processing.
+
+        Otherwise, return the updated row to 'xml_parse'.
     """
     if element is None: # if the element is missing, return error
         return True
     if not (element.text is None):
-        row_list.append(element.text.upper())
+        row.append(element.text.upper())
     else:
-        row_list.append('')
-    return row_list
+        row.append('')
+    return row
 
 
 def xml_parse(json_data):
     """
-    Parses an XML file using the xml.etree.ElementTree module and extracts the necessary 
-    information to rewrite the data set into a CSV file.
+    Parses a dataset in XML format using the xml.etree.ElementTree module and 
+    extracts the necessary information to rewrite the data set into CSV format, 
+    as specified by a source file.
 
     Args:
-        json_data: dictionary obtained by json.load when read from DPI.
+        json_data: dictionary obtained by json.load when read from a source file
 
     Raises:
-        ...
+        ElementTree.ParseError: Incorrect XML format of the specified dataset.
+        
+    Returns:
+        Return values are interpreted by 'process.py' as follows:
+        '0' : Successful reformatting.
+        '1' : Incorrect formatting of XML dataset.
+        '2' : Missing element tag within a header tag.
     """
     global ADDR_FIELD_LABEL
-    data_field, header, filename = xml_extract_labels(json_data)
+    tags, header, filename = _xml_extract_labels(json_data)
 
     try:
         tree = ElementTree.parse('./raw/' + filename)
@@ -140,32 +149,45 @@ def xml_parse(json_data):
         dirty_file = '.'.join(str(x) for x in filename.split('.')[:-1]) + "-DIRTY.csv"
 
     csvfile = open('./dirty/' + dirty_file, 'w')
-    dp = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+    cprint = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
 
     # write the initial row which identifies each column
-    first_row = [f for f in data_field]
-    dp.writerow(first_row)
+    first_row = [f for f in tags]
+    cprint.writerow(first_row)
         
     for element in root.findall(header):
         row = []
-        for key in data_field:
-            subelement = element.find(data_field[key])
-            XML_VALID_ENTRY = xml_NoneType_handler(row, subelement)
-            if XML_VALID_ENTRY == True:
-                print("[E] Header '", element.tag, ' ', element.attrib, "' is missing '", data_field[key], "'.", sep='')
+        for key in tags:
+            subelement = element.find(tags[key])
+            errhandle = _xml_empty_element_handler(row, subelement)
+            if errhandle == True:
+                print("[E] Header '", element.tag, ' ', element.attrib, "' is missing '", tags[key], "'.", sep='')
                 csvfile.close()
-                remove('./dirty/' + dirty_file)
+                _rm('./dirty/' + dirty_file)
                 return 2
             else:
-                row = XML_VALID_ENTRY
-        dp.writerow(row)
+                row = errhandle
+        cprint.writerow(row)
     csvfile.close()
     return 0
 
 
-def csv_parse(data):
+def csv_parse(json_data):
+    """
+    Parses a dataset in CSV format using the csv module and extracts the necessary 
+    information to rewrite the data set into CSV format, as specified by a source file.
+                                                                                
+    Args:
+        json_data: dictionary obtained by json.load when read from a source file
+
+    Returns:
+        Return values are interpreted by 'process.py' as follows:
+        '0' : Successful reformatting.
+        '1' : A tag value defined from a source file does not match the dataset's metadata.
+    """
+
     global ADDR_FIELD_LABEL
-    data_field, filename = csv_hash_table_gen(data)
+    tags, filename = _csv_extract_labels(json_data)
     
     # construct csv parser
     csv_file_read = open('./pp/' + filename, 'r', encoding='utf-8', errors='ignore', newline='') 
@@ -181,22 +203,22 @@ def csv_parse(data):
     cprint = csv.writer(csv_file_write, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
 
     # write the initial row which identifies each column
-    first_row = [f for f in data_field]
+    first_row = [f for f in tags]
     cprint.writerow(first_row)
 
     try:
         for entity in cparse:
             row = []
-            for key in data_field:
-                entry = entity[data_field[key]]
+            for key in tags:
+                entry = entity[tags[key]]
                 row.append(entry)
             cprint.writerow(row)
     except KeyError:
-        print("[E] '", data_field[key], "' is not a field name in the CSV file.", sep='')
+        print("[E] '", tags[key], "' is not a field name in the CSV file.", sep='')
         # close reader / writer and delete the partially written data file
         csv_file_read.close()
         csv_file_write.close()
-        remove('./dirty/' + dirty_file)
+        _rm('./dirty/' + dirty_file)
         return 1
     
     # success
