@@ -52,27 +52,25 @@ TOOLS_PATH = path.dirname(path.realpath(__file__))
 if not path.exists(SRC_PATH):
     print("[E] Input path does not exist >", SRC_PATH)
     exit(1)
-# Parse .json file
+# parse .json file
 try:
     with open(SRC_PATH) as f:
         data = json.load(f)
 except ValueError: # failed parse
     print("[E] Wrong JSON format for DPI >", SRC_PATH)
     exit(1)
-# These fields must exist and be non-empty in the format file!
+# require source files to contain required fields with non-empty tags
 try:
     if isEmpty(data['type']):
         print("[E] Missing 'type' > ", SRC_PATH)
         exit(1)
     if data['type'] == 'xml':
         if isEmpty(data['filename']) or \
-           isEmpty(data['header']) or \
-           isEmpty(data['info']['name']):
+           isEmpty(data['header']):
             print("[E] Missing required field >", SRC_PATH)
             exit(1)
     elif data['type'] == 'csv':
-        if isEmpty(data['filename']) or \
-           isEmpty(data['info']['name']):
+        if isEmpty(data['filename']):
             print("[E] Missing required field >", SRC_PATH)
             exit(1)
     else:
@@ -85,7 +83,7 @@ try:
         if not (i in obrparser.ADDR_FIELD_LABEL):
             print("[E] Address entry contains an invalid field type >", SRC_PATH)
             exit(1)
-except KeyError: # semantic error
+except KeyError: # missing field error
     print("[E] Missing REQUIRED field >", SRC_PATH)
     exit(1)
 
@@ -95,6 +93,9 @@ if not path.exists('./raw/' + data['filename']):
 
 print("[ ] DPI check passed > ", SRC_PATH)
 
+# --------------
+# - XML FORMAT -
+# --------------
 if data['type'] == 'xml':
     es = obrparser.xml_parse(data)
     if es == 1:
@@ -103,6 +104,9 @@ if data['type'] == 'xml':
     if es == 2:
         print("[E] Missing element in header >", SRC_PATH)
         exit(1)
+# --------------
+# - CSV FORMAT -
+# --------------        
 elif data['type'] == 'csv':
     # remove byte order mark from files 
     subprocess.check_call([TOOLS_PATH + '/rmByteOrderMark', './raw/' + data['filename'], './pp/' + data['filename']])

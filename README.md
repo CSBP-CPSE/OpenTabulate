@@ -19,6 +19,7 @@ The OpenBusinessRepository (OBR) is a listing of businesses records from open da
 ## To-do list
   - Document (and clean up) code and current features
   - Collect URLs for data
+  - Add 'default' tag as a source option to files (appends a default value if no value is given)
   - Support JSON parsing [later]
 
 ## Portability issues

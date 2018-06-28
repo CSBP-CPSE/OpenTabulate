@@ -51,7 +51,8 @@ def _xml_extract_labels(json_data):
     for i in _FIELD_LABEL:
         if i in json_data['info'] and (not (i in ADDR_FIELD_LABEL)) and i != 'address':
             xml_fl[i] = ".//" + json_data['info'][i]
-        elif i in json_data['info']['address']:
+        # short circuit evaluation
+        elif ('address' in json_data['info']) and (i in json_data['info']['address']):
             XPathString = ".//" + json_data['info']['address'][i]
             xml_fl[i] = XPathString
     return xml_fl, header_label, filename
@@ -80,7 +81,7 @@ def _csv_extract_labels(json_data):
     for i in _FIELD_LABEL:
         if i in json_data['info'] and (not (i in ADDR_FIELD_LABEL)):
             fd[i] = json_data['info'][i]
-        elif i in json_data['info']['address']:
+        elif ('address' in json_data['info']) and (i in json_data['info']['address']):
             AddressVarField = json_data['info']['address'][i]
             fd[i] = AddressVarField
     return fd, filename
