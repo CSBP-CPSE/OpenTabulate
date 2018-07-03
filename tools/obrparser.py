@@ -21,6 +21,9 @@ _FIELD_LABEL = ['name', 'industry', 'address', 'house_number', 'road', 'postcode
 # Address fields, boolean values required for parsers to handle duplicate entries correctly
 ADDR_FIELD_LABEL = ['unit', 'house_number', 'road', 'city', 'region', 'country', 'postcode']
 
+# Labels for the 'default' tag
+DEFAULT_LABEL = ['city', 'region', 'country']
+
 # Column order, keys expressed as libpostal parser labels
 #lpsubf_order = {'house_number' : 0, 'road' : 1, 'unit' : 2, 'city' : 3, \
 #                'region' : 4, 'country' : 5, 'postcode' : 6}
@@ -46,7 +49,7 @@ def _xml_extract_labels(json_data):
     xml_fl = dict()                            # tag dictionary
     header_label = json_data['header']         # header tag
     filename = json_data['filename']           # filename tag
-
+    
     # append existing data using XPath expressions (for parsing)
     for i in _FIELD_LABEL:
         if i in json_data['info'] and (not (i in ADDR_FIELD_LABEL)) and i != 'address':
@@ -55,6 +58,8 @@ def _xml_extract_labels(json_data):
         elif ('address' in json_data['info']) and (i in json_data['info']['address']):
             XPathString = ".//" + json_data['info']['address'][i]
             xml_fl[i] = XPathString
+        elif ('default' in json_data) and (i in json_data['default']):
+            xml_fl[i] = 'DPIDEFAULT'
     return xml_fl, header_label, filename
 
 
@@ -84,6 +89,8 @@ def _csv_extract_labels(json_data):
         elif ('address' in json_data['info']) and (i in json_data['info']['address']):
             AddressVarField = json_data['info']['address'][i]
             fd[i] = AddressVarField
+        elif ('default' in json_data) and (i in json_data['default']):
+            fd[i] = 'DPIDEFAULT'
     return fd, filename
     
 
@@ -110,7 +117,7 @@ def _xml_empty_element_handler(row, element):
     if element is None: # if the element is missing, return error
         return True
     if not (element.text is None):
-        row.append(element.text.upper())
+        row.append(element.text)
     else:
         row.append('')
     return row
@@ -135,6 +142,7 @@ def xml_parse(json_data):
         '2' : Missing element tag within a header tag.
     """
     global ADDR_FIELD_LABEL
+    global DEFAULT_LABEL
     tags, header, filename = _xml_extract_labels(json_data)
 
     try:
@@ -155,19 +163,22 @@ def xml_parse(json_data):
     # write the initial row which identifies each column
     first_row = [f for f in tags]
     cprint.writerow(first_row)
-        
+    
     for element in root.findall(header):
         row = []
         for key in tags:
-            subelement = element.find(tags[key])
-            errhandle = _xml_empty_element_handler(row, subelement)
-            if errhandle == True:
-                print("[E] Header '", element.tag, ' ', element.attrib, "' is missing '", tags[key], "'.", sep='')
-                csvfile.close()
-                _rm('./dirty/' + dirty_file)
-                return 2
+            if tags[key] != 'DPIDEFAULT':
+                subelement = element.find(tags[key])
+                errhandle = _xml_empty_element_handler(row, subelement)
+                if errhandle == True:
+                    print("[E] Header '", element.tag, ' ', element.attrib, "' is missing '", tags[key], "'.", sep='')
+                    csvfile.close()
+                    _rm('./dirty/' + dirty_file)
+                    return 2
+                else:
+                    row = errhandle
             else:
-                row = errhandle
+                row.append(json_data['default'][key])
         cprint.writerow(row)
     csvfile.close()
     return 0
@@ -211,7 +222,10 @@ def csv_parse(json_data):
         for entity in cparse:
             row = []
             for key in tags:
-                entry = entity[tags[key]]
+                if tags[key] != 'DPIDEFAULT':
+                    entry = entity[tags[key]]
+                else:
+                    entry = json_data['default'][key]
                 row.append(entry)
             cprint.writerow(row)
     except KeyError:

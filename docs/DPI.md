@@ -42,3 +42,10 @@ The following tags are **required** for the scripts to run. Without the proper s
 | `region` | Province/terrority name. |  |
 | `country` | Country name or code. |  |
 | `postcode` | Postal code. |  |
+
+### Default tag
+| Tag | Description | Requirement |
+| --- | ----------- | ----------- |
+| `city` | City name. |  |
+| `region` | Province/terrority name. |  |
+| `country` | Country name or code. |  |

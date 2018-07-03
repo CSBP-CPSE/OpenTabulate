@@ -1,10 +1,11 @@
 """
-* Statistics Canada - Center for Special Business Projects - DEIL *
+A workflow script that handles preprocessing and calls obrparser.py to perform data processing.
 
-~ Maksym Neyra-Nesterenko
+This script parses the source files in JSON format and extracts the metadata for data processing. 
+The metadata must follow syntactic rules, otherwise if any of the rules are violated, the script 
+exits with a non-zero exit status.
 
-Verifies that the .json files in format have the right syntax and the correct parameters.
-If any of the checks fail, the .json file is not added to the to-be-processed list. 
+Written by Maksym Neyra-Nesterenko.
 """
 
 # -------------
@@ -17,17 +18,17 @@ from os import path
 import subprocess
 import obrparser
 
-# ---------------
-# -- FUNCTIONS --
-# ---------------
+# ----------------------
+# -- HELPER FUNCTIONS --
+# ----------------------
 
 def isEmpty(value):
     # Checks if value is an empty string
     if value == '':
-        return True
-    else:
-        return False
+        print("[E] Empty required tag >", SRC_PATH)
+        exit(1)
 
+        
 def UTF8_check(path_to_file):
     # A heuristic verification of whether or not a file uses the utf-8 encoding
     source_dataset = open(path_to_file, 'r', encoding='utf-8', newline='')
@@ -46,6 +47,7 @@ def UTF8_check(path_to_file):
 
 SRC_PATH = input()
 TOOLS_PATH = path.dirname(path.realpath(__file__))
+URL_FLAG = False
 
 # safeguard depending on how you obtain the
 # data processing instruction file paths
@@ -62,29 +64,57 @@ except ValueError: # failed parse
 # require source files to contain required fields with non-empty tags
 try:
     if isEmpty(data['type']):
-        print("[E] Missing 'type' > ", SRC_PATH)
+        print("[E] Missing tag 'type' > ", SRC_PATH)
         exit(1)
+
+    if ('url' in data) and ('filename' in data):
+        print("[E] Cannot have both 'url' and 'filename' tags in >", SRC_PATH)
+        exit(1)
+    elif ('url' in data) and ('filename' not in data):
+        URL_FLAG = True
+    elif ('url' not in data) and ('filename' in data):
+        URL_FLAG = False
+    else:
+        print("[E] Missing required tag 'url/filename' >", SRC_PATH)
+        exit(1)
+
+
     if data['type'] == 'xml':
-        if isEmpty(data['filename']) or \
-           isEmpty(data['header']):
-            print("[E] Missing required field >", SRC_PATH)
-            exit(1)
+        if URL_FLAG == True:
+            isEmpty(data['url'])
+        else:
+            isEmpty(data['filename'])
+        isEmpty(data['header'])
     elif data['type'] == 'csv':
-        if isEmpty(data['filename']):
-            print("[E] Missing required field >", SRC_PATH)
-            exit(1)
+        if URL_FLAG == True:
+            isEmpty(data['url'])
+        else:
+            isEmpty(data['filename'])
     else:
         print("[E] Unsupported data format '", data['type'],"' > ", SRC_PATH, sep='')
         exit(1)
-    if not (isinstance(data['info']['address'], dict)):
-        print("[E] Address entry is not a list >", SRC_PATH)
-        exit(1)
-    for i in data['info']['address']:
-        if not (i in obrparser.ADDR_FIELD_LABEL):
-            print("[E] Address entry contains an invalid field type >", SRC_PATH)
+    if 'address' in data['info']:
+        if not (isinstance(data['info']['address'], dict)):
+            print("[E] Address tag is not a list >", SRC_PATH)
             exit(1)
+        for i in data['info']['address']:
+            if not (i in obrparser.ADDR_FIELD_LABEL):
+                print("[E] Address tag contains an invalid key >", SRC_PATH)
+                exit(1)
+    if 'default' in data:
+        if not (isinstance(data['default'], dict)):
+            print("[E] Default tag is not a list >", SRC_PATH)
+            exit(1)
+        for i in data['default']:
+            if not (i in obrparser.DEFAULT_LABEL):
+                print("[E] Default tag contains an invalid key >", SRC_PATH)
+                exit(1)
+            elif i in data['info']['address']:
+                print("[E] The key '", i, "' appears in both 'default' and 'address' >", SRC_PATH)
+                exit(1)
+        
 except KeyError: # missing field error
-    print("[E] Missing REQUIRED field >", SRC_PATH)
+    print("[E] Missing required tag >", SRC_PATH)
     exit(1)
 
 if not path.exists('./raw/' + data['filename']):

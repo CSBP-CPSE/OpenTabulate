@@ -14,6 +14,7 @@ CORES=1
 # Paths
 OBR=$(cd $(dirname $0); pwd -P) # subject to change for flexibility
 DATA_P_DIR_NAME="pddir" # data processing directory name
+CORES=1
 
 
 while [ "$#" != "0" ]; do
@@ -48,10 +49,10 @@ while [ "$#" != "0" ]; do
 	    fi
 	    unset arg
 	    ;;
-	'-v' | '--verbose' )
-	    echo "Verbose output. This is default when logging output"
-	    VERBOSE_FLAG=$[$VERBOSE_FLAG + 1]
-	    ;;
+#	'-v' | '--verbose' )
+#	    echo "Verbose output. This is default when logging output"
+#	    VERBOSE_FLAG=$[$VERBOSE_FLAG + 1]
+#	    ;;
 	'-h' | '--help' )
 	    # If the help option is used, all parameters entered are ignored,
 	    # help text is sent to STDOUT, and the script terminates
@@ -67,15 +68,15 @@ while [ "$#" != "0" ]; do
     shift
 done
 
-echo "Process data?"
-read -r PROMPT
+read -p "Process data? (y/n): " PROMPT
 if [[ ! $PROMPT = [y,Y]* ]]; then
     echo "Exiting prompt."
     exit
 fi
 
+
 # DPI_ prefix is for --- DEBUG ---
-list=$(find ${OBR}/sources/ -name "testDPI_*.json" -type f)
+list=$(find ${OBR}/sources/ -name "vancouver.json" -type f)
 
 for src in $list; do
     # CHANGE RAW TO PP LATER --- DEBUG ---
