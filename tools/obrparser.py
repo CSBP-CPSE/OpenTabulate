@@ -26,8 +26,8 @@ _FIELD_LABEL = ['bus_name', 'license_no', 'industry', 'address', 'house_number',
 # Address fields, boolean values required for parsers to handle duplicate entries correctly
 ADDR_FIELD_LABEL = ['unit', 'house_number', 'road', 'city', 'region', 'country', 'postcode']
 
-# Labels for the 'default' tag
-DEFAULT_LABEL = ['city', 'region', 'country']
+# Labels for the 'force' tag
+FORCE_LABEL = ['city', 'region', 'country']
 
 # Column order, keys expressed as libpostal parser labels
 #lpsubf_order = {'house_number' : 0, 'road' : 1, 'unit' : 2, 'city' : 3, \
@@ -67,8 +67,8 @@ def _xml_extract_labels(json_data):
         elif ('address' in json_data['info']) and (i in json_data['info']['address']):
             XPathString = ".//" + json_data['info']['address'][i]
             xml_fl[i] = XPathString
-        elif ('default' in json_data) and (i in json_data['default']):
-            xml_fl[i] = 'DPIDEFAULT'
+        elif ('force' in json_data) and (i in json_data['force']):
+            xml_fl[i] = 'DPIFORCE'
     return xml_fl, header_label, filename
 
 
@@ -98,8 +98,8 @@ def _csv_extract_labels(json_data):
         elif ('address' in json_data['info']) and (i in json_data['info']['address']):
             AddressVarField = json_data['info']['address'][i]
             fd[i] = AddressVarField
-        elif ('default' in json_data) and (i in json_data['default']):
-            fd[i] = 'DPIDEFAULT'
+        elif ('force' in json_data) and (i in json_data['force']):
+            fd[i] = 'DPIFORCE'
     return fd, filename
 
 
@@ -183,7 +183,7 @@ def xml_parse(json_data):
     for element in root.findall(header):
         row = []
         for key in tags:
-            if tags[key] != 'DPIDEFAULT':
+            if tags[key] != 'DPIFORCE':
                 subelement = element.find(tags[key])
                 errhandle = _xml_empty_element_handler(row, subelement)
                 if errhandle == True:
@@ -194,7 +194,7 @@ def xml_parse(json_data):
                 else:
                     row = errhandle
             else:
-                row.append(json_data['default'][key])
+                row.append(json_data['force'][key])
         cprint.writerow(row)
     csvfile.close()
     return 0
@@ -237,10 +237,10 @@ def csv_parse(json_data):
         for entity in cparse:
             row = []
             for key in tags:
-                if tags[key] != 'DPIDEFAULT':
+                if tags[key] != 'DPIFORCE':
                     entry = entity[tags[key]]
                 else:
-                    entry = json_data['default'][key]
+                    entry = json_data['force'][key]
                 row.append(entry)
             cprint.writerow(row)
     except KeyError:

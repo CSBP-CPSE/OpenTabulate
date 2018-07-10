@@ -43,7 +43,7 @@ The following tags are **required** for the scripts to run. Without the proper s
 | `country` | Country name or code. |  |
 | `postcode` | Postal code. |  |
 
-### Default tag
+### Force tag
 | Tag | Description | Requirement |
 | --- | ----------- | ----------- |
 | `city` | City name. |  |

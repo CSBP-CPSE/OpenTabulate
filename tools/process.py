@@ -101,16 +101,16 @@ try:
             if not (i in obrparser.ADDR_FIELD_LABEL):
                 print("[E] Address tag contains an invalid key >", SRC_PATH)
                 exit(1)
-    if 'default' in data:
-        if not (isinstance(data['default'], dict)):
-            print("[E] Default tag is not a list >", SRC_PATH)
+    if 'force' in data:
+        if not (isinstance(data['force'], dict)):
+            print("[E] Force tag is not a list >", SRC_PATH)
             exit(1)
-        for i in data['default']:
-            if not (i in obrparser.DEFAULT_LABEL):
-                print("[E] Default tag contains an invalid key >", SRC_PATH)
+        for i in data['force']:
+            if not (i in obrparser.FORCE_LABEL):
+                print("[E] Force tag contains an invalid key >", SRC_PATH)
                 exit(1)
             elif i in data['info']['address']:
-                print("[E] The key '", i, "' appears in both 'default' and 'address' >", SRC_PATH)
+                print("[E] The key '", i, "' appears in both 'force' and 'address' >", SRC_PATH)
                 exit(1)
         
 except KeyError: # missing field error
