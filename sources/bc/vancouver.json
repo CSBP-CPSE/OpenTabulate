@@ -3,8 +3,9 @@
     "type": "xml",
     "header": "BusinessLicence",
     "info": {
-	"name": "BusinessName",
-	"bus_type": "BusinessType",
+	"bus_name": "BusinessName",
+	"license_no": "LicenceNumber",
+	"bus_e": "BusinessType",
 	"address": {
 	    "house_number": "House",
 	    "road": "Street",

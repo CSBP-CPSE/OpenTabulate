@@ -11,7 +11,6 @@ Written by Maksym Neyra-Nesterenko.
 from xml.etree import ElementTree
 from os import remove as _rm
 import csv
-import json
 import copy
 
 
@@ -20,7 +19,7 @@ import copy
 # -----------------
 
 # The column names for the to-be-created CSV files
-_FIELD_LABEL = ['name', 'industry', 'address', 'house_number', 'road', 'postcode', 'unit', \
+_FIELD_LABEL = ['bus_name', 'license_no', 'industry', 'address', 'house_number', 'road', 'postcode', 'unit', \
          'city', 'region', 'country', 'phone', 'email', 'website', 'longitude', \
          'latitude', 'reg_date', 'exp_date', 'status', 'specid']
 
@@ -104,39 +103,6 @@ def _csv_extract_labels(json_data):
     return fd, filename
 
 
-def _json_extract_labels(json_data):
-    """
-    Constructs a dictionary that stores only tags that were exclusively used in 
-    a source file. This function is specific to the JSON format and requires a 
-    header tag.
-                                                                                
-    Note:
-        This function is used by 'json_parse'.
-
-    Args:
-        json_data: dictionary obtained by json.load when read from a source file.
-
-    Returns:
-        The tag dictionary, header tag, and filename tag of the dataset to be parsed.
-    """
-    global ADDR_FIELD_LABEL
-    global _FIELD_LABEL
-    json_fl = dict()                           # tag dictionary
-    header_label = json_data['header']         # header tag
-    filename = json_data['filename']           # filename tag
-    
-    # append existing data using XPath expressions (for parsing)
-    for i in _FIELD_LABEL:
-        if i in json_data['info'] and (not (i in ADDR_FIELD_LABEL)) and i != 'address':
-            json_fl[i] =  json_data['info'][i]
-        # short circuit evaluation
-        elif ('address' in json_data['info']) and (i in json_data['info']['address']):
-            AddressFieldVar = json_data['info']['address'][i]
-            json_fl[i] = AddressFieldVar
-        elif ('default' in json_data) and (i in json_data['default']):
-            json_fl[i] = 'DPIDEFAULT'
-    return json_fl, header_label, filename
-
 
 # --------------------------------
 # --- PARSING HELPER FUNCTIONS ---
@@ -170,23 +136,6 @@ def _xml_empty_element_handler(row, element):
         row.append('')
     return row
 
-
-def _json_tree_search(root, key):
-    for child_key in root:
-        if child_key == key:
-            return root[child_key]
-        # --- DEBUG: warning, list may be a tuple ---
-        if not (isinstance(root[child_key], dict) or isinstance(root[child_key], list)): 
-            # child is a leaf
-            return None, False
-        else:
-            # child is an internal node
-            node = _json_tree_search(root[child_key], key)
-            if node == None:
-                # this node does not contain what we are looking for
-                pass
-            else:
-                return node
 
 # -------------------------
 # --- PARSING FUNCTIONS ---
@@ -307,17 +256,6 @@ def csv_parse(json_data):
     csv_file_write.close()
     return 0
 
-
-def json_parse(json_data):
-    """
-    --- docstring to be added ---
-    """
-    tags, header, filename = _json_extract_labels(json_data)
-
-    jf = open('./raw/' + filename, 'r')
-    jsondata = json.load(jf)
-    
-    jf.close()
 
 
     
