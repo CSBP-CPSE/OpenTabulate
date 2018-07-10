@@ -1,0 +1,20 @@
+{
+    "filename": "bc-vancouver.xml",
+    "type": "xml",
+    "header": "BusinessLicence",
+    "info": {
+	"name": "BusinessName",
+	"bus_type": "BusinessType",
+	"address": {
+	    "house_number": "House",
+	    "road": "Street",
+	    "unit": "Unit",
+	    "city": "City",
+	    "region": "Province",
+	    "country": "Country",
+	    "postcode": "PostalCode"
+	},
+	"latitude": "Latitude",
+	"longitude": "Longitude"
+    }
+}
