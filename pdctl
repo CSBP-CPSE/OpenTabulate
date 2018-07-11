@@ -76,7 +76,7 @@ fi
 
 
 # DPI_ prefix is for --- DEBUG ---
-list=$(find ${OBR}/sources/ -name "vancouver.json" -type f)
+list=$(find ${OBR}/sources/ -type f | egrep 'vancouver|victoria|nanaimo')
 
 for src in $list; do
     # CHANGE RAW TO PP LATER --- DEBUG ---

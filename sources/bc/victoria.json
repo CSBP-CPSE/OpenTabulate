@@ -1,0 +1,17 @@
+{
+    "filename": "bc-victoria.csv",
+    "type": "csv",
+    "info": {
+        "trade_name": "TRADE_NAME",
+	"lic_no": "LICENCE_NUMBER",
+        "lic_issued": "ISSUED_DATE",
+	"lic_expd": "expires",
+	"address": {
+	    "house_number": "CIVIC_HOUSE",
+	    "road": "CIVIC_STREET",
+	    "unit": "CIVIC_UNIT"
+	},
+	"latitude": "Y",
+	"longitude": "X"
+    }
+}

@@ -1,0 +1,16 @@
+{
+    "filename": "bc-nanaimo.csv",
+    "type": "csv",
+    "info": {
+        "trade_name": "TradeName",
+	"address": {
+	    "house_number": "CivicAddressHouse",
+	    "road": "CivicAddressStreet",
+	    "unit": "CivicAddressUnit",
+	    "city": "CivicAddressCity",
+	    "prov": "CivicAddressProvince"
+	},
+	"latitude": "Latitude",
+	"longitude": "Longitude"
+    }
+}

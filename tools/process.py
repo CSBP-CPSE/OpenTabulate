@@ -28,7 +28,7 @@ def isEmpty(value):
         print("[E] Empty required tag >", SRC_PATH)
         exit(1)
 
-        
+"""        
 def UTF8_check(path_to_file):
     # A heuristic verification of whether or not a file uses the utf-8 encoding
     source_dataset = open(path_to_file, 'r', encoding='utf-8', newline='')
@@ -39,7 +39,7 @@ def UTF8_check(path_to_file):
     except UnicodeDecodeError:
         return False
     return True
-
+"""
 
 # -----------------------
 # -- PROCESSING SCRIPT --
@@ -141,8 +141,8 @@ elif data['type'] == 'csv':
     # remove byte order mark from files 
     subprocess.check_call([TOOLS_PATH + '/rmByteOrderMark', './raw/' + data['filename'], './pp/' + data['filename']])
     # handle unicode decoding errors before parsing
-    if not UTF8_check('./pp/' + data['filename']):
-        subprocess.check_call([TOOLS_PATH + '/fixCharEncoding', './pp/' + data['filename']])
+    #if not UTF8_check('./pp/' + data['filename']):
+    #    subprocess.check_call([TOOLS_PATH + '/fixCharEncoding', './pp/' + data['filename']])
 
     es = obrparser.csv_parse(data)
     if es == 1:

@@ -4,18 +4,23 @@
     "header": "BusinessLicence",
     "info": {
 	"bus_name": "BusinessName",
-	"license_no": "LicenceNumber",
-	"bus_e": "BusinessType",
+        "trade_name": "BusinessTradeName",
+	"lic_status": "Status",
+	"lic_no": "LicenceNumber",
+        "lic_issued": "IssuedDate",
+	"lic_expd": "ExpiredDate",
+	"no_employed": "NumberOfEmployees",
 	"address": {
 	    "house_number": "House",
 	    "road": "Street",
 	    "unit": "Unit",
 	    "city": "City",
-	    "region": "Province",
+	    "prov": "Province",
 	    "country": "Country",
 	    "postcode": "PostalCode"
 	},
 	"latitude": "Latitude",
-	"longitude": "Longitude"
+	"longitude": "Longitude",
+	"comdist": "LocalArea"
     }
 }

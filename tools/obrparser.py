@@ -18,13 +18,29 @@ import copy
 # --- VARIABLES ---
 # -----------------
 
+"""
+Standardized fields:
+
+[unused tags] street direction, street type, youtube, twitter, facebook, linkedin, instagram
+
+[addresses] unit, house_number, road, city, prov, country, postcode, address !(address is a concatenation)
+[contact] bus_name, trade_name, prim_phone, secn_phone, email, fax, website, toll_free
+[location] latitude, longitude, comdist (community district/neighbourhood/..), ltln (latitude, longitude pair)
+[info] bus_desc, active, no_employed,
+[license] lic_status, lic_issued, lic_expd, lic_no !(lic_no depends on data set)
+
+Synonyms: bus name, company name, operating name
+
+
+"""
+
 # The column names for the to-be-created CSV files
-_FIELD_LABEL = ['bus_name', 'license_no', 'industry', 'address', 'house_number', 'road', 'postcode', 'unit', \
-         'city', 'region', 'country', 'phone', 'email', 'website', 'longitude', \
-         'latitude', 'reg_date', 'exp_date', 'status', 'specid']
+_FIELD_LABEL = ['bus_name', 'trade_name', 'lic_no', 'lic_issued', 'lic_expd', 'lic_status', \
+                'house_number', 'road', 'postcode', 'unit', 'city', 'prov', 'country', \
+                'phone', 'email', 'website', 'comdist', 'longitude', 'latitude', 'ltln', 'no_employed']
 
 # Address fields, boolean values required for parsers to handle duplicate entries correctly
-ADDR_FIELD_LABEL = ['unit', 'house_number', 'road', 'city', 'region', 'country', 'postcode']
+ADDR_FIELD_LABEL = ['unit', 'house_number', 'road', 'city', 'prov', 'country', 'postcode']
 
 # Labels for the 'force' tag
 FORCE_LABEL = ['city', 'region', 'country']
