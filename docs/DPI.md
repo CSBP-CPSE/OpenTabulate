@@ -22,14 +22,32 @@ The following tags are **required** for the scripts to run. Without the proper s
 
 | Tag | Description | Requirement |
 | --- | ----------- | ----------- |
-| `name` | Business name. | Required |
-| `industry` | Business industry type. _Might be replaced with NAICS standard_. |  |
+| `bus_name` | Business (legal) name. |  |
+| `trade_name` | Trade name. |  |
+| `full_addr` | Full address of business (concatenated street name, number, etc.) NOTE: ACCEPTS LISTS FOR CONCATENTATION |  |
 | `address` | Address metadata, such as street number, street name, postal code, etc. |  |
 | `phone` | Business phone number. |  |
 | `email` | Business e-mail. |  |
 | `website` | Business website URL. |  |
+| `comdist` | Community, district or neighbourhood name. |  |
 | `longitude` | Location refering to the geographic coordinate system. |  |
 | `latitude` | Location refering to the geographic coordinate system. |  |
+| `no_employed` | Number of employees. |  |
+| `naics_X` | NAICS code containing *X* digits (here, *X* can be 2, 3, 4, 5 or 6. |  |
+| `naics_desc` | NAICS (primary/6 digit) code description |  |
+| `roll_no` | Business roll number or identifier |  |
+
+### License tag
+
+| Tag | Description | Requirement |
+| --- | ----------- | ----------- |
+| `lic_no` | Business license number. |  |
+| `lic_issued` | License issue date. |  |
+| `lic_expd` | License expiry date. |  |
+| `lic_status` | License status. |  |
+| `res_lic` | Residential license. |  |
+
+
 
 ### Address tag
 

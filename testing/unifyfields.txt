@@ -1,55 +1,21 @@
 AMOUNT
-APPLICATION_DATE
-APPROVAL_DATE
-approval_type_date
-Approved Date
-Approved_Date
 BID
 BldgNo
 Business Category
-Business_Id
-Business Improvement Area
-BUSINESS_NUMBER
 BUSINESS_PARKBIA
-BUSINESSTYPE
-Cancel Date
-Category
-﻿CATEGORY
-Category_Desc
-CEASED_DATE
-Client Name
 Conditions
-Count
-CREATE_DATE
 CREATED_BY
-Created_Date
 DATE_EST_IN_CITY
 Detail
 Detail_Desc
-dLONGLEGAL_1
-dLONGLEGAL_2
-dLONGLEGAL_3
-dLONGLEGAL_4
-dLONGLEGAL_5
-dLONGLEGAL_6
 DOWNTOWN
 DOWNTOWN_PLANNING_DISTRICT
-dSHORTLEGAL_1
-dSHORTLEGAL_2
-dSHORTLEGAL_3
-dSHORTLEGAL_4
-dSHORTLEGAL_5
-EDO_NAICS_Desc
 EmplRange
 EmplUpdate
 Endorsements
-EXPORT_COUNTRY1
-EXPORT_COUNTRY2
-EXPORT_COUNTRY3
 EXPORTING
 EXPORT_PERCENTAGE
 EXPORTS
-FID
 ﻿FID
 FIRST_NAME_1
 FIRST_NAME_2
@@ -58,61 +24,26 @@ Free Form Conditions Line 2
 FullTime_Employees
 GFA_SQUARE_FEET
 GFA_SQUARE_METER
-GLOBALID
-GlobalID_2
 HEAD_OFFICE_LOCATION
 HOME_OCCUPATION
 ID
 IN_CIP
-JOBCREATED
-JOBSTATUSDESC
 KID
 LAST_NAME_1
 LAST_NAME_2
 LEGAL_ID
-Licence
-Licence_Desc
-Licence Issued To
-Licence Renewable
-Licence Seasonal
-Licence Type
-LICENCETYPES
 LICENSE_PLATE
-location
-Location
 Location of Business
 Municipality
-NAIC
-NAIC_2
-NAIC_3
-NAIC_4
-NAIC_6
-NAIC Description
-NAICSCategory
-NAICSCategoryDescription
-NAICSCode
-NAICSCode_Desc
-naics_description
-NAICSDetail
-NAICS_DETAIL
-NAICSDetailDescription
-NAICS_Primary
 NAICS_Primary_Desc
 NAICSSecto
-NAICSTitle
-Name
 NAME_SUFFIX
-Neighbourhood ID
 Number
 Number of Boxes
 OFF_STREET_STALLS
 Original Application Date
 PartTime_Employees
-Permitted_Use
-Permitted_Use_Desc
 Plate No.
-PRIMARY_NAICS
-PRIMARY_NAICS_DESCRIPTION
 PRIMARY_NAICS_SECTOR
 PRODUCT_DESC
 Products or Services
@@ -121,8 +52,6 @@ PropertyNumber
 Property Type
 PROPOSED_BUSINESS
 Renewed Date
-RESIDENT
-ROLL_NUMBER
 Seasonal_Employees
 SECONDARY_NAICS
 SHAPEarea
@@ -133,12 +62,9 @@ Site_Postal_Code
 SPACE_SIZE_SQFT
 START_DATE
 STARTED_IN_CITY
-TEMPORARY_LICENSE
 THE
 TITLE_1
 TITLE_2
-TOTAL_EMPLOYEE
-TOTAL_EMPLOYEES
 Town Centre
 trade_description
 Trade Home Based
@@ -151,5 +77,4 @@ UPDATE_DATE
 UPDATED_BY
 Updated_Date
 VENDORID
-Ward
 YEAR_ESTABLISHED_ORIGINALLY

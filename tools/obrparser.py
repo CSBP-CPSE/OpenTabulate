@@ -31,13 +31,24 @@ Standardized fields:
 
 Synonyms: bus name, company name, operating name
 
-
 """
 
 # The column names for the to-be-created CSV files
-_FIELD_LABEL = ['bus_name', 'trade_name', 'lic_no', 'lic_issued', 'lic_expd', 'lic_status', \
+_FIELD_LABEL = ['bus_name', 'trade_name', 'bus_type', 'home_occup', 'bus_no', \
+                'lic_type', 'lic_no', 'bus_start_date', 'bus_cease_date', 'active', \
+                'full_addr', \
                 'house_number', 'road', 'postcode', 'unit', 'city', 'prov', 'country', \
-                'phone', 'email', 'website', 'comdist', 'longitude', 'latitude', 'ltln', 'no_employed']
+                'phone', 'fax', 'email', 'website', \
+                'comdist', \
+                'longitude', \
+                'latitude', \
+                'no_employed', 'no_seasonal_emp', 'no_full_emp', 'no_part_emp', \
+                'home_bus', \
+                'exports', 'exp_cn_1', 'exp_cn_2', 'exp_cn_3', \
+                'naics_2', 'naics_3', 'naics_4', 'naics_5', 'naics_6', \
+                'naics_desc', \
+                'facebook', 'twitter', 'linkedin', 'youtube', 'instagram']
+
 
 # Address fields, boolean values required for parsers to handle duplicate entries correctly
 ADDR_FIELD_LABEL = ['unit', 'house_number', 'road', 'city', 'prov', 'country', 'postcode']
@@ -78,7 +89,12 @@ def _xml_extract_labels(json_data):
     # append existing data using XPath expressions (for parsing)
     for i in _FIELD_LABEL:
         if i in json_data['info'] and (not (i in ADDR_FIELD_LABEL)) and i != 'address':
-            xml_fl[i] = ".//" + json_data['info'][i]
+            if isinstance(json_data['info'][i], list):
+                xml_fl[i] = []
+                for t in json_data['info'][i]:
+                    xml_fl[i].append(".//" + t)
+            else:
+                xml_fl[i] = ".//" + json_data['info'][i]
         # short circuit evaluation
         elif ('address' in json_data['info']) and (i in json_data['info']['address']):
             XPathString = ".//" + json_data['info']['address'][i]
@@ -124,7 +140,7 @@ def _csv_extract_labels(json_data):
 # --- PARSING HELPER FUNCTIONS ---
 # --------------------------------
 
-def _xml_empty_element_handler(row, element):
+def _xml_empty_element_handler(element):
     """
     The 'xml.etree' module returns 'None' for text of empty-element tags. Moreover, 
     if the element cannot be found, the element is 'None'. This function is defined 
@@ -134,7 +150,6 @@ def _xml_empty_element_handler(row, element):
         This function is used by 'xml_parse'.
 
     Args:
-        row: A list of fields that will appended to the resulting CSV file as a row.
         element: A node in the XML tree.
 
     Returns:
@@ -142,15 +157,14 @@ def _xml_empty_element_handler(row, element):
         'xml_parse' returns a detailed error message of the missing tag and 
         terminates the data processing.
 
-        Otherwise, return the updated row to 'xml_parse'.
+        Otherwise, return the appropriate field contents.
     """
     if element is None: # if the element is missing, return error
         return True
     if not (element.text is None):
-        row.append(element.text)
+        return element.text
     else:
-        row.append('')
-    return row
+        return ''
 
 
 # -------------------------
@@ -175,6 +189,8 @@ def xml_parse(json_data):
         '1' : Incorrect formatting of XML dataset.
         '2' : Missing element tag within a header tag.
     """
+    global FORCE_LABEL
+    
     tags, header, filename = _xml_extract_labels(json_data)
 
     try:
@@ -199,16 +215,36 @@ def xml_parse(json_data):
     for element in root.findall(header):
         row = []
         for key in tags:
+            if isinstance(tags[key], list) and key not in FORCE_LABEL:
+                count = 0
+                for i in tags[key]:
+                    entry = ''
+                    count += 1
+                    subelement = element.find(i)
+                    subel_content = _xml_empty_element_handler(subelement)
+                    if subel_content == True:
+                        print("[E] Header '", element.tag, ' ', element.attrib, "' is missing '", tags[key], "'.", sep='')
+                        csvfile.close()
+                        _rm('./dirty/' + dirty_file)
+                        return 2
+                    else:
+                        if count == len(tags[key]):
+                            entry += subel_content
+                        else:
+                            entry += subel_content + ' '
+                row.append(entry)
+                continue
+
             if tags[key] != 'DPIFORCE':
                 subelement = element.find(tags[key])
-                errhandle = _xml_empty_element_handler(row, subelement)
-                if errhandle == True:
+                subel_content = _xml_empty_element_handler(subelement)
+                if subel_content == True:
                     print("[E] Header '", element.tag, ' ', element.attrib, "' is missing '", tags[key], "'.", sep='')
                     csvfile.close()
                     _rm('./dirty/' + dirty_file)
                     return 2
                 else:
-                    row = errhandle
+                    row.append(subel_content)
             else:
                 row.append(json_data['force'][key])
         cprint.writerow(row)
@@ -229,6 +265,8 @@ def csv_parse(json_data):
         '0' : Successful reformatting.
         '1' : A tag value defined from a source file does not match the dataset's metadata.
     """
+
+    global FORCE_LABEL
 
     tags, filename = _csv_extract_labels(json_data)
     
@@ -253,6 +291,18 @@ def csv_parse(json_data):
         for entity in cparse:
             row = []
             for key in tags:
+                if isinstance(tags[key], list) and key not in FORCE_LABEL:
+                    count = 0
+                    entry = ''
+                    for i in tags[key]:
+                        count += 1
+                        if count == len(tags[key]):
+                            entry += entity[i]
+                        else:
+                            entry += entity[i] + ' '
+                    row.append(entry)
+                    continue
+
                 if tags[key] != 'DPIFORCE':
                     entry = entity[tags[key]]
                 else:
