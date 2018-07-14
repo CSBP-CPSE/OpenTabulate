@@ -1,0 +1,21 @@
+{
+    "filename": "bc-city_of_langley.csv",
+    "type": "csv",
+    "info": {
+	"bus_name": "Business_Name",
+	"lic_type": "Licence_Desc",
+	"full_address": "Mailing_Address",
+	"address": {
+	    "house_number": "Civic_House",
+	    "road": "Civic_Street",
+	    "unit": "Civic_Unit"
+	},
+	"naics_6": "NAICS_Primary",
+	"naics_desc": "NAICS_Primary_Desc",
+	"latitude": "Latitude",
+	"longitude": "Longitude",
+	"comdist": "CommunityName",
+	"phone": "Phone",
+	"full_addr": "Mailing_Address"
+    }
+}

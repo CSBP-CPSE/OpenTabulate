@@ -1,0 +1,19 @@
+{
+    "filename": "ab-banff.csv",
+    "type": "csv",
+    "info": {
+	"bus_name": "BUSINESS_NAME",
+	"active": "ACTIVE",
+	"bus_no": "ROLL_NUMBER",
+	"bus_start_date": "START_DATE",
+	"bus_cease_date": "CEASED_DATE",
+	"bus_type": "PROPOSED_BUSINESS",
+	"address": {
+	    "house_number": "STREET_NUMBER",
+	    "road": "STREET_NAME",
+	    "unit": "UNIT"
+	},
+	"phone": "BUSINESS_NUMBER",
+	"home_bus": "HOME_OCCUPATION"
+    }
+}

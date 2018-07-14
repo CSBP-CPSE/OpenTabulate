@@ -1,0 +1,16 @@
+{
+    "filename": "on-toronto.csv",
+    "type": "csv",
+    "info": {
+	"bus_name": "Client Name",
+	"trade_name": "Operating Name",
+	"lic_no": "Licence No.",
+        "lic_issued": "Issued",
+	"full_addr": [
+	    "Licence Address Line 1",
+	    "Licence Address Line 2",
+	    "Licence Address Line 3"
+	],
+	"phone": "Business Phone"
+    }
+}

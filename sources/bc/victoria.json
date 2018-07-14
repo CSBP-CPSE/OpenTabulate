@@ -12,6 +12,7 @@
 	    "unit": "CIVIC_UNIT"
 	},
 	"latitude": "Y",
-	"longitude": "X"
+	"longitude": "X",
+	"comdist": "Neighbourhood"
     }
 }

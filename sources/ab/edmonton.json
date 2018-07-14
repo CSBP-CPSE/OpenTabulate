@@ -1,0 +1,13 @@
+{
+    "filename": "ab-edmonton.csv",
+    "type": "csv",
+    "info": {
+        "trade_name": "Trade Name",
+	"bus_type": "Category",
+        "full_addr": "Address",
+	"lic_no": "Licence Number",
+	"latitude": "Latitude",
+	"longitude": "Longitude",
+	"comdist": "Neighbourhood"
+    }
+}

@@ -10,6 +10,7 @@
         "lic_issued": "IssuedDate",
 	"lic_expd": "ExpiredDate",
 	"no_employed": "NumberOfEmployees",
+	"full_addr" : ["House", "Street", "Unit"],
 	"address": {
 	    "house_number": "House",
 	    "road": "Street",
