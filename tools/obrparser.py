@@ -34,16 +34,16 @@ Synonyms: bus name, company name, operating name
 """
 
 # The column names for the to-be-created CSV files
-_FIELD_LABEL = ['bus_name', 'trade_name', 'bus_type', 'home_occup', 'bus_no', \
+_FIELD_LABEL = ['bus_name', 'trade_name', 'bus_type', 'bus_no', 'bus_desc', \
                 'lic_type', 'lic_no', 'bus_start_date', 'bus_cease_date', 'active', \
                 'full_addr', \
                 'house_number', 'road', 'postcode', 'unit', 'city', 'prov', 'country', \
-                'phone', 'fax', 'email', 'website', \
-                'comdist', \
+                'phone', 'fax', 'email', 'website', 'tollfree',\
+                'comdist', 'region', \
                 'longitude', \
                 'latitude', \
-                'no_employed', 'no_seasonal_emp', 'no_full_emp', 'no_part_emp', \
-                'home_bus', \
+                'no_employed', 'no_seasonal_emp', 'no_full_emp', 'no_part_emp', 'emp_range',\
+                'home_bus', 'munic_bus', 'nonres_bus', \
                 'exports', 'exp_cn_1', 'exp_cn_2', 'exp_cn_3', \
                 'naics_2', 'naics_3', 'naics_4', 'naics_5', 'naics_6', \
                 'naics_desc', \

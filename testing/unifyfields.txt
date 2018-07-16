@@ -1,22 +1,7 @@
-AMOUNT
-BID
 BldgNo
-Business Category
-BUSINESS_PARKBIA
 Conditions
-CREATED_BY
-DATE_EST_IN_CITY
-Detail
-Detail_Desc
-DOWNTOWN
-DOWNTOWN_PLANNING_DISTRICT
 EmplRange
 EmplUpdate
-Endorsements
-EXPORTING
-EXPORT_PERCENTAGE
-EXPORTS
-﻿FID
 FIRST_NAME_1
 FIRST_NAME_2
 Free Form Conditions Line 1
@@ -24,57 +9,20 @@ Free Form Conditions Line 2
 FullTime_Employees
 GFA_SQUARE_FEET
 GFA_SQUARE_METER
-HEAD_OFFICE_LOCATION
-HOME_OCCUPATION
-ID
-IN_CIP
-KID
 LAST_NAME_1
 LAST_NAME_2
-LEGAL_ID
 LICENSE_PLATE
-Location of Business
-Municipality
-NAICS_Primary_Desc
-NAICSSecto
 NAME_SUFFIX
-Number
-Number of Boxes
 OFF_STREET_STALLS
-Original Application Date
 PartTime_Employees
 Plate No.
-PRIMARY_NAICS_SECTOR
 PRODUCT_DESC
 Products or Services
 PROFILE
 PropertyNumber
 Property Type
-PROPOSED_BUSINESS
-Renewed Date
 Seasonal_Employees
-SECONDARY_NAICS
-SHAPEarea
-SHAPElen
-SHIFT_NUMBER
-SHIFTS
-Site_Postal_Code
 SPACE_SIZE_SQFT
-START_DATE
 STARTED_IN_CITY
-THE
 TITLE_1
 TITLE_2
-Town Centre
-trade_description
-Trade Home Based
-Trade Intermunicipal
-Trade Non-Resident
-TYPE_CODE
-TYPE_DESCRIPTION
-Type of Business
-UPDATE_DATE
-UPDATED_BY
-Updated_Date
-VENDORID
-YEAR_ESTABLISHED_ORIGINALLY

@@ -149,4 +149,4 @@ elif data['type'] == 'csv':
         print("[E] DPI and CSV field names disagree >", SRC_PATH)
         exit(1)
 
-print("[!] Successful process >", SRC_PATH)
+print("[!] Data parsing completed.")
