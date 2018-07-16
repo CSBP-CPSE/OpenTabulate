@@ -3,6 +3,7 @@
     "type": "csv",
     "info": {
 	"bus_name": "BUSINESSNAME",
+	"bus_type": "BUSINESSTYPE",
 	"full_addr": [
 	    "ADDRESS1",
 	    "ADDRESS2",

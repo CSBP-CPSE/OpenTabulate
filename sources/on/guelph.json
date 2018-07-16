@@ -1,0 +1,10 @@
+{
+    "filename": "on-guelph.csv",
+    "type": "csv",
+    "info": {
+	"bus_name": "Operating Name",
+	"lic_no": "Business Licence Number",
+	"bus_type": "Type of Business",
+	"full_addr": "Location of Business"
+    }
+}

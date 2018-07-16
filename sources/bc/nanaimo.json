@@ -3,6 +3,9 @@
     "type": "csv",
     "info": {
         "trade_name": "TradeName",
+	"lic_no": "Licence",
+	"bus_desc": "BusinessDescription",
+	"bus_start_date": "approval_type_date",
 	"address": {
 	    "house_number": "CivicAddressHouse",
 	    "road": "CivicAddressStreet",
@@ -10,6 +13,7 @@
 	    "city": "CivicAddressCity",
 	    "prov": "CivicAddressProvince"
 	},
+	"naics_4": "NAICSDetail",
 	"latitude": "Latitude",
 	"longitude": "Longitude"
     }

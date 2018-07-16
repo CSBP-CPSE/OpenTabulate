@@ -1,0 +1,24 @@
+{
+    "filename": "on-durham_region.csv",
+    "type": "csv",
+    "info": {
+	"bus_name": "Business_Name",
+	"bus_no": "Business_Id",
+	"bus_desc": "Business_Description",
+	"address" : {
+	    "house_number": "Street_Number",
+	    "road": [ "Street_Name", "Street_Type", "Street_Direction" ],
+	    "unit": "Unit_Number",
+	    "city": "City",
+	    "prov": "Province",
+	    "postcode": "Site_Postal_Code"
+	},
+	"latitude": "Y",
+	"longitude": "X",
+	"phone": "Telephone_Number",
+	"website": "Web_Address",
+	"fax": "Fax_Number",
+	"naics_6": "NAICSCode",
+	"naics_desc": "NAICSCode_Desc"
+    }
+}

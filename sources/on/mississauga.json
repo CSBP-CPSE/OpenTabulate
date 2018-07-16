@@ -1,0 +1,24 @@
+{
+    "filename": "on-mississauga.csv",
+    "type": "csv",
+    "info": {
+	"bus_name": "Name",
+	"bus_no": "BID",
+	"full_addr": "Address",
+	"address" : {
+	    "house_number": "StreetNo",
+	    "road": "StreetName",
+	    "unit": "UnitNo",
+	    "postcode": "PostalCode"
+	},
+	"comdist": "Location",
+	"naics_6": "NAICSCode",
+	"naics_desc": ["NAICSSecto", "NAICSTitle"],
+	"emp_range": "EmplRange",
+	"phone": "Phone",
+	"fax": "Fax",
+	"tollfree": "TollFree",
+	"email": "EMail",
+	"website": "WebAddress"
+    }
+}

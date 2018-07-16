@@ -14,6 +14,7 @@
 	    "unit": "UNIT"
 	},
 	"phone": "BUSINESS_NUMBER",
-	"home_bus": "HOME_OCCUPATION"
+	"home_bus": "HOME_OCCUPATION",
+        "munic_bus": "RESIDENT"
     }
 }

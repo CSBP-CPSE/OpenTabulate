@@ -1,0 +1,21 @@
+{
+    "filename": "MsbRegistryPublicDataFile.xml",
+    "type": "xml",
+    "header": "MsbInformation",
+    "info": {
+	"bus_name": "MsbLegalBusinessName",
+	"bus_no": "MsbIncorporationNumber",
+	"bus_desc": "ActivityDescriptionEnglish",
+	"trade_name": "MsbOperateName",
+	"full_addr": ["StreetAddress", "CityName", "AlphaProvinceCode", "PostalZipCode"],
+	"address": {
+	    "city": "CityName",
+	    "prov": "AlphaProvinceCode",
+	    "postcode": "PostalZipCode",
+	    "country": "AlphaCountryCode"
+	},
+	"lic_no": "MsbRegistrationNumber",
+	"phone": "PhoneNumber",
+	"website": "MsbWebsiteAddress"
+    }
+}

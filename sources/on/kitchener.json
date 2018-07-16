@@ -1,0 +1,18 @@
+{
+    "filename": "on-kitchener.csv",
+    "type": "csv",
+    "info": {
+	"bus_name": "COMPANY_NAME",
+	"bus_no": "ID",
+	"bus_desc": "PROFILE",
+	"address" : {
+	    "house_number": "STREET_NUMBER",
+	    "road": "STREET_NAME",
+	    "unit": "UNIT",
+	    "postcode": "POSTAL_CODE"
+	},
+	"latitude": "Y",
+	"longitude": "X",
+	"no_employed": "TOTAL_EMPLOYEES"
+    }
+}

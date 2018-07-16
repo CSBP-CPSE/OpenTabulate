@@ -4,11 +4,9 @@
     "header": "BusinessLicence",
     "info": {
 	"bus_name": "BusinessName",
+	"bus_type": "BusinessType",
         "trade_name": "BusinessTradeName",
-	"lic_status": "Status",
 	"lic_no": "LicenceNumber",
-        "lic_issued": "IssuedDate",
-	"lic_expd": "ExpiredDate",
 	"no_employed": "NumberOfEmployees",
 	"full_addr" : ["House", "Street", "Unit"],
 	"address": {

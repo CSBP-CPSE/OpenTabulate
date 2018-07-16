@@ -1,0 +1,11 @@
+{
+    "filename": "on-greater_sudbury.csv",
+    "type": "csv",
+    "info": {
+	"bus_type": "CATEGORY",
+	"bus_no": "VENDORID",
+	"bus_name": "VENDORNAME",
+	"trade_name": "BUSINESS",
+	"phone": "WORK_PHONE_NO"
+    }
+}
