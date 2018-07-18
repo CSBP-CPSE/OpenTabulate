@@ -1,0 +1,16 @@
+{
+    "filename": "OPEN_DATA_2.xml",
+    "type": "xml",
+    "header": "corporation",
+    "info": {
+	"bus_name": "name",
+	"bus_no": "businessNumber",
+	"full_addr": ["addressLine", "city", "province", "country", "postalCode"],
+	"address": {
+	    "city": "city",
+	    "prov": "province",
+	    "country": "country",
+	    "postcode": "postalCode"
+	}
+    }
+}
