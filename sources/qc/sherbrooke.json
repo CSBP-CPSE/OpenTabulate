@@ -1,0 +1,17 @@
+{
+    "filename": "qc-sherbrooke.csv",
+    "type": "csv",
+    "info": {
+	"bus_name": "NomLocat",
+	"bus_desc": "NomMix",
+	"address": {
+	    "house_number": "NumRueLocal",
+	    "road": "RueLocal",
+	    "unit": "NumBureauLocat",
+	    "city": "VilleLocal",
+	    "postcode": "PostalLocal"
+	},
+	"phone": "TelLocat",
+	"website": "SiteWebLocat"
+    }
+}

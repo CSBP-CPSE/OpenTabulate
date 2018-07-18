@@ -78,6 +78,11 @@ try:
         print("[E] Missing required tag 'url/filename' >", SRC_PATH)
         exit(1)
 
+# -------
+
+# URL handling goes here
+
+# -------
 
     if data['type'] == 'xml':
         if URL_FLAG == True:
@@ -130,9 +135,6 @@ if data['type'] == 'xml':
     es = obrparser.xml_parse(data)
     if es == 1:
         print("[E] Failed to parse XML >", SRC_PATH)
-        exit(1)
-    if es == 2:
-        print("[E] Missing element in header >", SRC_PATH)
         exit(1)
 # --------------
 # - CSV FORMAT -

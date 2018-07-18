@@ -67,3 +67,7 @@ The following tags are **required** for the scripts to run. Without the proper s
 | `city` | City name. |  |
 | `region` | Province/terrority name. |  |
 | `country` | Country name or code. |  |
+
+### Necessary precautions
+- Do not add empty strings or null, i.e. `""`, as a value for a key
+- If a key is in the source file, there should be only one such key

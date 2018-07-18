@@ -47,6 +47,7 @@ _FIELD_LABEL = ['bus_name', 'trade_name', 'bus_type', 'bus_no', 'bus_desc', \
                 'exports', 'exp_cn_1', 'exp_cn_2', 'exp_cn_3', \
                 'naics_2', 'naics_3', 'naics_4', 'naics_5', 'naics_6', \
                 'naics_desc', \
+                'qc_cae_1', 'qc_cae_desc_1', 'qc_cae_2', 'qc_cae_desc_2', \
                 'facebook', 'twitter', 'linkedin', 'youtube', 'instagram']
 
 
@@ -160,7 +161,7 @@ def _xml_empty_element_handler(element):
         Otherwise, return the appropriate field contents.
     """
     if element is None: # if the element is missing, return error
-        return True
+        return ''
     if not (element.text is None):
         return element.text
     else:
@@ -212,39 +213,27 @@ def xml_parse(json_data):
     first_row = [f for f in tags]
     cprint.writerow(first_row)
     
-    for element in root.findall(header):
+    for element in root.iter(header):
         row = []
         for key in tags:
             if isinstance(tags[key], list) and key not in FORCE_LABEL:
                 count = 0
+                entry = ''
                 for i in tags[key]:
-                    entry = ''
                     count += 1
                     subelement = element.find(i)
                     subel_content = _xml_empty_element_handler(subelement)
-                    if subel_content == True:
-                        print("[E] Header '", element.tag, ' ', element.attrib, "' is missing '", tags[key], "'.", sep='')
-                        csvfile.close()
-                        _rm('./dirty/' + dirty_file)
-                        return 2
+                    if count == len(tags[key]):
+                        entry += subel_content
                     else:
-                        if count == len(tags[key]):
-                            entry += subel_content
-                        else:
-                            entry += subel_content + ' '
+                        entry += subel_content + ' '
                 row.append(entry)
                 continue
 
             if tags[key] != 'DPIFORCE':
                 subelement = element.find(tags[key])
                 subel_content = _xml_empty_element_handler(subelement)
-                if subel_content == True:
-                    print("[E] Header '", element.tag, ' ', element.attrib, "' is missing '", tags[key], "'.", sep='')
-                    csvfile.close()
-                    _rm('./dirty/' + dirty_file)
-                    return 2
-                else:
-                    row.append(subel_content)
+                row.append(subel_content)
             else:
                 row.append(json_data['force'][key])
         cprint.writerow(row)
