@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# A script to correct bad characters in the Surrey licenses
+
+sed 's/;/,/g' $1 > $2
