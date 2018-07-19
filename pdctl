@@ -3,64 +3,44 @@
 # An interactive script to process the data.
 
 # Parameter flags
-INTERACTIVE_FLAG=0
 LOG_FLAG=0
-VERBOSE_FLAG=0
 PARALLEL_FLAG=0
-
-# Available resources for parallelization
-CORES=1
+HELP_FLAG=0
 
 # Paths
 OBR=$(cd $(dirname $0); pwd -P) # subject to change for flexibility
 DATA_P_DIR_NAME="pddir" # data processing directory name
 CORES=1
 
+# Available resources for parallelization
+# Defaults to 1
+CORES=1
+LOG_FILE="${OBR}/pdlog.txt"
+
+function safe_termination {
+    pkill --signal 15 --parent $$
+    wait
+    rm ${OBR}/tmp[[:digit:]] 2>/dev/null
+    rm ${OBR}/tmp[[:digit:]][[:digit:]] 2>/dev/null
+    exit 1
+}
 
 while [ "$#" != "0" ]; do
     # handle repeated positional parameters
-    if [ INTERACTIVE_FLAG -gt 1 ] || [ LOG_FLAG -gt 1 ] || \
-	   [ VERBOSE_FLAG -gt 1 ] || [ PARALLEL_FLAG -gt 1 ]; then
-	echo "Error: repeated parameters" 1>&2
+    if [ $LOG_FLAG -gt 1 ]; then
+	echo "Error: repeated 'log' parameter" 1>&2
 	exit 1
     fi
 
     case $1 in
-	'-p' | '--parallel' )
-	    echo "Run this in parallel using $(nproc) available cores"
-	    CORES=$(nproc)
-	    PARALLEL_FLAG=$[$PARALLEL_FLAG + 1]
-	    ;;
-	'-i' | '--interactive' )
-	    echo "Run the script in interactive mode"
-	    INTERACTIVE_FLAG=$[$INTERACTIVE_FLAG + 1]
-	    ;;
-	'-w' | '--log' )
-	    echo "Log process execution"
+	'-p' | '--parallel' ) PARALLEL_FLAG=$[$PARALLEL_FLAG + 1] ;;
+	--log=* )
 	    LOG_FLAG=$[$LOG_FLAG + 1]
-	    VERBOSE_FLAG=$[$VERBOSE_FLAG + 1]
-	    arg="$2"
-	    if [ "${arg:0:1}" == '-' ]; then
-		echo "Do not process this argument"
-	    else
-		echo "Create file (ASSUMING PATH IS VALID)"
-		# do error handling here
-		shift
-	    fi
-	    unset arg
+	    LOG_FILE=${1:6}
 	    ;;
-#	'-v' | '--verbose' )
-#	    echo "Verbose output. This is default when logging output"
-#	    VERBOSE_FLAG=$[$VERBOSE_FLAG + 1]
-#	    ;;
-	'-h' | '--help' )
-	    # If the help option is used, all parameters entered are ignored,
-	    # help text is sent to STDOUT, and the script terminates
-	    echo "Usage : ..."
-	    exit 0
-	    ;;
+	'-h' | '--help' ) HELP_FLAG=$[$HELP_FLAG + 1] ;;
 	* )
-	    echo "Error: invalid parameters; type -h/--help for usage" 1>&2
+	    echo "Error: invalid parameter $1; type -h/--help for usage" 1>&2
 	    exit 1
 	    ;;
     esac
@@ -68,19 +48,66 @@ while [ "$#" != "0" ]; do
     shift
 done
 
-read -p "Process data? (y/n): " PROMPT
-if [[ ! $PROMPT = [y,Y]* ]]; then
-    echo "Exiting prompt."
-    exit
+
+# If the help option is used, all parameters entered are ignored,
+# help text is sent to STDOUT, and the script terminates
+if [ $HELP_FLAG -gt 0 ]; then
+    cat <<EOF
+Usage : pdctl [option] ...
+Options: -h, --help:		display help and exit
+	 -p, --parallel:	fork data processing into available cores specified by nproc
+	     --log=LOG_FILE:	log stdout and stderr of this script to LOG_FILE
+EOF
+    exit 0
+fi
+
+if [ $PARALLEL_FLAG -gt 0 ]; then
+    echo "Parallel flag set: running 'pdctl' using $(nproc) available cores."
+    CORES=$(nproc)
+fi
+
+if [ $LOG_FLAG -gt 0 ]; then
+    touch $LOG_FILE || exit 1
+    echo "Logging process execution at ${LOG_FILE}."
 fi
 
 
-# DPI_ prefix is for --- DEBUG ---
-# egrep 'banff|calgary|edmonton|langley|port_moody|surrey|kelowna|nanaimo|vancouver|victoria|yellowknife|brampton|durham|sudbury|guelph|kitchener|mississauga'
+read -p "Process data? (y: yes/*: exit): " PROMPT
+case $PROMPT in
+    'y' | 'Y' )
+	echo "Processing . . . "
+	;;
+    * )
+	echo "See you later."
+	exit 0
+esac
+
+
+trap safe_termination EXIT SIGHUP SIGINT SIGQUIT SIGTERM
+
+
+# egrep 'banff|calgary|mississauga'
 list=$(find ${OBR}/sources/ -type f -name "*.json")
 
+
+num_proc=0
+tmp_file=0
+
 for src in $list; do
-    # CHANGE RAW TO PP LATER --- DEBUG ---
-    (cd ${OBR}/${DATA_P_DIR_NAME}; echo $src | python ${OBR}/tools/process.py) &
-    wait "$!"
+    if [ $num_proc -lt $CORES ]; then
+	(cd ${OBR}/${DATA_P_DIR_NAME}; echo $src | python ${OBR}/tools/process.py) >> ${OBR}/tmp${tmp_file} &
+	num_proc=$[$num_proc + 1]
+	tmp_file=$[($tmp_file + 1) % $CORES]
+    else
+	while [ $num_proc -ge $CORES ]; do
+	    num_proc=$[$(pgrep --parent $$ | wc -l) - 1]
+	    sleep 0.25
+	done
+    fi
 done
+
+wait
+
+eval cat ${OBR}/tmp{0..$[$CORES-1]} > $LOG_FILE
+
+exit 0

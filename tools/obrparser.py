@@ -18,22 +18,8 @@ import copy
 # --- VARIABLES ---
 # -----------------
 
-"""
-Standardized fields:
-
-[unused tags] street direction, street type, youtube, twitter, facebook, linkedin, instagram
-
-[addresses] unit, house_number, road, city, prov, country, postcode, address !(address is a concatenation)
-[contact] bus_name, trade_name, prim_phone, secn_phone, email, fax, website, toll_free
-[location] latitude, longitude, comdist (community district/neighbourhood/..), ltln (latitude, longitude pair)
-[info] bus_desc, active, no_employed,
-[license] lic_status, lic_issued, lic_expd, lic_no !(lic_no depends on data set)
-
-Synonyms: bus name, company name, operating name
-
-"""
-
-# The column names for the to-be-created CSV files
+# Standardized column names for source files - for usage and
+# documentation, see 'docs/CONTRIB.md' in the repository
 _FIELD_LABEL = ['bus_name', 'trade_name', 'bus_type', 'bus_no', 'bus_desc', \
                 'lic_type', 'lic_no', 'bus_start_date', 'bus_cease_date', 'active', \
                 'full_addr', \
@@ -51,7 +37,7 @@ _FIELD_LABEL = ['bus_name', 'trade_name', 'bus_type', 'bus_no', 'bus_desc', \
                 'facebook', 'twitter', 'linkedin', 'youtube', 'instagram']
 
 
-# Address fields, boolean values required for parsers to handle duplicate entries correctly
+# Address fields
 ADDR_FIELD_LABEL = ['unit', 'house_number', 'road', 'city', 'prov', 'country', 'postcode']
 
 # Labels for the 'force' tag
