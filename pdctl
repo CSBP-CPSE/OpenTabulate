@@ -103,11 +103,12 @@ list=$(find ${OBR}/sources/ -type f -name "*.json")
 num_proc=0
 tmp_file=0
 
+
 for src in $list; do
     if [ $NO_PROC_FLAG -eq 0 ]; then
-	(cd ${OBR}/${DATA_P_DIR_NAME}; (echo $src; echo "F") | python ${OBR}/tools/process.py) >> ${OBR}/tmp${tmp_file} &
+	(cd ${OBR}/${DATA_P_DIR_NAME}; (echo $src; echo "F") | python ${OBR}/tools/process.py) &>> ${OBR}/tmp${tmp_file} &
     else
-	(cd ${OBR}/${DATA_P_DIR_NAME}; (echo $src; echo "T") | python ${OBR}/tools/process.py) >> ${OBR}/tmp${tmp_file} & 
+	(cd ${OBR}/${DATA_P_DIR_NAME}; (echo $src; echo "T") | python ${OBR}/tools/process.py) &>> ${OBR}/tmp${tmp_file} & 
     fi
     num_proc=$[$num_proc + 1]
     tmp_file=$[($tmp_file + 1) % $CORES]
