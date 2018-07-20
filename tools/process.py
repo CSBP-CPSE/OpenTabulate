@@ -46,9 +46,18 @@ def UTF8_check(path_to_file):
 # -----------------------
 
 SRC_PATH = input()
+NO_PROC_STR = input()
 TOOLS_PATH = path.dirname(path.realpath(__file__))
 URL_FLAG = False
 
+if NO_PROC_STR == "T":
+    NO_PROC_FLAG = True
+elif NO_PROC_STR == "F":
+    NO_PROC_FLAG = False
+else:
+    print("[E] NO_PROC_STR not correctly set.")
+    exit(1)
+    
 # safeguard depending on how you obtain the
 # data processing instruction file paths
 if not path.exists(SRC_PATH):
@@ -127,6 +136,9 @@ if not path.exists('./raw/' + data['filename']):
     exit(1)
 
 print("[ ] DPI check passed > ", SRC_PATH)
+
+if NO_PROC_FLAG == True:
+    exit(0)
 
 # --------------
 # - XML FORMAT -

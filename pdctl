@@ -6,6 +6,7 @@
 LOG_FLAG=0
 PARALLEL_FLAG=0
 HELP_FLAG=0
+NO_PROC_FLAG=0
 
 # Paths
 OBR=$(cd $(dirname $0); pwd -P) # subject to change for flexibility
@@ -27,8 +28,8 @@ function safe_termination {
 
 while [ "$#" != "0" ]; do
     # handle repeated positional parameters
-    if [ $LOG_FLAG -gt 1 ]; then
-	echo "Error: repeated 'log' parameter" 1>&2
+    if [ $LOG_FLAG -gt 1 ] || [ $PARALLEL_FLAG -gt 1 ] || [ $NO_PROC_FLAG -gt 1 ]; then
+	echo "Error: repeated positional parameters not permitted." 1>&2
 	exit 1
     fi
 
@@ -38,6 +39,7 @@ while [ "$#" != "0" ]; do
 	    LOG_FLAG=$[$LOG_FLAG + 1]
 	    LOG_FILE=${1:6}
 	    ;;
+	'-n' | '--no-process' ) NO_PROC_FLAG=$[$NO_PROC_FLAG + 1] ;;
 	'-h' | '--help' ) HELP_FLAG=$[$HELP_FLAG + 1] ;;
 	* )
 	    echo "Error: invalid parameter $1; type -h/--help for usage" 1>&2
@@ -51,18 +53,26 @@ done
 
 # If the help option is used, all parameters entered are ignored,
 # help text is sent to STDOUT, and the script terminates
-if [ $HELP_FLAG -gt 0 ]; then
+if [ $HELP_FLAG -gt  0 ]; then
     cat <<EOF
 Usage : pdctl [option] ...
 Options: -h, --help:		display help and exit
 	 -p, --parallel:	fork data processing into available cores specified by nproc
 	     --log=LOG_FILE:	log stdout and stderr of this script to LOG_FILE
+	 -n, --no-process:	check source files without processing data
+Remarks: If '--log' is not used, the log file defaults to the OpenBusinessRepo directory
+	 under the name 'pdlog.txt'. Likewise, if parallelization is not used, the script
+	 defaults to one data set at a time, which occurs on one CPU core.
 EOF
     exit 0
 fi
 
+if [ $NO_PROC_FLAG -gt 0 ]; then
+    echo "Running 'pdctl' without data processing, i.e. to check source files."
+fi
+
 if [ $PARALLEL_FLAG -gt 0 ]; then
-    echo "Parallel flag set: running 'pdctl' using $(nproc) available cores."
+    echo "Running 'pdctl' in parallel using $(nproc) available cores."
     CORES=$(nproc)
 fi
 
@@ -94,16 +104,17 @@ num_proc=0
 tmp_file=0
 
 for src in $list; do
-    if [ $num_proc -lt $CORES ]; then
-	(cd ${OBR}/${DATA_P_DIR_NAME}; echo $src | python ${OBR}/tools/process.py) >> ${OBR}/tmp${tmp_file} &
-	num_proc=$[$num_proc + 1]
-	tmp_file=$[($tmp_file + 1) % $CORES]
+    if [ $NO_PROC_FLAG -eq 0 ]; then
+	(cd ${OBR}/${DATA_P_DIR_NAME}; (echo $src; echo "F") | python ${OBR}/tools/process.py) >> ${OBR}/tmp${tmp_file} &
     else
-	while [ $num_proc -ge $CORES ]; do
-	    num_proc=$[$(pgrep --parent $$ | wc -l) - 1]
-	    sleep 0.25
-	done
+	(cd ${OBR}/${DATA_P_DIR_NAME}; (echo $src; echo "T") | python ${OBR}/tools/process.py) >> ${OBR}/tmp${tmp_file} & 
     fi
+    num_proc=$[$num_proc + 1]
+    tmp_file=$[($tmp_file + 1) % $CORES]
+    while [ $num_proc -ge $CORES ]; do
+	num_proc=$[$(pgrep --parent $$ | wc -l) - 1]
+	sleep 0.25
+    done
 done
 
 wait
