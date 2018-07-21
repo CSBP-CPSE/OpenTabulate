@@ -1,7 +1,4 @@
 #!/bin/bash
 
-sed '1s/\xEF\xBB\xBF//' $1 > $2
-diff <(tail -n +2 $1) <(tail -n +2 $2) &>/dev/null
-if [ "$?" != 0 ]; then
-    echo "WARNING: $1 data altered by BOM script"
-fi
+# Remove byte order mark
+sed -i '1s/\xEF\xBB\xBF//' $1

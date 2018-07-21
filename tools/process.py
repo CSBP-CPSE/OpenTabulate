@@ -152,8 +152,12 @@ if data['type'] == 'xml':
 # - CSV FORMAT -
 # --------------        
 elif data['type'] == 'csv':
+    # copy raw data into pp (preprocessing)
+    subprocess.check_call(['/bin/cp', './raw/' + data['filename'], './pp/' + data['filename']])
+    
     # remove byte order mark from files 
-    subprocess.check_call([TOOLS_PATH + '/rmByteOrderMark', './raw/' + data['filename'], './pp/' + data['filename']])
+    subprocess.check_call([TOOLS_PATH + '/rmByteOrderMark', './pp/' + data['filename']])
+
     # handle unicode decoding errors before parsing
     #if not UTF8_check('./pp/' + data['filename']):
     #    subprocess.check_call([TOOLS_PATH + '/fixCharEncoding', './pp/' + data['filename']])

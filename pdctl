@@ -72,8 +72,11 @@ if [ $NO_PROC_FLAG -gt 0 ]; then
 fi
 
 if [ $PARALLEL_FLAG -gt 0 ]; then
-    echo "Running 'pdctl' in parallel using $(nproc) available cores."
-    CORES=$(nproc)
+        CORES=$(nproc)
+    echo "Running 'pdctl' in parallel using $CORES available cores."
+    echo "WARNING! Be sure that your CPU(s) is (are) adequately cooled."
+    echo "Each available core will be used at near maximum capacity!"
+
 fi
 
 if [ $LOG_FLAG -gt 0 ]; then
