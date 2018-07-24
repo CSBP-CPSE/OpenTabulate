@@ -1,5 +1,5 @@
 {
-    "filename": "on-brampton.csv",
+    "file": "on-brampton.csv",
     "type": "csv",
     "info": {
 	"bus_name": "COMPANY_NAME",

@@ -1,5 +1,5 @@
 {
-    "filename": "on-guelph.csv",
+    "file": "on-guelph.csv",
     "type": "csv",
     "info": {
 	"bus_name": "Operating Name",

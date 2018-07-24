@@ -1,14 +1,13 @@
 {
-    "filename": "bc-vancouver.xml",
-    "type": "xml",
-    "header": "BusinessLicence",
+    "file": "bc-vancouver.csv",
+    "type": "csv",
     "info": {
 	"bus_name": "BusinessName",
 	"bus_type": "BusinessType",
         "trade_name": "BusinessTradeName",
 	"lic_no": "LicenceNumber",
 	"no_employed": "NumberOfEmployees",
-	"full_addr" : ["House", "Street", "Unit"],
+	"full_addr" : ["House", "Street", "Unit", "City", "Province", "Country", "PostalCode"],
 	"address": {
 	    "house_number": "House",
 	    "road": "Street",

@@ -1,5 +1,5 @@
 {
-    "filename": "bc-kelowna.csv",
+    "file": "bc-kelowna.csv",
     "type": "csv",
     "info": {
 	"bus_name": "NAME",

@@ -1,5 +1,5 @@
 {
-    "filename": "on-toronto.csv",
+    "file": "on-toronto.csv",
     "type": "csv",
     "info": {
 	"bus_name": "Client Name",

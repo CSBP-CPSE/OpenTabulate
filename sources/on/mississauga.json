@@ -1,5 +1,5 @@
 {
-    "filename": "on-mississauga.csv",
+    "file": "on-mississauga.csv",
     "type": "csv",
     "info": {
 	"bus_name": "Name",

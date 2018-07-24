@@ -1,5 +1,5 @@
 {
-    "filename": "qc-prov_of_quebec.csv",
+    "file": "qc-prov_of_quebec.csv",
     "type": "csv",
     "info": {
 	"bus_no": "NEQ",

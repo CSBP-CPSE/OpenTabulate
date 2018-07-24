@@ -1,5 +1,5 @@
 {
-    "filename": "MsbRegistryPublicDataFile.xml",
+    "file": "MsbRegistryPublicDataFile.xml",
     "type": "xml",
     "header": "MsbInformation",
     "info": {

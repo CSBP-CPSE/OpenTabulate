@@ -1,5 +1,5 @@
 {
-    "filename": "ab-banff.csv",
+    "file": "ab-banff.csv",
     "type": "csv",
     "info": {
 	"bus_name": "BUSINESS_NAME",

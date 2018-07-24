@@ -1,5 +1,5 @@
 {
-    "filename": "on-kitchener.csv",
+    "file": "on-kitchener.csv",
     "type": "csv",
     "info": {
 	"bus_name": "COMPANY_NAME",

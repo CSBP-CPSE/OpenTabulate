@@ -1,5 +1,5 @@
 {
-    "filename": "qc-sherbrooke.csv",
+    "file": "qc-sherbrooke.csv",
     "type": "csv",
     "info": {
 	"bus_name": "NomLocat",
