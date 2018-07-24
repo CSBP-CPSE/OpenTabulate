@@ -13,6 +13,7 @@ import src_parser
 import src_check
 
 myDPI=input()
+
 NO_PROC_FLAG=input()
 TOOLS_PATH=path.dirname(path.realpath(__file__))
 
@@ -40,10 +41,6 @@ elif data['format'] == 'csv':
     
     # remove byte order mark from files 
     subprocess.check_call([TOOLS_PATH + '/rmByteOrderMark', './pp/' + data['file']])
-
-    # handle unicode decoding errors before parsing
-    #if not UTF8_check('./pp/' + data['file']):
-    #    subprocess.check_call([TOOLS_PATH + '/fixCharEncoding', './pp/' + data['file']])
 
     es = data_parser.csv_parse(data)
     if es == 1:
