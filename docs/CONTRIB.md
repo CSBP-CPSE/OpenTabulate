@@ -6,68 +6,87 @@ The values entered must be what the dataset identifies the key to be. To illustr
 
 For explicit examples of source files of small datasets, see the `examples` folder. The rest of this documentation describes the source file formatting and available/required tags.
 
-### Dataset tag
+### Dataset tags
 
-The following tags are **required** for the scripts to run. Without the proper specification, the processing script will print an error alerting you of it's distaste with your provided source file or throw an error.
+| Key | JSON Type | Description | Required? | Dependencies |
+| --- | --------- | ----------- | --------- | ------------ |
+| `file` | string | Name of the local data file residing in `./pddir/raw/` to process. | Yes | None. |
+| `url` | list | A list of two elements. The first element is a string of the data's direct URL and the second element defines. | No | Requires `file`, which defines what the URL link should be named to. Requires `compression` if the download is compressed, e.g. as a ZIP archive. |
+| `compression` | string | Data compression type. Currently supports `zip`. | No | Requires `archfile` |
+| `archfile` | string | Name of the file in the compressed folder to extract. | No | None. |
+| `format` | string | Dataset file format. Currently supports `csv` and `xml`. | Yes | None. |
+| `header` | string | Identifier for a business entity. For example, a _tag_ in XML format that identifies a business entity has metadata tags from `info` such as address, phone numbers, names, etc. The name of this tag is what should be entered for `header`. | Yes, except for CSV format | None |
+| `info` | object | Metadata of the data contents, such as addresses, names, etc. | Yes | None. |
+| `force` | object | Metadata prompted to be overwritten to the given value of a key, regardless of the datasets interpretation of that key. For example, if all business entities reside in the province of Ontario, one defines a tag in `force` by `"prov": "ON"`. | No | None. |
 
-| Tag | Description | Requirement |
-| --- | ----------- | ----------- |
-| `filename` | The filename of the dataset. | Must be added if `url` is not provided. Otherwise, do not add. |
-| `url` | The direct URL of the dataset. | Must be added if `filename` is not provided. Otherwise do not add. |
-| `type` | The file format of the dataset. | Required. |
-| `header` | The dataset's identifier for a business entity. For example, a _tag_ in XML format that identifies a business entity has metadata tags from `info` such as address, phone numbers, names, and so forth. The name of this tag is what should be entered for `header`. | Required if in XML format. | 
-| `info` | Metadata of the data contents, such as addresses, names, etc. | Required. |
+### Info tags
 
-### Info tag
+The tag `info` is defined as a JSON object. Its possible tags are listed below.
 
-| Tag | Description | Requirement |
-| --- | ----------- | ----------- |
-| `bus_name` | Business (legal) name. |  |
-| `trade_name` | Trade name. |  |
-| `full_addr` | Full address of business (concatenated street name, number, etc.) NOTE: ACCEPTS LISTS FOR CONCATENTATION |  |
-| `address` | Address metadata, such as street number, street name, postal code, etc. |  |
-| `phone` | Business phone number. |  |
-| `email` | Business e-mail. |  |
-| `website` | Business website URL. |  |
-| `comdist` | Community, district or neighbourhood name. |  |
-| `longitude` | Location refering to the geographic coordinate system. |  |
-| `latitude` | Location refering to the geographic coordinate system. |  |
-| `no_employed` | Number of employees. |  |
-| `naics_X` | NAICS code containing *X* digits (here, *X* can be 2, 3, 4, 5 or 6. |  |
-| `naics_desc` | NAICS (primary/6 digit) code description |  |
-| `roll_no` | Business roll number or identifier |  |
-
-### License tag
-
-| Tag | Description | Requirement |
-| --- | ----------- | ----------- |
-| `lic_no` | Business license number. |  |
-| `lic_issued` | License issue date. |  |
-| `lic_expd` | License expiry date. |  |
-| `lic_status` | License status. |  |
-| `res_lic` | Residential license. |  |
-
+| Key | JSON Type | Description | Required? | Dependencies |
+| --- | --------- | ----------- | --------- | ------------ |
+| `bus_name` | string/list | Business (legal) name. | No | None. |
+| `trade_name` | string/list | Trade name. | No | None. |
+| `bus_type` | string/list | Business type. | No | None. |
+| `bus_no` | string/list | Business number or identifier, e.g. roll number. | No | None. |
+| `bus_desc` | string/list | Business description. | No | None. |
+| `lic_type` | string/list | Business licence type. | No | None. |
+| `lic_no` | string/list | Business license number. | No | None. |
+| `bus_start_date` | string/list | Start date of business. | No | None. |
+| `bus_cease_date` | string/list | Closure date of business. | No | None. |
+| `active` | string/list | Closure date of business. | No | None. |
+| `full_addr` | string/list | Full address of business (concatenated street name, number, etc.) | No | None. |
+| `address` | object | Address metadata, such as street number, street name, postal code, etc. | No | None. |
+| `phone` | string/list | Business phone number. | No | None. |
+| `fax` | string/list | Business fax number. | No | None. |
+| `email` | string/list | Business e-mail. | No | None. |
+| `website` | string/list | Business website. | No | None. |
+| `tollfree` | string/list | Business toll-free number. | No | None. |
+| `comdist` | string/list | Community, district or neighbourhood name. | No | None. |
+| `region` | string/list | Region name (_not_ province) | No | None. |
+| `longitude` | string/list | Location refering to the geographic coordinate system. | No | None. |
+| `latitude` | string/list | Location refering to the geographic coordinate system. | No | None. |
+| `no_employed` | string/list | Number of employees. | No | None. |
+| `no_seasonal_emp` | string/list | Number of seasonal employees. | No | None. |
+| `no_full_emp` | string/list | Number of full-time employees. | No | None. |
+| `no_part_emp` | string/list | Number of part-time employees. | No | None. |
+| `emp_range` | string/list | Total number of employees range. | No | None. |
+| `home_bus` | string/list | Is this a home business? | No | None. |
+| `munic_bus` | string/list | Is this a municipal business? | No | None. |
+| `nonres_bus` | string/list | Is this a non-residential business? | No | None. |
+| `exports` | string/list | Does this business export? | No | None. |
+| `exp_cn_X` | string/list | (X=1,2,3) Export country. | No | None. |
+| `naics_X` | string/list | (X=2,3,4,5,6) NAICS X-digit code. | No | None. |
+| `naics_desc` | string/list | NAICS word description. | No | None. |
+| `qc_cae_X` | string/list | (X=1,2) Quebec establishment economic activity code. | No | None. |
+| `qc_cae_desc_X` | string/list | (X=1,2) Quebec establishment economic activity description. | No | None. |
+| `facebook` | string/list | Business Facebook page. | No | None. |
+| `twitter` | string/list | Business Twitter account. | No | None. |
+| `linkedin` | string/list | Business LinkedIn. | No | None. |
+| `youtube` | string/list | Business YouTube channel. | No | None. |
+| `instagram` | string/list | Business Instagram account.  | No | None. |
 
 
 ### Address tag
 
-| Tag | Description | Requirement |
-| --- | ----------- | ----------- |
-| `house_number` | Street number. |  |
-| `road` | Street name. |  |
-| `unit` | Unit number. |  |
-| `city` | City name. |  |
-| `region` | Province/terrority name. |  |
-| `country` | Country name or code. |  |
-| `postcode` | Postal code. |  |
+| Key | JSON Type | Description | Required? | Dependencies |
+| --- | --------- | ----------- | --------- | ------------ |
+| `house_number` | string/list | Street number.  | No | Contained in `address` object. |
+| `road` | string/list | Street name (and direction).  | No | Contained in `address` object. |
+| `unit` | string/list | Unit number.  | No | Contained in `address` object. |
+| `city` | string | City name.  | No | Contained in `address` object. |
+| `prov` | string | Province/territory name.  | No | Contained in `address` object. |
+| `country` | string | Country name.  | No | Contained in `address` object. |
+| `postcode` | string/list | Postal code.  | No | Contained in `address` object. |
 
 ### Force tag
-| Tag | Description | Requirement |
-| --- | ----------- | ----------- |
-| `city` | City name. |  |
-| `region` | Province/terrority name. |  |
-| `country` | Country name or code. |  |
+| Key | JSON Type | Description | Required? | Dependencies |
+| --- | --------- | ----------- | --------- | ------------ |
+| `city` | string | City name. | No | None. |
+| `region` | string | Province/terrority name. | No | None. |
+| `country` | string |  Country name. | No | None. |
 
 ### Necessary precautions
 - Do not add empty strings or null, i.e. `""`, as a value for a key
+- Do not add empty lists or empty objects
 - If a key is in the source file, there should be only one such key

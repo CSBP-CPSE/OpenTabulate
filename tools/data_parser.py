@@ -41,7 +41,7 @@ _FIELD_LABEL = ['bus_name', 'trade_name', 'bus_type', 'bus_no', 'bus_desc', \
 ADDR_FIELD_LABEL = ['unit', 'house_number', 'road', 'city', 'prov', 'country', 'postcode']
 
 # Labels for the 'force' tag
-FORCE_LABEL = ['city', 'region', 'country']
+FORCE_LABEL = ['city', 'prov', 'country']
 
 # Column order, keys expressed as libpostal parser labels
 #lpsubf_order = {'house_number' : 0, 'road' : 1, 'unit' : 2, 'city' : 3, \
@@ -71,7 +71,7 @@ def _xml_extract_labels(json_data):
     global _FIELD_LABEL
     xml_fl = dict()                            # tag dictionary
     header_label = json_data['header']         # header tag
-    filename = json_data['filename']           # filename tag
+    filename = json_data['file']               # filename tag
     
     # append existing data using XPath expressions (for parsing)
     for i in _FIELD_LABEL:
@@ -109,7 +109,7 @@ def _csv_extract_labels(json_data):
     global _FIELD_LABEL
     global ADDR_FIELD_LABEL
     fd = dict()                      # tag dictionary
-    filename = json_data['filename'] # filename tag
+    filename = json_data['file']     # filename tag
 
     for i in _FIELD_LABEL:
         if i in json_data['info'] and (not (i in ADDR_FIELD_LABEL)):

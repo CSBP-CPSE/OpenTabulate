@@ -85,7 +85,7 @@ if [ $LOG_FLAG -gt 0 ]; then
 fi
 
 
-read -p "Process data? (y: yes/*: exit): " PROMPT
+read -p "Process data? (y: yes / *: exit): " PROMPT
 case $PROMPT in
     'y' | 'Y' )
 	echo "Processing . . . "
@@ -109,9 +109,9 @@ tmp_file=0
 
 for src in $list; do
     if [ $NO_PROC_FLAG -eq 0 ]; then
-	(cd ${OBR}/${DATA_P_DIR_NAME}; (echo $src; echo "F") | python ${OBR}/tools/process.py) &>> ${OBR}/tmp${tmp_file} &
+	(cd ${OBR}/${DATA_P_DIR_NAME}; (echo $src; echo "0") | python ${OBR}/tools/process.py) &>> ${OBR}/tmp${tmp_file} &
     else
-	(cd ${OBR}/${DATA_P_DIR_NAME}; (echo $src; echo "T") | python ${OBR}/tools/process.py) &>> ${OBR}/tmp${tmp_file} & 
+	(cd ${OBR}/${DATA_P_DIR_NAME}; (echo $src; echo "1") | python ${OBR}/tools/process.py) &>> ${OBR}/tmp${tmp_file} & 
     fi
     num_proc=$[$num_proc + 1]
     tmp_file=$[($tmp_file + 1) % $CORES]
