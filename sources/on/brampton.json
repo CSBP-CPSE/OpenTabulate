@@ -1,6 +1,6 @@
 {
     "file": "on-brampton.csv",
-    "type": "csv",
+    "format": "csv",
     "info": {
 	"bus_name": "COMPANY_NAME",
 	"bus_start_date": "DATE_EST_IN_CITY",

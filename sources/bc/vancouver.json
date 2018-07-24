@@ -1,6 +1,6 @@
 {
     "file": "bc-vancouver.csv",
-    "type": "csv",
+    "format": "csv",
     "info": {
 	"bus_name": "BusinessName",
 	"bus_type": "BusinessType",

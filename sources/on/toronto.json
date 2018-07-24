@@ -1,6 +1,6 @@
 {
     "file": "on-toronto.csv",
-    "type": "csv",
+    "format": "csv",
     "info": {
 	"bus_name": "Client Name",
 	"bus_type": "Category",

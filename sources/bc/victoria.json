@@ -1,6 +1,6 @@
 {
     "file": "bc-victoria.csv",
-    "type": "csv",
+    "format": "csv",
     "info": {
         "trade_name": "TRADE_NAME",
 	"bus_desc": "trade_description",

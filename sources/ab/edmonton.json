@@ -1,6 +1,6 @@
 {
     "file": "ab-edmonton.csv",
-    "type": "csv",
+    "format": "csv",
     "info": {
         "trade_name": "Trade Name",
 	"bus_type": "Category",

@@ -1,6 +1,6 @@
 {
     "file": "bc-nanaimo.csv",
-    "type": "csv",
+    "format": "csv",
     "info": {
         "trade_name": "TradeName",
 	"lic_no": "Licence",

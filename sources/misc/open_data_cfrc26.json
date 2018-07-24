@@ -1,6 +1,6 @@
 {
     "file": "OPEN_DATA_26.xml",
-    "type": "xml",
+    "format": "xml",
     "header": "corporation",
     "info": {
 	"bus_name": "name",

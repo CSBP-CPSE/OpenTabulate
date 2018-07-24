@@ -1,6 +1,6 @@
 {
     "file": "bc-city_of_langley.csv",
-    "type": "csv",
+    "format": "csv",
     "info": {
 	"bus_name": "Business_Name",
 	"lic_type": "Licence_Desc",

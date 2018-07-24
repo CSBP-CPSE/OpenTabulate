@@ -1,6 +1,6 @@
 {
     "file": "nt-yellowknife.csv",
-    "type": "csv",
+    "format": "csv",
     "info": {
 	"bus_name": "BUSINESSNAME",
 	"bus_type": "BUSINESSTYPE",

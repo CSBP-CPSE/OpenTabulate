@@ -1,6 +1,6 @@
 {
     "file": "ab-calgary.csv",
-    "type": "csv",
+    "format": "csv",
     "info": {
         "trade_name": "TRADENAME",
 	"lic_type": "LICENCETYPES",

@@ -1,6 +1,6 @@
 {
     "file": "on-durham_region.csv",
-    "type": "csv",
+    "format": "csv",
     "info": {
 	"bus_name": "Business_Name",
 	"bus_no": "Business_Id",

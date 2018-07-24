@@ -1,6 +1,6 @@
 {
     "file": "bc-city_of_surrey.csv",
-    "type": "csv",
+    "format": "csv",
     "info": {
 	"bus_name": "Business Name",
 	"bus_type": "Products or Services",

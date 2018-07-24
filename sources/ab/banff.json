@@ -1,6 +1,6 @@
 {
     "file": "ab-banff.csv",
-    "type": "csv",
+    "format": "csv",
     "info": {
 	"bus_name": "BUSINESS_NAME",
 	"active": "ACTIVE",

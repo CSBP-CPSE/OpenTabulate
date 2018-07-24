@@ -1,6 +1,6 @@
 {
     "file": "MsbRegistryPublicDataFile.xml",
-    "type": "xml",
+    "format": "xml",
     "header": "MsbInformation",
     "info": {
 	"bus_name": "Name",

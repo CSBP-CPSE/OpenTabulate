@@ -1,6 +1,6 @@
 {
     "file": "qc-prov_of_quebec.csv",
-    "type": "csv",
+    "format": "csv",
     "info": {
 	"bus_no": "NEQ",
 	"full_addr": ["LIGN1_ADR", "LIGN2_ADR", "LIGN3_ADR", "LIGN4_ADR"],

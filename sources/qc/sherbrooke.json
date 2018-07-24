@@ -1,6 +1,6 @@
 {
     "file": "qc-sherbrooke.csv",
-    "type": "csv",
+    "format": "csv",
     "info": {
 	"bus_name": "NomLocat",
 	"bus_desc": "NomMix",

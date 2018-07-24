@@ -1,6 +1,6 @@
 {
     "file": "bc-kelowna.csv",
-    "type": "csv",
+    "format": "csv",
     "info": {
 	"bus_name": "NAME",
 	"bus_no": "BUSINESS_NUMBER",

@@ -1,6 +1,6 @@
 {
     "file": "on-mississauga.csv",
-    "type": "csv",
+    "format": "csv",
     "info": {
 	"bus_name": "Name",
 	"bus_no": "BID",

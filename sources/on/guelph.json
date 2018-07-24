@@ -1,6 +1,6 @@
 {
     "file": "on-guelph.csv",
-    "type": "csv",
+    "format": "csv",
     "info": {
 	"bus_name": "Operating Name",
 	"lic_no": "Business Licence Number",
