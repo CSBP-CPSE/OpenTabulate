@@ -158,7 +158,7 @@ def _xml_empty_element_handler(element):
 # --- PARSING FUNCTIONS ---
 # -------------------------
 
-def xml_parse(json_data):
+def xml_parse(json_data, enc):
     """
     Parses a dataset in XML format using the xml.etree.ElementTree module and 
     extracts the necessary information to rewrite the data set into CSV format, 
@@ -181,7 +181,8 @@ def xml_parse(json_data):
     tags, header, filename = _xml_extract_labels(json_data)
 
     try:
-        tree = ElementTree.parse('./raw/' + filename)
+        xmlp = ElementTree.XMLParser(encoding=enc)
+        tree = ElementTree.parse('./raw/' + filename, parser=xmlp)
     except ElementTree.ParseError:
         return 1
     
@@ -227,7 +228,7 @@ def xml_parse(json_data):
     return 0
 
 
-def csv_parse(json_data):
+def csv_parse(json_data, enc):
     """
     Parses a dataset in CSV format using the csv module and extracts the necessary 
     information to rewrite the data set into CSV format, as specified by a source file.
@@ -246,7 +247,7 @@ def csv_parse(json_data):
     tags, filename = _csv_extract_labels(json_data)
     
     # construct csv parser
-    csv_file_read = open('./pp/' + filename, 'r', encoding='utf-8', newline='') # errors='ignore'
+    csv_file_read = open('./pp/' + filename, 'r', encoding=enc, newline='') # errors='ignore'
     cparse = csv.DictReader(csv_file_read)
 
     # construct csv writer to dirty

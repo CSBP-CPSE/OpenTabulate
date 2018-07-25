@@ -100,7 +100,7 @@ trap safe_termination EXIT SIGHUP SIGINT SIGQUIT SIGTERM
 
 
 # egrep 'banff|calgary|mississauga'
-list=$(find ${OBR}/sources/ -type f -name "*.json" | egrep 'toronto')
+list=$(find ${OBR}/sources/ -type f -name "*.json")
 
 
 num_proc=0

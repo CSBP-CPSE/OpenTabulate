@@ -11,6 +11,7 @@ from os import path
 import data_parser
 import src_parser
 import src_check
+import char_encode_check
 
 myDPI=input()
 
@@ -25,24 +26,26 @@ if NO_PROC_FLAG == "1":
 else:
     pass
 
-src_check.check(data)    
+src_check.check(data) 
 
 # - XML FORMAT -
 if data['format'] == 'xml':
-    es = data_parser.xml_parse(data)
+    enc = char_encode_check.check('./raw/' + data['file'])
+    es = data_parser.xml_parse(data, enc)
     if es == 1:
         print("[E] Failed to parse XML.")
         exit(1)
 
 # - CSV FORMAT -
 elif data['format'] == 'csv':
+    enc = char_encode_check.check('./raw/' + data['file'])
     # copy raw data into pp (preprocessing)
     subprocess.check_call(['/bin/cp', './raw/' + data['file'], './pp/' + data['file']])
-    
+
     # remove byte order mark from files 
     subprocess.check_call([TOOLS_PATH + '/rmByteOrderMark', './pp/' + data['file']])
 
-    es = data_parser.csv_parse(data)
+    es = data_parser.csv_parse(data, enc)
     if es == 1:
         print("[E] DPI and CSV field names disagree.")
         exit(1)

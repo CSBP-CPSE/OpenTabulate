@@ -11,7 +11,7 @@ import data_parser
 
 
 def parse(SRC_PATH):
-    print("Parsing source file :", SRC_PATH)
+    print("[ ] Parsing source file :", SRC_PATH)
     if not path.exists(SRC_PATH):
         print("[E] Input path does exist.")
         exit(1)
