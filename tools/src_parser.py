@@ -62,5 +62,5 @@ def parse(SRC_PATH):
                 print("[E] The key '", i, "' appears in 'force' and 'address'.")
                 exit(1)
 
-    print("[ ] Parsing suggests nothing blatantly out of the ordinary.")
+    print("[!] Source file parsing suggests nothing blatantly out of the ordinary.")
     return data

@@ -9,7 +9,6 @@ Written by Maksym Neyra-Nesterenko.
 """
 
 from xml.etree import ElementTree
-from os import remove as _rm
 import csv
 import copy
 
@@ -174,7 +173,6 @@ def xml_parse(json_data, enc):
         Return values are interpreted by 'process.py' as follows:
         '0' : Successful reformatting.
         '1' : Incorrect formatting of XML dataset.
-        '2' : Missing element tag within a header tag.
     """
     global FORCE_LABEL
     
@@ -184,7 +182,7 @@ def xml_parse(json_data, enc):
         xmlp = ElementTree.XMLParser(encoding=enc)
         tree = ElementTree.parse('./raw/' + filename, parser=xmlp)
     except ElementTree.ParseError:
-        return 1
+        return 1, ''
     
     root = tree.getroot()
 
@@ -225,7 +223,7 @@ def xml_parse(json_data, enc):
                 row.append(json_data['force'][key])
         cprint.writerow(row)
     csvfile.close()
-    return 0
+    return 0, dirty_file
 
 
 def csv_parse(json_data, enc):
@@ -290,46 +288,9 @@ def csv_parse(json_data, enc):
         # close reader / writer and delete the partially written data file
         csv_file_read.close()
         csv_file_write.close()
-        _rm('./dirty/' + dirty_file)
-        return 1
+        return 1, dirty_file
     
     # success
     csv_file_read.close()
     csv_file_write.close()
-    return 0
-
-
-
-    
-"""
-def CA_Address_Split(line, flist):
-    tokens = parse_address(line, flist)
-    
-    # add 'empty' tokens that were not added by parse_address
-    for i in flist:
-        if not (i in [t[1] for t in tokens]):
-            tokens.append(('',i))
-            
-    # keep address tokens
-    tokens = [t for t in tokens if t[1] in flist]
-
-    # split house numbers separated by hyphen
-    TEMP = ([t for t in tokens if t[1] == 'house_number'][0])[0]
-    if '-' in TEMP:
-        sp = TEMP.split('-')
-        UNIT = sp[0]
-        STREET_NO = sp[1]
-
-        for i in tokens:
-            if i[1] == 'house_number':
-                tokens.remove(i)
-                tokens.append((STREET_NO,'house_number'))
-            elif i[1] == 'unit':
-                tokens.remove(i)
-                tokens.append((UNIT,'unit'))
-
-    # sort tokens
-    tokens = sorted(tokens, key=lambda x: lpsubf_order[x[1]])
-
-    return tokens
-"""
+    return 0, dirty_file

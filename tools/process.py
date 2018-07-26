@@ -7,37 +7,45 @@ Written by Maksym Neyra-Nesterenko.
 import csv
 import subprocess
 from os import path
+from os import remove
 
 import data_parser
 import src_parser
-import src_check
+import src_pull
 import char_encode_check
 
 myDPI=input()
-
 NO_PROC_FLAG=input()
 TOOLS_PATH=path.dirname(path.realpath(__file__))
 
 
+# Parse sourcee file
 data = src_parser.parse(myDPI)
 
+
+# Process flag
 if NO_PROC_FLAG == "1":
     exit(0)
 else:
     pass
 
-src_check.check(data) 
 
-# - XML FORMAT -
-if data['format'] == 'xml':
+# Check integrity / retrieve source file
+src_pull.pull(data)
+
+
+# Standardize to CSV
+print('[ ] Standardizing data to CSV format . . .')
+if data['format'] == 'xml': # XML format
+    # Check character encoding
     enc = char_encode_check.check('./raw/' + data['file'])
-    es = data_parser.xml_parse(data, enc)
-    if es == 1:
+    parse_metadata = data_parser.xml_parse(data, enc)
+    if parse_metadata[0] == 1:
         print("[E] Failed to parse XML.")
         exit(1)
-
-# - CSV FORMAT -
-elif data['format'] == 'csv':
+        # 
+elif data['format'] == 'csv': # CSV format
+    # Check character encoding
     enc = char_encode_check.check('./raw/' + data['file'])
     # copy raw data into pp (preprocessing)
     subprocess.check_call(['/bin/cp', './raw/' + data['file'], './pp/' + data['file']])
@@ -45,9 +53,23 @@ elif data['format'] == 'csv':
     # remove byte order mark from files 
     subprocess.check_call([TOOLS_PATH + '/rmByteOrderMark', './pp/' + data['file']])
 
-    es = data_parser.csv_parse(data, enc)
-    if es == 1:
+    parse_metadata = data_parser.csv_parse(data, enc)
+    if parse_metadata[0] == 1:
         print("[E] DPI and CSV field names disagree.")
+        remove('./dirty/' + parse_metadata[1])
         exit(1)
+else:
+    pass
+print("[!] Standardization complete.")
 
-print("[!] Data parsing completed.")
+
+# Clean data
+print('[ ] Beginning data cleaning...')
+subprocess.check_call([TOOLS_PATH + '/rmWhitespace', './dirty/' + parse_metadata[1]])
+
+clean_file = '.'.join(str(x) for x in parse_metadata[1].split('-')[:-1]) + "-CLEAN.csv"
+
+subprocess.check_call(['/bin/mv', './dirty/' + parse_metadata[1], './clean/' + clean_file])
+
+print('[!] Data cleaning complete.')
+print('[!] Data processing complete.')

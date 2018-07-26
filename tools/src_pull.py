@@ -8,7 +8,7 @@ from os import path
 
 import src_fetch_url
 
-def check(SRC_JSON):
+def pull(SRC_JSON):
     if 'url' in SRC_JSON:
         src_fetch_url.fetch_url(SRC_JSON['url'], SRC_JSON['file'])
     if not path.exists('./raw/' + SRC_JSON['file']):
