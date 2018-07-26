@@ -1,9 +1,0 @@
-#!/bin/bash
-
-# Programmers notes:
-# Latin encoding: ISO_8859-1
-# Canadian French encoding: CP863
-
-trap "rm ${1}.tmp 2>/dev/null" SIGHUP SIGINT SIGQUIT SIGTERM EXIT
-iconv -o ${1}.tmp -f CP863 -t UTF-8 ${1}
-mv ${1}.tmp ${1}

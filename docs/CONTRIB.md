@@ -1,19 +1,19 @@
 ## Writing source files 
 
-For the data set maintainer, this is a short guide on how to write source files or *data processing instructions*. First some terminology and remarks. The source files are written in JSON format, where specified key-value pairs serve as metadata for the data processing and cleaning. We refer to a key-value pair as a *tag*. Some keys may contain a list of key-value pairs, such as `address` containing key-value pairs for `city`, `postcode` and so forth.
+For the data set maintainer, this is a short guide on how to write source files or *data processing instructions*. First some terminology and remarks. The source files are written in JSON format with the `.json` file extension in the file name. The specified JSON key-value pairs serve as metadata for the data processing and cleaning. We refer to a key-value pair as a *tag*. Some keys may contain a list of key-value pairs, such as `address` containing key-value pairs for `city`, `postcode` and so forth.
 
 The values entered must be what the dataset identifies the key to be. To illustrate what is meant by this, let's say you have a dataset in CSV format with a column named `BusinessName`. The key `name` is associated with business names, so you must write `"name" : "BusinessName"` in the source file.
 
 For explicit examples of source files of small datasets, see the `examples` folder. The rest of this documentation describes the source file formatting and available/required tags.
+
+## Tags
 
 ### Dataset tags
 
 | Key | JSON Type | Description | Required? | Dependencies |
 | --- | --------- | ----------- | --------- | ------------ |
 | `file` | string | Name of the local data file residing in `./pddir/raw/` to process. | Yes | None. |
-| `url` | list | A list of two elements. The first element is a string of the data's direct URL and the second element defines. | No | Requires `file`, which defines what the URL link should be named to. Requires `compression` if the download is compressed, e.g. as a ZIP archive. |
-| `compression` | string | Data compression type. Currently supports `zip`. | No | Requires `archfile` |
-| `archfile` | string | Name of the file in the compressed folder to extract. | No | None. |
+| `url` | list | A list of two elements. The first element is a string of the data's direct URL and the second element defines. | No | Requires `file`, which defines what the URL link should be named to. _Does not currently support archive URLs (eg. ZIP)_. |
 | `format` | string | Dataset file format. Currently supports `csv` and `xml`. | Yes | None. |
 | `header` | string | Identifier for a business entity. For example, a _tag_ in XML format that identifies a business entity has metadata tags from `info` such as address, phone numbers, names, etc. The name of this tag is what should be entered for `header`. | Yes, except for CSV format | None |
 | `info` | object | Metadata of the data contents, such as addresses, names, etc. | Yes | None. |
@@ -86,7 +86,40 @@ The tag `info` is defined as a JSON object. Its possible tags are listed below.
 | `region` | string | Province/terrority name. | No | None. |
 | `country` | string |  Country name. | No | None. |
 
-### Necessary precautions
-- Do not add empty strings or null, i.e. `""`, as a value for a key
-- Do not add empty lists or empty objects
-- If a key is in the source file, there should be only one such key
+## Source file features
+
+### Precautions
+
+To not run into issues and in the spirit of having clean and readable source files
+
+- do not add empty strings or null, i.e. `""`, as a value for a key
+- do not add empty lists or empty objects
+- if a key is in the source file, there should be only one such key
+
+### List concatenation
+
+When writing tags, some keys above support having JSON lists as a value. For example
+
+```javascript
+	...
+	"full_addr": ["Address Line 1", "Address Line 2", "Address Line 3"],
+	...
+```
+
+Since address lines are not supported keys and some datasets will only provide this information for an address, we want it incorporated in our data somehow. Lists are interpreted by the processing scripts as an ordered entry concatentation. For example, if a dataset has the entry and columns
+
+```
+Business Name, ..., Address Line 1, Address Line 2, Address Line 3, ...
+...
+"JOHN TITOR TIME MACHINES", ..., "2036 STEINS GATE", "CANADA", "T5T 5R5", ...
+...
+```
+
+then the source file and data processing script will produce the entry
+
+```
+"bus_name", ..., "full_addr", ...
+"JOHN TITOR TIME MACHINES", ..., "2036 STEINS GATE CANADA T5T 5R5", ...
+..., 
+```
+

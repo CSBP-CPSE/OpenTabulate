@@ -1,13 +1,41 @@
-This page oversees the details of the data processing scheme, such as the `pddir` folder hierarchy and a summary of the automated workflow.
+# Data processing and cleaning scheme
 
-### Data processing and cleaning scheme
+### OpenBusinessRepository directory '.'
+| Path | Description |
+| ---- | ----------- |
+| `./docs/` | OpenBusinessRepository documentation |
+| `./sources/` | Source files are stored here under any folder hierarchy you wish. |
+| `./tools/` | OpenBusinessRepository's core data processing and cleaning scripts reside here | 
+| `./scripts/` | User-made preprocessing and postprocessing scripts are stored here **(NOT AVAILABLE)** | 
+| `./testing/` | Experimental scripts and items are added here. These are not integrated with the scripts in `./tools` |
+| `./pdctl` | Interactive data processing script | 
+| `./README.md` | General information about the project | 
+| `./obr-init.py` | Python script to initialize the data processing directory |
 
-~ workflow image ~
+### obr-init.py
 
-~ summary ~
+When running this script, the following folder tree is created:
+```
+./pddir/
+├── raw/
+├── pp/
+├── dirty/
+└── clean/
+```
+| Path | Description |
+| ---- | ----------- |
+| `raw` | source datasets should be stored here, noting that if your dataset is specified by `url` in a source file, it will be downloaded to this directory |
+| `pp` | preprocessing directory, raw datasets are copied here when data processing begins |
+| `dirty` | datasets from `pp` are sent here after being reformatted to a standardized CSV format |
+| `clean` | datasets are sent here after cleaning |
 
-### OpenBusinessRepository file and folder tree
+### Tools directory './tools/'
 
-~ tree ~
-
-The `sources` folder partitions the source files by region with subfolders defined by Canadian provinces and territories abbreviations. This folder contains all the integrated scripts for data processing and cleaning. For the end-user, this should not be touched.
+| Path | Description |
+| ---- | ----------- |
+| `char_encode_check.py` | Detect character encoding heuristically |
+| `data_parser.py` | Data parsing tools for different file formats |
+| `process.py` | Backend for `pdctl` |
+| `src_check.py` | Check integrity of source file (eg. does the data file exist?) |
+| `src_fetch_url.py` | Fetch URL from source file |
+| `src_parser.py` | Parse and error-check source file |
