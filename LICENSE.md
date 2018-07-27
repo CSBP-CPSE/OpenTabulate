@@ -1,4 +1,4 @@
-## Open Business Repository - Terms and Conditions of Use
+## Open Business Repository (OBR) - Terms and Conditions of Use
 
 Unless otherwise noted, computer program source code of the Open
 Business Repository is covered under Crown Copyright, Government of Canada, and
@@ -11,7 +11,7 @@ Canada's corporate identity program. For more information, see
 http://www.tbs-sct.gc.ca/fip-pcim/index-eng.asp.
 
 Copyright title to all 3rd party software distributed with
-CODAP is held by the respective copyright holders as noted in those files.
+OBR is held by the respective copyright holders as noted in those files.
 Users are asked to read the 3rd Party Licenses referenced with those assets.
 
 ## MIT License
@@ -38,9 +38,9 @@ DEALINGS IN THE SOFTWARE
 
 --------------------------------------------------------------------------------------------------------------------------------------
 
-##  "Open Business Repository" — Conditions d’utilisation
+##  "Open Business Repository (OBR)" — Conditions d’utilisation
 
-Sauf indication contraire, le code source du programme informatique de "Open Business Repository" est protégé par le
+Sauf indication contraire, le code source du programme informatique de "Open Business Repository (OBR)" est protégé par le
 droit d’auteur de la Couronne du gouvernement du Canada et distribué sous la
 licence MIT.
 
@@ -52,8 +52,7 @@ l’extérieur des paramètres du programme de coordination de l’image de marq
 gouvernement du Canada. Pour obtenir davantage de renseignements à ce sujet,
 veuillez aller à la page http://www.tbs-sct.gc.ca/fip-pcim/index-fra.asp.
 
-La propriété du
-droit d’auteur de tout logiciel tiers distribué avec la PADOP est conservée par
+La propriété du droit d’auteur de tout logiciel tiers distribué avec OBR est conservée par
 les détenteurs du droit d’auteur mentionnés dans ces fichiers. Nous demandons
 aux utilisateurs de lire les licences des tiers indiqués à titre de référence
 dans ces logiciels.
