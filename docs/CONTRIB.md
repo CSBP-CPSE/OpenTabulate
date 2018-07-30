@@ -13,9 +13,10 @@ For explicit examples of source files of small datasets, see the `examples` fold
 | Key | JSON Type | Description | Required? | Dependencies |
 | --- | --------- | ----------- | --------- | ------------ |
 | `file` | string | Name of the local data file residing in `./pddir/raw/` to process. | Yes | None. |
-| `url` | list | A list of two elements. The first element is a string of the data's direct URL and the second element defines. | No | Requires `file`, which defines what the URL link should be named to. _Does not currently support archive URLs (eg. ZIP)_. |
+| `url` | string | A URL string giving the direct link to the data set. | No | Requires `file`, which defines what the URL link should be named to. _Does not currently support archive URLs (eg. ZIP)_. |
 | `format` | string | Dataset file format. Currently supports `csv` and `xml`. | Yes | None. |
-| `header` | string | Identifier for a business entity. For example, a _tag_ in XML format that identifies a business entity has metadata tags from `info` such as address, phone numbers, names, etc. The name of this tag is what should be entered for `header`. | Yes, except for CSV format | None |
+| `encoding` | string | Dataset character encoding, which can be "utf-8", "cp1252", or "cp437". If not specified, the encoding is guessed from this list. | No | None. |
+| `header` | string | Identifier for a business entity. For example, a _tag_ in XML format that identifies a business entity has metadata tags from `info` such as address, phone numbers, names, etc. The name of this tag is what should be entered for `header`. | Yes, except for CSV format | None. |
 | `info` | object | Metadata of the data contents, such as addresses, names, etc. | Yes | None. |
 | `force` | object | Metadata prompted to be overwritten to the given value of a key, regardless of the datasets interpretation of that key. For example, if all business entities reside in the province of Ontario, one defines a tag in `force` by `"prov": "ON"`. | No | None. |
 
