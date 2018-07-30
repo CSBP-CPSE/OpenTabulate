@@ -1,8 +1,8 @@
 ## Open Business Repository (OBR) - Terms and Conditions of Use
 
-Unless otherwise noted, computer program source code of the Open
-Business Repository is covered under Crown Copyright, Government of Canada, and
-is distributed under the MIT License.
+Unless otherwise noted, computer program source code of the Open Business Repository 
+is covered under Crown Copyright, Government of Canada, and is distributed under 
+the MIT License.
 
 The Canada wordmark and related graphics associated with
 this distribution are protected under trademark law and copyright law. No
@@ -34,13 +34,13 @@ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO
 EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES
 OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-DEALINGS IN THE SOFTWARE
+DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------------------------------------------------------------------------
 
-##  "Open Business Repository (OBR)" — Conditions d’utilisation
+##  "Dépôt d’entreprises ouvert (DEO)" — Conditions d’utilisation
 
-Sauf indication contraire, le code source du programme informatique de "Open Business Repository (OBR)" est protégé par le
+Sauf indication contraire, le code source du programme informatique de "Dépôt d’entreprises ouvert (DEO)" est protégé par le
 droit d’auteur de la Couronne du gouvernement du Canada et distribué sous la
 licence MIT.
 
@@ -52,7 +52,7 @@ l’extérieur des paramètres du programme de coordination de l’image de marq
 gouvernement du Canada. Pour obtenir davantage de renseignements à ce sujet,
 veuillez aller à la page http://www.tbs-sct.gc.ca/fip-pcim/index-fra.asp.
 
-La propriété du droit d’auteur de tout logiciel tiers distribué avec OBR est conservée par
+La propriété du droit d’auteur de tout logiciel tiers distribué avec DEO est conservée par
 les détenteurs du droit d’auteur mentionnés dans ces fichiers. Nous demandons
 aux utilisateurs de lire les licences des tiers indiqués à titre de référence
 dans ces logiciels.
