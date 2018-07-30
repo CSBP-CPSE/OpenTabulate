@@ -40,9 +40,9 @@ DEALINGS IN THE SOFTWARE.
 
 ##  "Dépôt d’entreprises ouvert (DEO)" — Conditions d’utilisation
 
-Sauf indication contraire, le code source du programme informatique de "Dépôt d’entreprises ouvert (DEO)" est protégé par le
-droit d’auteur de la Couronne du gouvernement du Canada et distribué sous la
-licence MIT.
+Sauf indication contraire, le code source du programme informatique de "Dépôt 
+d’entreprises ouvert (DEO)" est protégé par le droit d’auteur de la Couronne du 
+gouvernement du Canada et distribué sous la licence MIT.
 
 Le mot-symbole «
 Canada » et les éléments graphiques connexes liés à cette distribution sont
