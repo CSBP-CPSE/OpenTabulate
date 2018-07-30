@@ -1,35 +1,23 @@
-def check(f):
-    if _is_utf_8(f):
-        return "utf-8"
-    if _is_windows_1252(f):
-        return "cp1252"
-    if _is_ibm_437(f):
-        return "cp437"
-    
+_enc_list = ["utf-8", "cp1252", "cp437"]
 
-def _is_utf_8(filename):
-    try:
-        f = open(filename, encoding="utf-8")
-        for line in f:
-            pass
-        return True
-    except UnicodeDecodeError:
-        return False
-
-def _is_windows_1252(filename):
-    try:
-        f = open(filename, encoding="cp1252")
-        for line in f:
-            pass
-        return True
-    except UnicodeDecodeError:
-        return False
-
-def _is_ibm_437(filename):
-    try:
-        f = open(filename, encoding="cp437")
-        for line in f:
-            pass
-        return True
-    except UnicodeDecodeError:
-        return False
+def check(data):
+    if 'encoding' in data:
+        enc = data['encoding']
+        if enc in _enc_list:
+            return enc
+        else:
+            print("[E]", enc, "is not a valid encoding.")
+    else:
+        print("[ ] No 'encoding' key found, guessing character encoding.")
+        for e in _enc_list:
+            try:
+                f = open('./raw/' + data['file'], encoding=e)
+                for line in f:
+                    pass
+                print("[ ] No decoding error with ", e, ".", sep='')
+                f.close()
+                return e
+            except UnicodeDecodeError:
+                f.close()
+        print("[E] Could not guess original character encoding.")
+        exit(1)
