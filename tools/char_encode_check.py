@@ -11,7 +11,7 @@ def check(data):
         print("[ ] No 'encoding' key found, guessing character encoding.")
         for e in _enc_list:
             try:
-                f = open('./raw/' + data['file'], encoding=e)
+                f = open('./pddir/raw/' + data['file'], encoding=e)
                 for line in f:
                     pass
                 print("[ ] No decoding error with ", e, ".", sep='')

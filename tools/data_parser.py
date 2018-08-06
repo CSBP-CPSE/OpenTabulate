@@ -9,9 +9,10 @@ Written by Maksym Neyra-Nesterenko.
 """
 
 from xml.etree import ElementTree
+from postal.parser import parse_address
 import csv
 import copy
-
+import operator
 
 # -----------------
 # --- VARIABLES ---
@@ -43,8 +44,13 @@ ADDR_FIELD_LABEL = ['unit', 'house_number', 'road', 'city', 'prov', 'country', '
 FORCE_LABEL = ['city', 'prov', 'country']
 
 # Column order, keys expressed as libpostal parser labels
-#lpsubf_order = {'house_number' : 0, 'road' : 1, 'unit' : 2, 'city' : 3, \
-#                'region' : 4, 'country' : 5, 'postcode' : 6}
+ADDR_LABEL_TO_POSTAL = {'house_number' : 'house_number', \
+                        'road' : 'road', \
+                        'unit' : 'unit', \
+                        'city' : 'city', \
+                        'prov' : 'state', \
+                        'country' : 'country', \
+                        'postcode' : 'postcode' }
 
 
 # ----------------------------------
@@ -175,12 +181,14 @@ def xml_parse(json_data, enc):
         '1' : Incorrect formatting of XML dataset.
     """
     global FORCE_LABEL
+    global ADDR_FIELD_LABEL
+    global ADDR_LABEL_TO_POSTAL
     
     tags, header, filename = _xml_extract_labels(json_data)
 
     try:
         xmlp = ElementTree.XMLParser(encoding=enc)
-        tree = ElementTree.parse('./raw/' + filename, parser=xmlp)
+        tree = ElementTree.parse('./pddir/raw/' + filename, parser=xmlp)
     except ElementTree.ParseError:
         return 1, ''
     
@@ -191,13 +199,18 @@ def xml_parse(json_data, enc):
     else:
         dirty_file = '.'.join(str(x) for x in filename.split('.')[:-1]) + "-DIRTY.csv"
 
-    csvfile = open('./dirty/' + dirty_file, 'w')
+    csvfile = open('./pddir/dirty/' + dirty_file, 'w')
     cprint = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
 
     # write the initial row which identifies each column
     first_row = [f for f in tags]
+    if "full_addr" in first_row:
+        ind = first_row.index("full_addr")
+        first_row.pop(ind)
+        for af in reversed(ADDR_FIELD_LABEL):
+            first_row.insert(ind, af)
     cprint.writerow(first_row)
-    
+
     for element in root.iter(header):
         row = []
         for key in tags:
@@ -212,9 +225,29 @@ def xml_parse(json_data, enc):
                         entry += subel_content
                     else:
                         entry += subel_content + ' '
-                row.append(entry)
+                if key != "full_addr":
+                    row.append(entry)
+                    continue
+                else:
+                    ap = parse_address(entry)
+                    for af in ADDR_FIELD_LABEL:
+                        if ADDR_LABEL_TO_POSTAL[af] in [x[1] for x in ap]:
+                            ind = list(map(operator.itemgetter(1), ap)).index(ADDR_LABEL_TO_POSTAL[af])
+                            row.append(ap[ind][0])
+                        else:
+                            row.append("")
+                    continue
+            if key == "full_addr":
+                entry = entity[tags[key]]
+                ap = parse_address(entry)
+                for af in ADDR_FIELD_LABEL:
+                    if ADDR_LABEL_TO_POSTAL[af] in [x[1] for x in ap]:
+                        ind = list(map(operator.itemgetter(1), ap)).index(ADDR_LABEL_TO_POSTAL[af])
+                        row.append(ap[ind][0])
+                    else:
+                        row.append("")
                 continue
-
+            # otherwise ...
             if tags[key] != 'DPIFORCE':
                 subelement = element.find(tags[key])
                 subel_content = _xml_empty_element_handler(subelement)
@@ -241,11 +274,13 @@ def csv_parse(json_data, enc):
     """
 
     global FORCE_LABEL
+    global ADDR_FIELD_LABEL
+    global ADDR_LABEL_TO_POSTAL
 
     tags, filename = _csv_extract_labels(json_data)
     
     # construct csv parser
-    csv_file_read = open('./pp/' + filename, 'r', encoding=enc, newline='') # errors='ignore'
+    csv_file_read = open('./pddir/pp/' + filename, 'r', encoding=enc, newline='') # errors='ignore'
     cparse = csv.DictReader(csv_file_read)
 
     # construct csv writer to dirty
@@ -254,17 +289,23 @@ def csv_parse(json_data, enc):
     else:
         dirty_file = '.'.join(str(x) for x in filename.split('.')[:-1]) + "-DIRTY.csv"
     
-    csv_file_write = open('./dirty/' + dirty_file, 'w')
+    csv_file_write = open('./pddir/dirty/' + dirty_file, 'w')
     cprint = csv.writer(csv_file_write, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
 
     # write the initial row which identifies each column
     first_row = [f for f in tags]
+    if "full_addr" in first_row:
+        ind = first_row.index("full_addr")
+        first_row.pop(ind)
+        for af in reversed(ADDR_FIELD_LABEL):
+            first_row.insert(ind, af)
     cprint.writerow(first_row)
 
     try:
         for entity in cparse:
             row = []
             for key in tags:
+                # if key has a JSON array as a value
                 if isinstance(tags[key], list) and key not in FORCE_LABEL:
                     count = 0
                     entry = ''
@@ -274,15 +315,37 @@ def csv_parse(json_data, enc):
                             entry += entity[i]
                         else:
                             entry += entity[i] + ' '
-                    row.append(entry)
+                    # if key is full_addr and a JSON array
+                    if key != "full_addr":
+                        row.append(entry)
+                        continue
+                    else:
+                        ap = parse_address(entry)
+                        for af in ADDR_FIELD_LABEL:
+                            if ADDR_LABEL_TO_POSTAL[af] in [x[1] for x in ap]:
+                                ind = list(map(operator.itemgetter(1), ap)).index(ADDR_LABEL_TO_POSTAL[af])
+                                row.append(ap[ind][0])
+                            else:
+                                row.append("")
+                        continue
+                if key == "full_addr" and not isinstance(entity[tags[key]], type(None)):
+                    entry = entity[tags[key]]
+                    ap = parse_address(entry)
+                    for af in ADDR_FIELD_LABEL:
+                        if ADDR_LABEL_TO_POSTAL[af] in [x[1] for x in ap]:
+                            ind = list(map(operator.itemgetter(1), ap)).index(ADDR_LABEL_TO_POSTAL[af])
+                            row.append(ap[ind][0])
+                        else:
+                            row.append("")
                     continue
-
+                # otherwise ...
                 if tags[key] != 'DPIFORCE':
                     entry = entity[tags[key]]
                 else:
                     entry = json_data['force'][key]
                 row.append(entry)
-            cprint.writerow(row)
+            if len(row) == len(first_row):
+                cprint.writerow(row)
     except KeyError:
         print("[E] '", tags[key], "' is not a field name in the CSV file.", sep='')
         # close reader / writer and delete the partially written data file
