@@ -4,9 +4,7 @@
 import argparse
 import multiprocessing
 import os
-
-
-# Available sources for parallelization
+import sys
 
 cmd_args = argparse.ArgumentParser(description='A command-line interactive tool with the OBR.')
 cmd_args.add_argument('-p', '--ignore-proc', action='store_true', default=False, \
@@ -25,12 +23,12 @@ args = cmd_args.parse_args()
 for i in range(0,len(args.SOURCE)):
     args.SOURCE[i] = os.path.abspath(args.SOURCE[i])
     
-# change directory after adjusting paths
+# change working directory after adjusting paths
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
 os.chdir('..')
 
 # DEBUG
-print(args)
+print("DEBUG:", args)
 
 # DEBUG
 # check validity of arguments (e.g. jobs is a positive number, prevent overwriting of specific

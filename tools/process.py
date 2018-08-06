@@ -1,6 +1,7 @@
 # system modules
 import csv
 import subprocess
+import StringIO
 from os import path
 from os import remove
 
@@ -45,7 +46,6 @@ def process(source, ignore_proc, ignore_url):
     else:
         pass
     print("[!] Standardization complete.")
-
 
     # Clean data
     print('[ ] Beginning data cleaning...')
