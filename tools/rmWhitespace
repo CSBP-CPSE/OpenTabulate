@@ -1,3 +1,8 @@
 #!/bin/bash
 
-sed -i -e 's/[[:space:]]\+/ /g' -e 's/\s*"/"/g' -e 's/"\s*/"/g' $1
+sed -i \
+    -e 's/[[:space:]]\+/ /g' \
+    -e 's/[[:space:]]\+"/"/g' \
+    -e 's/"[[:space:]]\+/"/g' \
+    -e 's/" "/""/g' \
+    $1
