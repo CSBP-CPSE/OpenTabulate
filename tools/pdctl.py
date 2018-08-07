@@ -53,7 +53,7 @@ if __name__ == '__main__':
         # pool function calls of process.py here
         jobs = []
         for source in args.SOURCE:
-            jobs.append(pool.apply_async(process, (source, args.ignore_proc, args.ignore_url)))
+            jobs.append(pool.apply_async(process, (source, args.ignore_proc, args.ignore_url, parse_address)))
         # wait for jobs to finish
         results = []
         for pool_proc in jobs:

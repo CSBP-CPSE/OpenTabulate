@@ -1,7 +1,7 @@
 # system modules
 import csv
 import subprocess
-import StringIO
+
 from os import path
 from os import remove
 
@@ -11,7 +11,7 @@ import src_parser
 import char_encode_check
 
 
-def process(source, ignore_proc, ignore_url):
+def process(source, ignore_proc, ignore_url, address_parser):
     # parse source file / retrieve url / check existence of data
     srcdata = src_parser.parse(source, ignore_url)
     if srcdata == None:
@@ -24,7 +24,7 @@ def process(source, ignore_proc, ignore_url):
     if srcdata['format'] == 'xml': # XML format
         # Check character encoding
         enc = char_encode_check.check(srcdata)
-        parse_metadata = data_parser.xml_parse(srcdata, enc)
+        parse_metadata = data_parser.xml_parse(srcdata, enc, address_parser)
         if parse_metadata[0] == 1:
             print("[E] Failed to parse XML.")
             return None
@@ -38,7 +38,7 @@ def process(source, ignore_proc, ignore_url):
         # remove byte order mark from files 
         subprocess.check_call(['./tools/rmByteOrderMark', './pddir/pp/' + srcdata['file']])
 
-        parse_metadata = data_parser.csv_parse(srcdata, enc)
+        parse_metadata = data_parser.csv_parse(srcdata, enc, address_parser)
         if parse_metadata[0] == 1:
             print("[E] DPI and CSV field names disagree.")
             remove('./pddir/dirty/' + parse_metadata[1])

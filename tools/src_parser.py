@@ -11,7 +11,7 @@ from os import path
 import data_parser
 
 
-def parse(SRC_PATH, INTERNET_FLAG):
+def parse(SRC_PATH, NO_INTERNET_FLAG):
     print("[ ] Parsing source file :", SRC_PATH)
     if not path.exists(SRC_PATH):
         print("[E] Input path does not exist.")
@@ -56,7 +56,7 @@ def parse(SRC_PATH, INTERNET_FLAG):
         return None
             
     # check that both full_addr and address are not in the source file
-    if 'address' in data['info'] and 'full_addr' in data['info']:
+    if ('address' in data['info']) and ('full_addr' in data['info']):
         print("[E] Cannot have both 'full_addr' and 'address' tags in source file.")
         return None
 
@@ -85,7 +85,7 @@ def parse(SRC_PATH, INTERNET_FLAG):
 
     print("[!] Source file parsing suggests nothing blatantly out of the ordinary.")
 
-    if ('url' in data) and INTERNET_FLAG == True:
+    if ('url' in data) and NO_INTERNET_FLAG == False:
         _fetch_url(data['url'], data['file'])
     if not path.exists('./pddir/raw/' + data['file']):
         print("[E] '", data['file'], "' not found in raw folder.", sep='')

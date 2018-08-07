@@ -9,7 +9,7 @@ Written by Maksym Neyra-Nesterenko.
 """
 
 from xml.etree import ElementTree
-from postal.parser import parse_address
+#from postal.parser import parse_address
 import csv
 import copy
 import operator
@@ -163,7 +163,7 @@ def _xml_empty_element_handler(element):
 # --- PARSING FUNCTIONS ---
 # -------------------------
 
-def xml_parse(json_data, enc):
+def xml_parse(json_data, enc, address_parser):
     """
     Parses a dataset in XML format using the xml.etree.ElementTree module and 
     extracts the necessary information to rewrite the data set into CSV format, 
@@ -229,7 +229,7 @@ def xml_parse(json_data, enc):
                     row.append(entry)
                     continue
                 else:
-                    ap = parse_address(entry)
+                    ap = address_parser(entry)
                     for af in ADDR_FIELD_LABEL:
                         if ADDR_LABEL_TO_POSTAL[af] in [x[1] for x in ap]:
                             ind = list(map(operator.itemgetter(1), ap)).index(ADDR_LABEL_TO_POSTAL[af])
@@ -239,7 +239,7 @@ def xml_parse(json_data, enc):
                     continue
             if key == "full_addr":
                 entry = entity[tags[key]]
-                ap = parse_address(entry)
+                ap = address_parser(entry)
                 for af in ADDR_FIELD_LABEL:
                     if ADDR_LABEL_TO_POSTAL[af] in [x[1] for x in ap]:
                         ind = list(map(operator.itemgetter(1), ap)).index(ADDR_LABEL_TO_POSTAL[af])
@@ -259,7 +259,7 @@ def xml_parse(json_data, enc):
     return 0, dirty_file
 
 
-def csv_parse(json_data, enc):
+def csv_parse(json_data, enc, address_parser):
     """
     Parses a dataset in CSV format using the csv module and extracts the necessary 
     information to rewrite the data set into CSV format, as specified by a source file.
@@ -320,7 +320,7 @@ def csv_parse(json_data, enc):
                         row.append(entry)
                         continue
                     else:
-                        ap = parse_address(entry)
+                        ap = address_parser(entry)
                         for af in ADDR_FIELD_LABEL:
                             if ADDR_LABEL_TO_POSTAL[af] in [x[1] for x in ap]:
                                 ind = list(map(operator.itemgetter(1), ap)).index(ADDR_LABEL_TO_POSTAL[af])
@@ -330,7 +330,7 @@ def csv_parse(json_data, enc):
                         continue
                 if key == "full_addr" and not isinstance(entity[tags[key]], type(None)):
                     entry = entity[tags[key]]
-                    ap = parse_address(entry)
+                    ap = address_parser(entry)
                     for af in ADDR_FIELD_LABEL:
                         if ADDR_LABEL_TO_POSTAL[af] in [x[1] for x in ap]:
                             ind = list(map(operator.itemgetter(1), ap)).index(ADDR_LABEL_TO_POSTAL[af])
