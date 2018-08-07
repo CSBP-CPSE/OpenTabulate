@@ -28,7 +28,8 @@ os.chdir(os.path.dirname(os.path.realpath(__file__)))
 os.chdir('..')
 
 # DEBUG
-print("DEBUG:", args)
+for i in args.SOURCE:
+    print("DEBUG:", i)
 
 # DEBUG
 # check validity of arguments (e.g. jobs is a positive number, prevent overwriting of specific
