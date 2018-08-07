@@ -7,7 +7,6 @@
         "trade_name": "BusinessTradeName",
 	"lic_no": "LicenceNumber",
 	"no_employed": "NumberOfEmployees",
-	"full_addr" : ["House", "Street", "Unit", "City", "Province", "Country", "PostalCode"],
 	"address": {
 	    "house_number": "House",
 	    "road": "Street",

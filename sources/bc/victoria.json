@@ -8,11 +8,6 @@
         "lic_issued": "ISSUED_DATE",
 	"lic_expd": "expires",
 	"full_addr": "CIVIC_ADDRESS",
-	"address": {
-	    "house_number": "CIVIC_HOUSE",
-	    "road": "CIVIC_STREET",
-	    "unit": "CIVIC_UNIT"
-	},
 	"latitude": "Y",
 	"longitude": "X",
 	"comdist": "Neighbourhood",

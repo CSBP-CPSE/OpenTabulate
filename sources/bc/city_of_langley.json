@@ -4,18 +4,16 @@
     "info": {
 	"bus_name": "Business_Name",
 	"lic_type": "Licence_Desc",
-	"full_address": "Mailing_Address",
 	"address": {
+	    "unit": "Civic_Unit",
 	    "house_number": "Civic_House",
-	    "road": "Civic_Street",
-	    "unit": "Civic_Unit"
+	    "road": "Civic_Street"
 	},
 	"naics_6": "NAICS_Primary",
 	"naics_desc": "NAICS_Primary_Desc",
 	"latitude": "Latitude",
 	"longitude": "Longitude",
 	"comdist": "CommunityName",
-	"phone": "Phone",
-	"full_addr": "Mailing_Address"
+	"phone": "Phone"
     }
 }

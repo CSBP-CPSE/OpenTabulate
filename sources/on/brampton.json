@@ -6,7 +6,6 @@
 	"bus_start_date": "DATE_EST_IN_CITY",
 	"bus_desc": "PRODUCT_DESC",
 	"active": "OPERATIONAL",
-	"full_addr": "BUSINESS_FULL_ADDRESS",
 	"address": {
 	    "house_number": "STREET_NUM",
 	    "road": ["STREET_NAME", "STREET_TYPE", "STREET_DIRECTION"],

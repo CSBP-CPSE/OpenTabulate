@@ -4,7 +4,6 @@
     "info": {
 	"bus_name": "Name",
 	"bus_no": "BID",
-	"full_addr": "Address",
 	"address" : {
 	    "house_number": "StreetNo",
 	    "road": "StreetName",

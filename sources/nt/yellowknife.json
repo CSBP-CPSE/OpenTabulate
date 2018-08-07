@@ -7,13 +7,11 @@
 	"full_addr": [
 	    "ADDRESS1",
 	    "ADDRESS2",
-	    "ADDRESS3"
+	    "ADDRESS3",
+	    "CITY",
+	    "PROVINCE",
+	    "POSTALCODE"
 	],
-	"address": {
-	    "city": "CITY",
-	    "prov": "PROVINCE",
-	    "postcode": "POSTALCODE"
-	},
 	"phone": "PHONE",
 	"email": "EMAILADDRESS"
     }
