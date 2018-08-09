@@ -36,8 +36,8 @@ The tag `info` is defined as a JSON object. Its possible tags are listed below.
 | `bus_start_date` | string/list | Start date of business. | No | None. |
 | `bus_cease_date` | string/list | Closure date of business. | No | None. |
 | `active` | string/list | Closure date of business. | No | None. |
-| `full_addr` | string/list | Full address of business (concatenated street name, number, etc.) | No | None. |
-| `address` | object | Address metadata, such as street number, street name, postal code, etc. | No | None. |
+| `full_addr` | string/list | Full address of business (concatenated street name, number, etc.) | No | Cannot be used together with `address`. |
+| `address` | object | Address metadata, such as street number, street name, postal code, etc. | No | Cannot be used together with `full_addr`. |
 | `phone` | string/list | Business phone number. | No | None. |
 | `fax` | string/list | Business fax number. | No | None. |
 | `email` | string/list | Business e-mail. | No | None. |
@@ -120,7 +120,7 @@ then the source file and data processing script will produce the entry
 
 ```
 "bus_name", ..., "full_addr", ...
+...
 "JOHN TITOR TIME MACHINES", ..., "2036 STEINS GATE CANADA T5T 5R5", ...
-..., 
+... 
 ```
-

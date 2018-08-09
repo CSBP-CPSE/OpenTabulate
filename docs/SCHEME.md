@@ -7,8 +7,7 @@
 | `./sources/` | Source files are stored here under any folder hierarchy you wish. |
 | `./tools/` | OpenBusinessRepository's core data processing and cleaning scripts reside here | 
 | `./scripts/` | User-made preprocessing and postprocessing scripts are stored here **(NOT AVAILABLE)** | 
-| `./testing/` | Experimental scripts and items are added here. These are not integrated with the scripts in `./tools` |
-| `./pdctl` | Interactive data processing script | 
+| `./testing/` | Experimental scripts and items are added here. These are not integrated with the production system (i.e. `./tools`) |
 | `./README.md` | General information about the project | 
 | `./obr-init.py` | Python script to initialize the data processing directory |
 
@@ -29,13 +28,50 @@ When running this script, the following folder tree is created:
 | `dirty` | datasets from `pp` are sent here after being reformatted to a standardized CSV format |
 | `clean` | datasets are sent here after cleaning |
 
-### Tools directory './tools/'
+### pdctl.py
 
-| Path | Description |
-| ---- | ----------- |
-| `char_encode_check.py` | Detect character encoding heuristically |
-| `data_parser.py` | Data parsing tools for different file formats |
-| `process.py` | Backend for `pdctl` |
-| `src_check.py` | Check integrity of source file (eg. does the data file exist?) |
-| `src_fetch_url.py` | Fetch URL from source file |
-| `src_parser.py` | Parse and error-check source file |
+The main interface for the production system is the `pdctl.py` interactive script. It's usage is described with the `-h/--help` options:
+
+```shell
+$ python tools/pdctl.py --help
+usage: pdctl.py [-h] [-p] [-u] [-j N] [--log FILE] SOURCE [SOURCE ...]
+
+A command-line interactive tool with the OBR.
+
+positional arguments:
+  SOURCE             path to source file
+
+optional arguments:
+  -h, --help         show this help message and exit
+  -p, --ignore-proc  check source files without processing data
+  -u, --ignore-url   ignore "url" entries from source files
+  -j N, --jobs N     run at most N jobs asynchronously
+  --log FILE         log output to FILE
+```
+
+The workflow of processing a single source is structured relatively simply by reading the Python scripts, however, it is summarized here for the reader.
+
+#### 1. parse the source file
+
+The first step as defined in `process.py` is to parse the given source file. If the JSON syntax is correct, the `json` module will load the source file as a `dict` object. The semantics are then checked as defined in `CONTRIB.md`. Afterwards, if `url` is specified as a tag, the process will attempt to fetch the URL and download it to the `raw` directory in the `pddir` folder tree. If this fails, an existence test for a fallback dataset is checked.
+
+#### 2. csv standardization
+
+The next step is to convert the dataset into CSV format with our own choice of column names. This is handled by `data_parser.py`. Minor data cleaning is applied before or during this standardization process, depending on dataset's original format.
+
+*Before*
++ **Character decoding.** Much of the scripts work with strings, so the dataset has to be decoded from the correct (or at least valid) encoding. In the unfortunate situation where no encoding metadata is provided or is missing, the character encoding is guessed from a small list of commonly used Latin character sets.
++ **Byte order mark removal.** (CSV) Some datasets possess a BOM at the start of the file, which may conflict with datasets in CSV format if the first column is referenced in the source file.
++ **Missing fields.** (CSV/XML) Poorly formatted datasets will contain logically missing entries (not blank entries). For example, a CSV file with 12 columns, but one row has 10. Depending on the dataset format, these are corrected by being ignored or appended with blanks.
+
+*Concurrent*
++ **Address parsing.** If the `full_addr` tag is used, `libpostal` will be used to parse and split the address into our specified fields, e.g. `road`, `house_number`, `unit`, and so on.
++ **Regex scrubbing.** Some data cleaning is handled easily using regular expressions, so this is taken advantage of during the CSV standardization. All entries are made lower case as well.
+
+#### 3. cleaning
+
+-- N/A --
+
+*Additional remark*. To improve efficiency, columns not included in the source file are added at the very ended. The corresponding entries will consist of all blanks for every row, since these were not given in the source file.
+
+
