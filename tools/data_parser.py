@@ -13,6 +13,7 @@ from xml.etree import ElementTree
 import csv
 import copy
 import operator
+import re
 
 # -----------------
 # --- VARIABLES ---
@@ -225,6 +226,7 @@ def xml_parse(json_data, enc, address_parser):
                         entry += subel_content
                     else:
                         entry += subel_content + ' '
+                entry = _quick_scrub(entry)
                 if key != "full_addr":
                     row.append(entry)
                     continue
@@ -238,7 +240,7 @@ def xml_parse(json_data, enc, address_parser):
                             row.append("")
                     continue
             if key == "full_addr":
-                entry = entity[tags[key]]
+                entry = _quick_scrub(entity[tags[key]])
                 ap = address_parser(entry)
                 for af in ADDR_FIELD_LABEL:
                     if ADDR_LABEL_TO_POSTAL[af] in [x[1] for x in ap]:
@@ -251,10 +253,11 @@ def xml_parse(json_data, enc, address_parser):
             if tags[key] != 'DPIFORCE':
                 subelement = element.find(tags[key])
                 subel_content = _xml_empty_element_handler(subelement)
-                row.append(subel_content)
+                row.append(_quick_scrub(subel_content))
             else:
-                row.append(json_data['force'][key])
-        cprint.writerow(row)
+                row.append(_quick_scrub(json_data['force'][key]))
+        if not _isRowEmpty(row):
+            cprint.writerow(row)
     csvfile.close()
     return 0, dirty_file
 
@@ -315,6 +318,7 @@ def csv_parse(json_data, enc, address_parser):
                             entry += entity[i]
                         else:
                             entry += entity[i] + ' '
+                    entry = _quick_scrub(entry)
                     # if key is full_addr and a JSON array
                     if key != "full_addr":
                         row.append(entry)
@@ -329,7 +333,7 @@ def csv_parse(json_data, enc, address_parser):
                                 row.append("")
                         continue
                 if key == "full_addr" and not isinstance(entity[tags[key]], type(None)):
-                    entry = entity[tags[key]]
+                    entry = _quick_scrub(entity[tags[key]])
                     ap = address_parser(entry)
                     for af in ADDR_FIELD_LABEL:
                         if ADDR_LABEL_TO_POSTAL[af] in [x[1] for x in ap]:
@@ -340,14 +344,20 @@ def csv_parse(json_data, enc, address_parser):
                     continue
                 # otherwise ...
                 if tags[key] != 'DPIFORCE':
-                    entry = entity[tags[key]]
+                    entry = _quick_scrub(entity[tags[key]])
                 else:
-                    entry = json_data['force'][key]
+                    entry = _quick_scrub(json_data['force'][key])
                 row.append(entry)
-            if len(row) == len(first_row):
+            if not _isRowEmpty(row):
                 cprint.writerow(row)
     except KeyError:
         print("[E] '", tags[key], "' is not a field name in the CSV file.", sep='')
+        # close reader / writer and delete the partially written data file
+        csv_file_read.close()
+        csv_file_write.close()
+        return 1, dirty_file
+    except:
+        print("An unknown error occurred (likely a row has less columns than prescribed).")
         # close reader / writer and delete the partially written data file
         csv_file_read.close()
         csv_file_write.close()
@@ -357,3 +367,79 @@ def csv_parse(json_data, enc, address_parser):
     csv_file_read.close()
     csv_file_write.close()
     return 0, dirty_file
+
+
+
+def blank_fill(fpath):
+    global _FIELD_LABEL
+    LABELS = [i for i in _FIELD_LABEL if i != "full_addr"]
+
+    comp_fpath = fpath + ".complete"
+
+    # open files for read and writing
+    f = open(fpath, 'r')
+    blank_fill_f = open(comp_fpath, 'w')
+
+    # initialize csv reader/writer
+    rf = csv.DictReader(f)
+    wf = csv.writer(blank_fill_f, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+
+    wf.writerow(LABELS)
+
+    for old_row in rf:
+        row2write = []
+        for col in LABELS:
+            if col not in old_row:
+                row2write.append("")
+            else:
+                row2write.append(old_row[col])
+        wf.writerow(row2write)
+
+    blank_fill_f.close()
+    f.close()
+
+
+def _quick_scrub(entry):
+    if isinstance(entry, bytes):
+        entry = entry.decode()
+    # remove [:space:] char class
+    #
+    # since this includes removal of newlines, the next regexps are safe and
+    # do not require the "DOTALL" flag
+    entry = re.sub(r"\s+", " ", entry)
+    # remove spaces occuring at the beginning and end of an entry
+    entry = re.sub(r"^\s+([^\s].+)", r"\1", entry)
+    entry = re.sub(r"(.+[^\s])\s+$", r"\1", entry)
+    entry = re.sub(r"^\s+$", "", entry)
+    # DEBUG -- --
+    # add regex to handle " entries " like this (remove side spaces)
+    
+    # make entries lowercase
+    entry = entry.lower()
+    return entry
+
+
+def pp_format_correction(fname,enc):
+    raw = open('./pddir/raw/' + fname, 'r', encoding=enc)
+    pp = open('./pddir/pp/' + fname, 'w')
+
+    reader = csv.reader(raw)
+    writer = csv.writer(pp)
+
+    flag = False
+    size = 0
+    for row in reader:
+        if flag == True:
+            while len(row) < size:
+                row.append("")
+            writer.writerow(row)
+        else:
+            size = len(row)
+            flag = True
+            writer.writerow(row)
+        
+def _isRowEmpty(r):
+    for e in r:
+        if e != "":
+            return False
+    return True

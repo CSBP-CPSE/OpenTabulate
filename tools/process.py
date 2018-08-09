@@ -32,13 +32,13 @@ def process(source, ignore_proc, ignore_url, address_parser):
     elif srcdata['format'] == 'csv': # CSV format
         # Check character encoding
         enc = char_encode_check.check(srcdata)
-        # copy raw data into pp (preprocessing)
-        subprocess.check_call(['/bin/cp', './pddir/raw/' + srcdata['file'], './pddir/pp/' + srcdata['file']])
+        # copy raw data into pp (preprocessing) while filling in erroneous entries
+        data_parser.pp_format_correction(srcdata['file'], enc)
 
         # remove byte order mark from files 
         subprocess.check_call(['./tools/rmByteOrderMark', './pddir/pp/' + srcdata['file']])
 
-        parse_metadata = data_parser.csv_parse(srcdata, enc, address_parser)
+        parse_metadata = data_parser.csv_parse(srcdata, "utf-8", address_parser)
         if parse_metadata[0] == 1:
             print("[E] DPI and CSV field names disagree.")
             remove('./pddir/dirty/' + parse_metadata[1])
@@ -49,11 +49,12 @@ def process(source, ignore_proc, ignore_url, address_parser):
 
     # Clean data
     print('[ ] Beginning data cleaning...')
-    subprocess.check_call(['./tools/rmWhitespace', './pddir/dirty/' + parse_metadata[1]])
 
     clean_file = '-'.join(str(x) for x in parse_metadata[1].split('-')[:-1]) + "-CLEAN.csv"
 
     subprocess.check_call(['/bin/mv', './pddir/dirty/' + parse_metadata[1], './pddir/clean/' + clean_file])
+
+    data_parser.blank_fill('./pddir/clean/' + clean_file)
 
     print('[!] Data cleaning complete.')
     print('[!] Data processing complete.')
