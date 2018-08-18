@@ -8,6 +8,7 @@ import json
 import urllib.request
 from os import path
 
+# imported to use *_LABELS
 import data_parser
 
 

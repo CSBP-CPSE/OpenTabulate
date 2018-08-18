@@ -5,7 +5,9 @@ import argparse
 import multiprocessing
 import os
 import sys
+import time
 
+# Command line interaction
 cmd_args = argparse.ArgumentParser(description='A command-line interactive tool with the OBR.')
 cmd_args.add_argument('-p', '--ignore-proc', action='store_true', default=False, \
                       help='check source files without processing data')
@@ -23,40 +25,44 @@ args = cmd_args.parse_args()
 for i in range(0,len(args.SOURCE)):
     args.SOURCE[i] = os.path.abspath(args.SOURCE[i])
     
-# change working directory after adjusting paths
+# change working directory
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
 os.chdir('..')
 
-# DEBUG
-for i in args.SOURCE:
-    print("DEBUG:", i)
+if args.jobs < 1:
+    print("Error! Jobs should be a positive integer.")
+    exit(1)
 
-# DEBUG
-# check validity of arguments (e.g. jobs is a positive number, prevent overwriting of specific
-# log file, etc.
-# ----- here -------
+if args.log != "pdlog.txt" and os.path.exists(args.log):
+    print("Warning!", args.log, "already exists.")
+    if input("Overwrite? (y:yes / *:exit): ") != 'y':
+        print("Exiting.")
+        exit(1)
 
 if input('Process data? (y:yes / *:exit): ') != 'y':
     print("Exiting.")
-    exit(0)
+    exit(1)
 
 print("Loading required modules...")
+
 from postal.parser import parse_address
 from process import process
 
-# DEBUG
-# trap?
-# ------ here ------
+print("Logging production system output to '", args.log, "'.", sep="")
+print("Beginning data processing, please standby or grab a coffee. :-)")
 
+start_time = time.perf_counter()
 
 if __name__ == '__main__':
-    with multiprocessing.Pool(processes=args.jobs) as pool:
+    with multiprocessing.Pool(processes=args.jobs) as pool, open(args.log, 'w') as logger:
         # pool function calls of process.py here
         jobs = []
         for source in args.SOURCE:
             jobs.append(pool.apply_async(process, (source, args.ignore_proc, args.ignore_url, parse_address)))
         # wait for jobs to finish
-        results = []
         for pool_proc in jobs:
-            results.append(pool_proc.get())
-    print(results)
+            logger.write(pool_proc.get())
+
+end_time = time.perf_counter()            
+
+print("Completed multiprocessing execution in", end_time - start_time, "seconds.")

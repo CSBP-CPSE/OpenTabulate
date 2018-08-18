@@ -20,4 +20,4 @@ def check(data):
             except UnicodeDecodeError:
                 f.close()
         print("[E] Could not guess original character encoding.")
-        exit(1)
+        return None

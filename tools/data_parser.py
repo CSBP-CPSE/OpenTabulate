@@ -15,6 +15,8 @@ import copy
 import operator
 import re
 
+from os import remove
+
 # -----------------
 # --- VARIABLES ---
 # -----------------
@@ -191,7 +193,8 @@ def xml_parse(json_data, enc, address_parser):
         xmlp = ElementTree.XMLParser(encoding=enc)
         tree = ElementTree.parse('./pddir/raw/' + filename, parser=xmlp)
     except ElementTree.ParseError:
-        return 1, ''
+        print("[E] Failed to parse XML.")
+        return None
     
     root = tree.getroot()
 
@@ -240,7 +243,9 @@ def xml_parse(json_data, enc, address_parser):
                             row.append("")
                     continue
             if key == "full_addr":
-                entry = _quick_scrub(entity[tags[key]])
+                entry = element.find(tags[key])
+                entry = _xml_empty_element_handler(entry)
+                entry = _quick_scrub(entry)
                 ap = address_parser(entry)
                 for af in ADDR_FIELD_LABEL:
                     if ADDR_LABEL_TO_POSTAL[af] in [x[1] for x in ap]:
@@ -259,7 +264,7 @@ def xml_parse(json_data, enc, address_parser):
         if not _isRowEmpty(row):
             cprint.writerow(row)
     csvfile.close()
-    return 0, dirty_file
+    return dirty_file
 
 
 def csv_parse(json_data, enc, address_parser):
@@ -332,16 +337,6 @@ def csv_parse(json_data, enc, address_parser):
                             else:
                                 row.append("")
                         continue
-                if key == "full_addr" and not isinstance(entity[tags[key]], type(None)):
-                    entry = _quick_scrub(entity[tags[key]])
-                    ap = address_parser(entry)
-                    for af in ADDR_FIELD_LABEL:
-                        if ADDR_LABEL_TO_POSTAL[af] in [x[1] for x in ap]:
-                            ind = list(map(operator.itemgetter(1), ap)).index(ADDR_LABEL_TO_POSTAL[af])
-                            row.append(ap[ind][0])
-                        else:
-                            row.append("")
-                    continue
                 # otherwise ...
                 if tags[key] != 'DPIFORCE':
                     entry = _quick_scrub(entity[tags[key]])
@@ -352,21 +347,14 @@ def csv_parse(json_data, enc, address_parser):
                 cprint.writerow(row)
     except KeyError:
         print("[E] '", tags[key], "' is not a field name in the CSV file.", sep='')
-        # close reader / writer and delete the partially written data file
         csv_file_read.close()
         csv_file_write.close()
-        return 1, dirty_file
-    except:
-        print("An unknown error occurred (likely a row has less columns than prescribed).")
-        # close reader / writer and delete the partially written data file
-        csv_file_read.close()
-        csv_file_write.close()
-        return 1, dirty_file
-    
+        remove('./pddir/dirty/' + dirty_file)
+        return None
     # success
     csv_file_read.close()
     csv_file_write.close()
-    return 0, dirty_file
+    return dirty_file
 
 
 
