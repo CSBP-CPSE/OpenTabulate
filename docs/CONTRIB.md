@@ -10,6 +10,8 @@ For explicit examples of source files of small datasets, see the `examples` fold
 
 ### Dataset tags
 
+The following tags are available when writing source files.
+
 | Key | JSON Type | Description | Required? | Dependencies |
 | --- | --------- | ----------- | --------- | ------------ |
 | `file` | string | Name of the local data file residing in `./pddir/raw/` to process. | Yes | None. |
@@ -70,6 +72,8 @@ The tag `info` is defined as a JSON object. Its possible tags are listed below.
 
 ### Address tag
 
+The `address` tag is a JSON object defined inside `info`. Note that this cannot be used simultaneously with `full_addr`, since the latter invokes an address parser, whereas this tag is reserved fordatasets that have already separated the address tokens.
+
 | Key | JSON Type | Description | Required? | Dependencies |
 | --- | --------- | ----------- | --------- | ------------ |
 | `house_number` | string/list | Street number.  | No | Contained in `address` object. |
@@ -80,11 +84,24 @@ The tag `info` is defined as a JSON object. Its possible tags are listed below.
 | `country` | string | Country name.  | No | Contained in `address` object. |
 | `postcode` | string/list | Postal code.  | No | Contained in `address` object. |
 
+
 ### Force tag
+
+The `force` tag is a JSON object. It is special in that the value of a key in `force` overrides every entry of the column defined by key by overwriting it with the corresponding value. For example,placing
+
+```javascript
+	"force": { 
+		"country": "canada"
+	}
+```
+
+into your source file will insert the column `country` during data processing and fill in every entry with 'canada'. This object supports the following keys:
+
+
 | Key | JSON Type | Description | Required? | Dependencies |
 | --- | --------- | ----------- | --------- | ------------ |
 | `city` | string | City name. | No | None. |
-| `region` | string | Province/terrority name. | No | None. |
+| `prov` | string | Province/terrority name. | No | None. |
 | `country` | string |  Country name. | No | None. |
 
 ## Source file features

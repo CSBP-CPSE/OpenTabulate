@@ -75,3 +75,6 @@ The next step is to convert the dataset into CSV format with our own choice of c
 *Additional remark*. To improve efficiency, columns not included in the source file are added at the very ended. The corresponding entries will consist of all blanks for every row, since these were not given in the source file.
 
 
+### Remarks
+
+As stated in `README.md`, much of the code is being ported to a central Python script containing classes and methods that interpret the production system as an object-oriented model. Our methodlogy such as the parsing, standardization, and cleaning will not change. The interface `pdctl.py` will utilize the class and method definitions using the same workflow.

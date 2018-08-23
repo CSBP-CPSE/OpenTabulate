@@ -18,3 +18,7 @@ Assuming you are in the cloned directory, run `python pdctl.py --help` to see av
 ## Issues
 
 Post questions, enhancement requests, and bugs in [Issues](https://github.com/CSBP-CPSE/OpenBusinessRepository/issues).
+
+## Additional remarks
+
+For code readability and ease of future implementation, most of our code is being ported to `obr.py`. It represents a reimplementation of our production system into the object-oriented programming style. Currently it remains in the `testing` folder and is incomplete with missing documentation.
