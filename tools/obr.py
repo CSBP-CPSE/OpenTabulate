@@ -30,7 +30,6 @@ class DataProcess(object):
             fmtproc = Process_XML(self.postal_address_parser.parse)
         fmtproc.extract_labels(self.source) 
         fmtproc.parse(self.source)
-#        fmtproc.clean()
         
 
 class AddressParser(object):
@@ -147,11 +146,126 @@ class Process_CSV(Algorithm):
     """
     Child class of algorithm.
     """
-    def extract_labels(self):
-        pass
+    
+    def extract_labels(self, source):
+        """
+        Constructs a dictionary that stores only tags that were exclusively used in 
+        a source file. In contrast to 'xml_extract_labels', a header is not required 
+        in the source file.
 
-    def parse(self):
-        pass
+        Note:
+            This function is used by 'csv_parse'.
+
+        Args:
+            json_data: dictionary obtained by json.load when read from a source file.
+        """
+        metadata = source.metadata
+        label_map = dict()
+        for i in self._FIELD_LABEL:
+            if i in metadata['info'] and (not (i in self._ADDR_FIELD_LABEL)):
+                label_map[i] = metadata['info'][i]
+            elif ('address' in metadata['info']) and (i in metadata['info']['address']):
+                AddressVarField = metadata['info']['address'][i]
+                label_map[i] = AddressVarField
+            elif ('force' in metadata) and (i in metadata['force']):
+                label_map[i] = 'DPIFORCE'
+        source.label_map = label_map
+
+
+    def parse(self, source):
+        """
+        Parses a dataset in CSV format using the csv module and extracts the necessary 
+        information to rewrite the data set into CSV format, as specified by a source file.
+
+        Args:
+            json_data: dictionary obtained by json.load when read from a source file
+
+        Returns:
+            N/A
+        """
+        if not hasattr(source, 'label_map'):
+            raise ValueError("Source object missing 'label_map', 'extract_labels' was not ran.")
+        
+        filename = source.metadata['file']
+        tags = source.label_map
+        enc = self.char_encode_check(source)
+        csv_file_read = open(source.dirtypath, 'r', encoding=enc, newline='') # errors='ignore'
+        cparse = csv.DictReader(csv_file_read)
+
+        csv_file_write = open("temp-" + source.dirtypath, 'w')
+        cprint = csv.writer(csv_file_write, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+
+        # write the initial row which identifies each column
+        first_row = [f for f in tags]
+        if "full_addr" in first_row:
+            ind = first_row.index("full_addr")
+            first_row.pop(ind)
+            for af in reversed(self._ADDR_FIELD_LABEL):
+                first_row.insert(ind, af)
+                cprint.writerow(first_row)
+        try:
+            for entity in cparse:
+                row = []
+                for key in tags:
+                    # if key has a JSON array as a value
+                    if isinstance(tags[key], list) and key not in self._FORCE_LABEL:
+                        count = 0
+                        entry = ''
+                        for i in tags[key]:
+                            count += 1
+                            if count == len(tags[key]):
+                                entry += entity[i]
+                            else:
+                                entry += entity[i] + ' '
+                                entry = self._quick_scrub(entry)
+                                # if key is full_addr and a JSON array
+                        if key != "full_addr":
+                            row.append(entry)
+                            continue
+                        else:
+                            ap = self.address_parser(entry)
+                            for af in self._ADDR_FIELD_LABEL:
+                                if self._ADDR_LABEL_TO_POSTAL[af] in [x[1] for x in ap]:
+                                    ind = list(map(operator.itemgetter(1), ap)).index(self._ADDR_LABEL_TO_POSTAL[af])
+                                    row.append(ap[ind][0])
+                                else:
+                                    row.append("")
+                            continue
+                        # otherwise ...
+                    if tags[key] != 'DPIFORCE':
+                        entry = self._quick_scrub(entity[tags[key]])
+                    else:
+                        entry = self._quick_scrub(json_data['force'][key])
+                        row.append(entry)
+                if not _isRowEmpty(row):
+                    cprint.writerow(row)
+        except KeyError:
+            print("[E] '", tags[key], "' is not a field name in the CSV file.", sep='')
+            csv_file_read.close()
+            csv_file_write.close()
+        # success
+        csv_file_read.close()
+        csv_file_write.close()
+        os.rename('temp-' + source.dirtypath, source.dirtypath)
+
+    def pp_format_correction(self, source, data_encoding):
+        raw = open(source.rawpath, 'r', encoding=data_encoding)
+        dirty = open(source.dirtypath, 'w')
+        reader = csv.reader(raw)
+        writer = csv.writer(dirty)
+        flag = False
+        size = 0
+        for row in reader:
+            if flag == True:
+                while len(row) < size:
+                    row.append("")
+                writer.writerow(row)
+            else:
+                size = len(row)
+                flag = True
+                writer.writerow(row)
+        raw.close()
+        dirty.close()
 
     def clean(self):
         pass
@@ -161,10 +275,8 @@ class Process_CSV(Algorithm):
 class Process_XML(Algorithm):
     """
     Child class of algorithm.
-    """
-    def __init__(self, address_parse_func):
-        self.address_parser = address_parse_func
-    
+    """    
+
     def extract_labels(self, source):
         """
         Constructs a dictionary that stores only tags that were exclusively used in 
@@ -224,11 +336,6 @@ class Process_XML(Algorithm):
         xmlp = ElementTree.XMLParser(encoding=enc)
         tree = ElementTree.parse('./pddir/raw/' + filename, parser=xmlp)
         root = tree.getroot()
-
-        if len(filename.split('.')) == 1:
-            source.dirtypath = filename + "-DIRTY.csv"
-        else:
-            source.dirtypath = '.'.join(str(x) for x in filename.split('.')[:-1]) + "-DIRTY.csv"
 
         csvfile = open(source.dirtypath, 'w')
         cprint = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
@@ -334,12 +441,13 @@ class Source(object):
         if not os.path.exists(path):
             raise OSError('Path "%s" does not exist.' % path)
         self.srcpath = path
+        with open(path) as f:
+            self.metadata = json.load(f)
         self.rawpath = None
         self.dirtypath = None
         self.cleanpath = None
         self.label_map = None
-        with open(path) as f:
-            self.metadata = json.load(f)
+
 
     def parse(self):
         """
@@ -400,6 +508,20 @@ class Source(object):
                     raise ValueError("'force' tag contains an invalid key.")
                 elif ('address' in self.metadata['info']) and (i in self.metadata['info']['address']):
                     raise ValueError("Key '", i, "' appears in 'force' and 'address'.")
+
+        # Set rawpath, dirtypath, and cleanpath values
+        fname = self.metadata['file']
+        self.rawpath = './pddir/raw/' + fname
+        if len(filename.split('.')) == 1:
+            self.dirtypath = './pddir/dirty/' + fname + "-dirty.csv"
+        else:
+            self.dirtypath = './pddir/dirty/' + '.'.join(str(x) for x in fname.split('.')[:-1]) + "-dirty.csv"
+
+        if len(filename.split('.')) == 1:
+            self.cleanpath = './pddir/clean/' + fname + "-clean.csv"
+        else:
+            self.cleanpath = './pddir/clean/' + '.'.join(str(x) for x in fname.split('.')[:-1]) + "-clean.csv"
+        
 
     def fetch_url(self):
         """
