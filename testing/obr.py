@@ -141,6 +141,32 @@ class Algorithm(object):
         entry = entry.lower()
         return entry
 
+    def blank_fill(self, source):
+        LABELS = [i for i in self._FIELD_LABEL if i != "full_addr"]
+
+        # open files for read and writing
+        f = open(source.cleanpath, 'r')
+        blank_fill_f = open('temp-' + source.cleanpath, 'w')
+
+        # initialize csv reader/writer
+        rf = csv.DictReader(f)
+        wf = csv.writer(blank_fill_f, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+
+        wf.writerow(LABELS)
+
+        for old_row in rf:
+            row2write = []
+            for col in LABELS:
+                if col not in old_row:
+                    row2write.append("")
+                else:
+                    row2write.append(old_row[col])
+            wf.writerow(row2write)
+
+        blank_fill_f.close()
+        f.close()
+        os.rename('temp-' + source.cleanpath, source.cleanpath)
+
     
 class Process_CSV(Algorithm):
     """
@@ -267,8 +293,9 @@ class Process_CSV(Algorithm):
         raw.close()
         dirty.close()
 
-    def clean(self):
-        pass
+    def clean(self, source):
+        # DEBUG ###########
+        os.rename(source.dirtypath, source.cleanpath)
 
     
 
@@ -395,8 +422,10 @@ class Process_XML(Algorithm):
         csvfile.close()
 
 
-    def clean(self):
-        pass
+    def clean(self, source):
+        # DEBUG ###########
+        os.rename(source.dirtypath, source.cleanpath)
+
 
     def _xml_empty_element_handler(self, element):
         """

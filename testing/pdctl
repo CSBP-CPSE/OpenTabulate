@@ -1,0 +1,159 @@
+#!/bin/bash
+
+# An interactive script to process the data.
+
+# Parameter flags
+LOG_FLAG=0
+PARALLEL_FLAG=0
+HELP_FLAG=0
+NO_PROC_FLAG=0
+NO_NET_FLAG=0
+
+# Paths
+OBR=$(cd $(dirname $0); pwd -P) # subject to change for flexibility
+DATA_P_DIR_NAME="pddir" # data processing directory name
+CORES=1
+
+# Available resources for parallelization
+# Defaults to 1
+CORES=1
+LOG_FILE="${OBR}/pdlog.txt"
+
+function safe_termination {
+    pkill --signal 15 --parent $$
+    wait
+    rm ${OBR}/tmp[[:digit:]] 2>/dev/null
+    rm ${OBR}/tmp[[:digit:]][[:digit:]] 2>/dev/null
+    exit 1
+}
+
+while [ "$#" != "0" ]; do
+    # handle repeated positional parameters
+    if [ $LOG_FLAG -gt 1 ] || [ $PARALLEL_FLAG -gt 1 ] || [ $NO_PROC_FLAG -gt 1 ] || [ $NO_NET_FLAG -gt 1 ]; then
+	echo "Error: repeated positional parameters not permitted." 1>&2
+	exit 1
+    fi
+
+    case $1 in
+	'-p' | '--parallel' ) PARALLEL_FLAG=$[$PARALLEL_FLAG + 1] ;;
+	--log=* )
+	    LOG_FLAG=$[$LOG_FLAG + 1]
+	    LOG_FILE=${1:6}
+	    ;;
+	'-n' | '--no-process' ) NO_PROC_FLAG=$[$NO_PROC_FLAG + 1] ;;
+	'-i' | '--no-internet' ) NO_NET_FLAG=$[$NO_NET_FLAG + 1] ;;
+	'-h' | '--help' ) HELP_FLAG=$[$HELP_FLAG + 1] ;;
+	* )
+	    echo "Error: invalid parameter $1; type -h/--help for usage" 1>&2
+	    exit 1
+	    ;;
+    esac
+    # shift to next positional parameter
+    shift
+done
+
+
+# If the help option is used, all parameters entered are ignored,
+# help text is sent to STDOUT, and the script terminates
+if [ $HELP_FLAG -gt  0 ]; then
+    cat <<EOF
+Usage : pdctl [option] ...
+Options: -h, --help:		display help and exit
+	 -p, --parallel:	fork data processing into available cores specified by nproc
+	     --log=LOG_FILE:	log stdout and stderr of this script to LOG_FILE
+	 -n, --no-process:	check source files without processing data
+	 -i, --no-internet:	ignore 'url' entries from source files
+Remarks: If '--log' is not used, the log file defaults to the OpenBusinessRepo directory
+	 under the name 'pdlog.txt'. Likewise, if parallelization is not used, the script
+	 defaults to one data set at a time, which occurs on one CPU core.
+EOF
+    exit 0
+fi
+
+if [ $NO_PROC_FLAG -gt 0 ]; then
+    echo "No data will be processed, only source files will be checked."
+fi
+
+if [ $NO_NET_FLAG -gt 0 ]; then
+    echo "Ignoring 'url' tags from source files."
+fi
+
+if [ $PARALLEL_FLAG -gt 0 ]; then
+        CORES=$(nproc)
+    echo "Running jobs in parallel using $CORES available cores."
+    echo "WARNING! Be sure that your CPU(s) is (are) adequately cooled."
+    echo "Each available core can be used near maximum capacity!"
+
+fi
+
+
+if [ $LOG_FLAG -gt 0 ]; then
+    if  [ -f $LOG_FILE ] && [ $LOG_FILE != "${OBR}/pdlog.txt" ]; then
+    	read -p "WARNING! $LOG_FILE already exists. Overwrite? (y: yes / *: exit): " OVERWRITE
+	case $OVERWRITE in
+	    'y' | 'Y' ) ;;
+	    * )
+		echo "See you later."
+		exit 0
+	esac	    
+    fi 
+    touch $LOG_FILE || exit 1
+    echo "Logging process execution at ${LOG_FILE}."
+fi
+
+
+read -p "Process data? (y: yes / *: exit): " PROMPT
+case $PROMPT in
+    'y' | 'Y' )
+	echo "Processing . . . "
+	;;
+    * )
+	echo "See you later."
+	exit 0
+esac
+
+
+trap safe_termination EXIT SIGHUP SIGINT SIGQUIT SIGTERM
+
+
+# egrep 'banff|calgary|mississauga'
+list=$(find ${OBR}/sources/ -type f -name "*.json")
+
+
+num_proc=0
+tmp_file=0
+
+
+for src in $list; do
+    (
+	cd ${OBR}/${DATA_P_DIR_NAME};
+	(
+	    # source file path
+	    echo $src 
+	    # no proc flag
+	    if [ $NO_PROC_FLAG -eq 0 ]; then
+		echo "0"  
+	    else
+		echo "1" 
+	    fi
+	    # no net flag
+	    if [ $NO_NET_FLAG -eq 0 ]; then
+		echo "0"
+	    else
+		echo "1"
+	    fi
+	) | python ${OBR}/tools/process.py
+    ) &>> ${OBR}/tmp${tmp_file} &
+    num_proc=$[$num_proc + 1]
+    tmp_file=$[($tmp_file + 1) % $CORES]
+    while [ $num_proc -ge $CORES ]; do
+	num_proc=$[$(pgrep --parent $$ | wc -l) - 1]
+	sleep 0.25
+    done
+done
+
+wait
+
+eval cat ${OBR}/tmp{0..$[$CORES-1]} > $LOG_FILE
+
+exit 0
