@@ -25,11 +25,13 @@ class DataProcess(object):
 
     def process(self): # DEBUG # May need to update method parameters #
         if self.source.metadata['format'] == 'csv':
-            fmtproc = Process_CSV(self.postal_address_parser.parse) 
+            fmtproc = Process_CSV(self.postal_address_parser.parse)
+            fmtproc.format_correction(self.source, fmtproc.char_encode_check(self.source))
         elif self.source.metadata['format'] == 'xml':
             fmtproc = Process_XML(self.postal_address_parser.parse)
         fmtproc.extract_labels(self.source) 
         fmtproc.parse(self.source)
+        fmtproc.clean(self.source)
         
 
 class AddressParser(object):
@@ -90,7 +92,7 @@ class Algorithm(object):
     _ENCODING_LIST = ["utf-8", "cp1252", "cp437"]
 
     def __init__(self, address_parser):
-        self.address_parser = address_parser.parser
+        self.address_parser = address_parser
     
     def char_encode_check(self, source):
         metadata = source.metadata
@@ -146,7 +148,7 @@ class Algorithm(object):
 
         # open files for read and writing
         f = open(source.cleanpath, 'r')
-        blank_fill_f = open('temp-' + source.cleanpath, 'w')
+        blank_fill_f = open(source.cleanpath + '-temp', 'w')
 
         # initialize csv reader/writer
         rf = csv.DictReader(f)
@@ -165,7 +167,7 @@ class Algorithm(object):
 
         blank_fill_f.close()
         f.close()
-        os.rename('temp-' + source.cleanpath, source.cleanpath)
+        os.rename(source.cleanpath + '-temp', source.cleanpath)
 
     
 class Process_CSV(Algorithm):
@@ -211,14 +213,14 @@ class Process_CSV(Algorithm):
         """
         if not hasattr(source, 'label_map'):
             raise ValueError("Source object missing 'label_map', 'extract_labels' was not ran.")
-        
+
         filename = source.metadata['file']
         tags = source.label_map
         enc = self.char_encode_check(source)
         csv_file_read = open(source.dirtypath, 'r', encoding=enc, newline='') # errors='ignore'
         cparse = csv.DictReader(csv_file_read)
 
-        csv_file_write = open("temp-" + source.dirtypath, 'w')
+        csv_file_write = open(source.dirtypath + '-temp', 'w')
         cprint = csv.writer(csv_file_write, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
 
         # write the initial row which identifies each column
@@ -228,23 +230,18 @@ class Process_CSV(Algorithm):
             first_row.pop(ind)
             for af in reversed(self._ADDR_FIELD_LABEL):
                 first_row.insert(ind, af)
-                cprint.writerow(first_row)
+        cprint.writerow(first_row)
         try:
             for entity in cparse:
                 row = []
                 for key in tags:
                     # if key has a JSON array as a value
                     if isinstance(tags[key], list) and key not in self._FORCE_LABEL:
-                        count = 0
                         entry = ''
                         for i in tags[key]:
-                            count += 1
-                            if count == len(tags[key]):
-                                entry += entity[i]
-                            else:
-                                entry += entity[i] + ' '
-                                entry = self._quick_scrub(entry)
-                                # if key is full_addr and a JSON array
+                            entry += entity[i] + ' '
+                        entry = self._quick_scrub(entry)
+                        # if key is full_addr and a JSON array
                         if key != "full_addr":
                             row.append(entry)
                             continue
@@ -262,8 +259,8 @@ class Process_CSV(Algorithm):
                         entry = self._quick_scrub(entity[tags[key]])
                     else:
                         entry = self._quick_scrub(json_data['force'][key])
-                        row.append(entry)
-                if not _isRowEmpty(row):
+                    row.append(entry)
+                if not self._isRowEmpty(row):
                     cprint.writerow(row)
         except KeyError:
             print("[E] '", tags[key], "' is not a field name in the CSV file.", sep='')
@@ -272,9 +269,9 @@ class Process_CSV(Algorithm):
         # success
         csv_file_read.close()
         csv_file_write.close()
-        os.rename('temp-' + source.dirtypath, source.dirtypath)
+        os.rename(source.dirtypath + '-temp', source.dirtypath)
 
-    def pp_format_correction(self, source, data_encoding):
+    def format_correction(self, source, data_encoding):
         raw = open(source.rawpath, 'r', encoding=data_encoding)
         dirty = open(source.dirtypath, 'w')
         reader = csv.reader(raw)
@@ -361,7 +358,7 @@ class Process_XML(Algorithm):
         header = source.metadata['header']
         enc = self.char_encode_check(source)
         xmlp = ElementTree.XMLParser(encoding=enc)
-        tree = ElementTree.parse('./pddir/raw/' + filename, parser=xmlp)
+        tree = ElementTree.parse(source.rawpath, parser=xmlp)
         root = tree.getroot()
 
         csvfile = open(source.dirtypath, 'w')
@@ -524,7 +521,7 @@ class Source(object):
                 raise TypeError("'address' tag must be an object.")
 
             for i in self.metadata['info']['address']:
-                if not (i in data_parser.ADDR_FIELD_LABEL): # DEBUG ##################### 
+                if not (i in Algorithm._ADDR_FIELD_LABEL): # DEBUG ##################### 
                     raise ValueError("'address' tag contains an invalid key.")
 
         # verify force is an object with valid tags
@@ -533,7 +530,7 @@ class Source(object):
                 raise TypeError("'force' tag must be an object.")
 
             for i in self.metadata['force']:
-                if not (i in data_parser.FORCE_LABEL): # DEBUG ##################### 
+                if not (i in Algorithm._FORCE_LABEL): # DEBUG ##################### 
                     raise ValueError("'force' tag contains an invalid key.")
                 elif ('address' in self.metadata['info']) and (i in self.metadata['info']['address']):
                     raise ValueError("Key '", i, "' appears in 'force' and 'address'.")
@@ -541,12 +538,12 @@ class Source(object):
         # Set rawpath, dirtypath, and cleanpath values
         fname = self.metadata['file']
         self.rawpath = './pddir/raw/' + fname
-        if len(filename.split('.')) == 1:
+        if len(fname.split('.')) == 1:
             self.dirtypath = './pddir/dirty/' + fname + "-dirty.csv"
         else:
             self.dirtypath = './pddir/dirty/' + '.'.join(str(x) for x in fname.split('.')[:-1]) + "-dirty.csv"
 
-        if len(filename.split('.')) == 1:
+        if len(fname.split('.')) == 1:
             self.cleanpath = './pddir/clean/' + fname + "-clean.csv"
         else:
             self.cleanpath = './pddir/clean/' + '.'.join(str(x) for x in fname.split('.')[:-1]) + "-clean.csv"
@@ -576,6 +573,7 @@ class Source(object):
 if __name__ == "__main__":
     from postal.parser import parse_address
     s = Source('./sources/misc/msbregistry.json')
+    s.parse()
     d = DataProcess(s, parse_address)
     d.process()
     
