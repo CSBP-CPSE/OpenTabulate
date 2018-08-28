@@ -1,3 +1,21 @@
+"""
+This module defines the OpenBusinessRepository API, which contains classes and
+methods for a data processing production system. In abstraction, Source objects
+are created to represent everything about a dataset, such as its metadata and 
+references to its location. The modification of Source objects by DataProcess 
+objects represents this idea of the data being processed, cleaned, and formatted. 
+A DataProcess object uses the Algorithm class methods and its child classes to 
+perform the necessary data processing.
+
+Created and written by Maksym Neyra-Nesterenko.
+
+------------------------------------
+Data Exploration and Integration Lab
+Center for Special Business Projects
+Statistics Canada
+------------------------------------
+"""
+
 ###########
 # MODULES #
 ###########
@@ -17,13 +35,35 @@ import urllib.request
 
 class DataProcess(object):
     """
-    Data processing class.
+    A data processing interface for a source file.
+
+    Attributes:
+
+      source: A dataset and its associated metadata, defined as a Source 
+        object.
+
+      postal_address_parser: An object containing an address parser method,
+        defined by an AddressParser object.
     """
     def __init__(self, source, address_parser):
+        """
+        Initialize a DataProcess object.
+
+        Args:
+        
+          source: A dataset and its associated metadata, defined
+            as a Source object.
+
+          address_parser: An address parsing function which accepts a
+            string as an argument.
+        """
         self.source = source
         self.postal_address_parser = AddressParser(address_parser)
 
-    def process(self): # DEBUG # May need to update method parameters #
+    def process(self):
+        """
+        Process a data set using methods from Algorithm.
+        """
         if self.source.metadata['format'] == 'csv':
             fmtproc = Process_CSV(self.postal_address_parser.parse)
             fmtproc.format_correction(self.source, fmtproc.char_encode_check(self.source))
@@ -36,13 +76,33 @@ class DataProcess(object):
 
 class AddressParser(object):
     """
-    Wrapper class for libpostal.
-    Performs output formatting here.
+    Wrapper class for an address parser.
+
+    Currently supported parsers: libpostal
+
+    Attributes:
+
+      address_parser: Address parsing function.
     """
     def __init__(self, address_parser):
+        """
+        Initialize an AddressParser object.
+
+        Args:
+
+          address_parser: An address parsing function which accepts a string 
+            as an argument.
+        """
         self.address_parser = address_parser
 
     def parse(self, addr):
+        """
+        Parses and address string and returns the tokens.
+
+        Args:
+
+          addr: A string containing the address to parse.
+        """
         return self.address_parser(addr)
 
 
@@ -53,10 +113,20 @@ class AddressParser(object):
 class Algorithm(object):
     """
     Parent algorithm class for data processing.
+
+    Attributes:
+
+      FIELD_LABEL: Standardized field names.
+
+      ADDR_FIELD_LABEL: Standardized address field names.
+
+      FORCE_LABEL: Field names acceptable by 'force' tag.
+
+      ENCODING_LIST: List of character encodings to test.
+
+      address_parser: Address parsing function to use.
     """
-    # Standardized column names for source files - for usage and
-    # documentation, see 'docs/CONTRIB.md' in the repository
-    _FIELD_LABEL = ['bus_name', 'trade_name', 'bus_type', 'bus_no', 'bus_desc', \
+    FIELD_LABEL = ['bus_name', 'trade_name', 'bus_type', 'bus_no', 'bus_desc', \
                     'lic_type', 'lic_no', 'bus_start_date', 'bus_cease_date', 'active', \
                     'full_addr', \
                     'house_number', 'road', 'postcode', 'unit', 'city', 'prov', 'country', \
@@ -73,13 +143,12 @@ class Algorithm(object):
                     'facebook', 'twitter', 'linkedin', 'youtube', 'instagram']
 
 
-    # Address fields
-    _ADDR_FIELD_LABEL = ['unit', 'house_number', 'road', 'city', 'prov', 'country', 'postcode']
+    ADDR_FIELD_LABEL = ['unit', 'house_number', 'road', 'city', 'prov', 'country', 'postcode']
 
-    # Labels for the 'force' tag
-    _FORCE_LABEL = ['city', 'prov', 'country']
+    FORCE_LABEL = ['city', 'prov', 'country']
 
-    # Column order, keys expressed as libpostal parser labels
+    ENCODING_LIST = ["utf-8", "cp1252", "cp437"]
+
     _ADDR_LABEL_TO_POSTAL = {'house_number' : 'house_number', \
                             'road' : 'road', \
                             'unit' : 'unit', \
@@ -88,22 +157,45 @@ class Algorithm(object):
                             'country' : 'country', \
                             'postcode' : 'postcode' }
 
-    # Character encoding list
-    _ENCODING_LIST = ["utf-8", "cp1252", "cp437"]
 
     def __init__(self, address_parser):
+        """
+        Initializes Algorithm object.
+
+        Args:
+          address_parser: Address parsing function.
+        """
         self.address_parser = address_parser
     
     def char_encode_check(self, source):
+        """
+        Identifies the character encoding of a source by reading the metadata
+        or by a heuristic test.
+        
+        Args:
+
+          source: A dataset and its associated metadata, defined as a Source 
+            object.
+
+        Returns:
+
+          e: the character encoding as described by Python as a string.
+
+        Raises:
+
+          ValueError: Invalid encoding specified in source file.
+
+          RunTimeError: Character encoding test failed.
+        """
         metadata = source.metadata
         if 'encoding' in metadata:
             data_enc = metadata.data['encoding']
-            if data_enc in self._ENCODING_LIST:
+            if data_enc in self.ENCODING_LIST:
                 return data_enc
             else:
                 raise ValueError(data_enc + " is not a valid encoding.")
         else:
-            for e in self._ENCODING_LIST:
+            for e in self.ENCODING_LIST:
                 try:
                     with open('./pddir/raw/' + metadata['file'], encoding=e) as f:
                         for line in f:
@@ -119,12 +211,18 @@ class Algorithm(object):
     ############################################
 
     def _isRowEmpty(self, r):
+        """
+        Checks if a list 'r' consists of only empty string entries.
+        """
         for e in r:
             if e != "":
                 return False
         return True
 
     def _quick_scrub(self, entry):
+        """
+        Cleans a string 'entry' using regular expressions and returns it.
+        """
         if isinstance(entry, bytes):
             entry = entry.decode()
         # remove [:space:] char class
@@ -136,15 +234,21 @@ class Algorithm(object):
         entry = re.sub(r"^\s+([^\s].+)", r"\1", entry)
         entry = re.sub(r"(.+[^\s])\s+$", r"\1", entry)
         entry = re.sub(r"^\s+$", "", entry)
-        # DEBUG -- --
-        # add regex to handle " entries " like this (remove side spaces)
-
         # make entries lowercase
         entry = entry.lower()
         return entry
 
     def blank_fill(self, source):
-        LABELS = [i for i in self._FIELD_LABEL if i != "full_addr"]
+        """
+        Adds columns excluded by original data processing/metadata to a 
+        formatted dataset and fills entries with blanks.
+
+        Args:
+
+          source: A dataset and its associated metadata, defined as a Source 
+            object.
+        """
+        LABELS = [i for i in self.FIELD_LABEL if i != "full_addr"]
 
         # open files for read and writing
         f = open(source.cleanpath, 'r')
@@ -172,25 +276,24 @@ class Algorithm(object):
     
 class Process_CSV(Algorithm):
     """
-    Child class of algorithm.
+    A child class of Algorithm, accompanied with methods designed for
+    CSV-formatted datasets.
     """
     
     def extract_labels(self, source):
         """
         Constructs a dictionary that stores only tags that were exclusively used in 
-        a source file. In contrast to 'xml_extract_labels', a header is not required 
-        in the source file.
-
-        Note:
-            This function is used by 'csv_parse'.
+        a source file.
 
         Args:
-            json_data: dictionary obtained by json.load when read from a source file.
+
+          source: A dataset and its associated metadata, defined as a Source 
+            object.
         """
         metadata = source.metadata
         label_map = dict()
-        for i in self._FIELD_LABEL:
-            if i in metadata['info'] and (not (i in self._ADDR_FIELD_LABEL)):
+        for i in self.FIELD_LABEL:
+            if i in metadata['info'] and (not (i in self.ADDR_FIELD_LABEL)):
                 label_map[i] = metadata['info'][i]
             elif ('address' in metadata['info']) and (i in metadata['info']['address']):
                 AddressVarField = metadata['info']['address'][i]
@@ -202,14 +305,12 @@ class Process_CSV(Algorithm):
 
     def parse(self, source):
         """
-        Parses a dataset in CSV format using the csv module and extracts the necessary 
-        information to rewrite the data set into CSV format, as specified by a source file.
+        Parses a dataset in CSV format to transform into a standardized CSV format.
 
         Args:
-            json_data: dictionary obtained by json.load when read from a source file
 
-        Returns:
-            N/A
+          source: A dataset and its associated metadata, defined as a Source 
+            object.
         """
         if not hasattr(source, 'label_map'):
             raise ValueError("Source object missing 'label_map', 'extract_labels' was not ran.")
@@ -228,7 +329,7 @@ class Process_CSV(Algorithm):
         if "full_addr" in first_row:
             ind = first_row.index("full_addr")
             first_row.pop(ind)
-            for af in reversed(self._ADDR_FIELD_LABEL):
+            for af in reversed(self.ADDR_FIELD_LABEL):
                 first_row.insert(ind, af)
         cprint.writerow(first_row)
         try:
@@ -236,7 +337,7 @@ class Process_CSV(Algorithm):
                 row = []
                 for key in tags:
                     # if key has a JSON array as a value
-                    if isinstance(tags[key], list) and key not in self._FORCE_LABEL:
+                    if isinstance(tags[key], list) and key not in self.FORCE_LABEL:
                         entry = ''
                         for i in tags[key]:
                             entry += entity[i] + ' '
@@ -247,7 +348,7 @@ class Process_CSV(Algorithm):
                             continue
                         else:
                             ap = self.address_parser(entry)
-                            for af in self._ADDR_FIELD_LABEL:
+                            for af in self.ADDR_FIELD_LABEL:
                                 if self._ADDR_LABEL_TO_POSTAL[af] in [x[1] for x in ap]:
                                     ind = list(map(operator.itemgetter(1), ap)).index(self._ADDR_LABEL_TO_POSTAL[af])
                                     row.append(ap[ind][0])
@@ -272,6 +373,17 @@ class Process_CSV(Algorithm):
         os.rename(source.dirtypath + '-temp', source.dirtypath)
 
     def format_correction(self, source, data_encoding):
+        """
+        Corrects CSV datasets that possess rows with a number of entries not
+        agreeing with the total number of columns.
+
+        Args:
+
+          source: A dataset and its associated metadata, defined as a Source 
+            object.
+
+          data_encoding: The character encoding of the data.
+        """
         raw = open(source.rawpath, 'r', encoding=data_encoding)
         dirty = open(source.dirtypath, 'w')
         reader = csv.reader(raw)
@@ -291,6 +403,14 @@ class Process_CSV(Algorithm):
         dirty.close()
 
     def clean(self, source):
+        """
+        A general dataset cleaning method. (May be moved to Algorithm)
+
+        Args:
+
+          source: A dataset and its associated metadata, defined as a Source 
+            object.
+        """
         # DEBUG ###########
         os.rename(source.dirtypath, source.cleanpath)
 
@@ -298,26 +418,26 @@ class Process_CSV(Algorithm):
 
 class Process_XML(Algorithm):
     """
-    Child class of algorithm.
-    """    
+    A child class of Algorithm, accompanied with methods designed for
+    XML-formatted datasets.
+    """
 
     def extract_labels(self, source):
         """
         Constructs a dictionary that stores only tags that were exclusively used in 
-        a source file. This function is specific to the XML format since it returns 
-        a header tag and uses XPath expressions.
-
-        Note:
-            N/A
+        a source file. Since datasets in XML format will need a header tag in its
+        source file, the labels must be use XPath expressions.
 
         Args:
-            source: a Source object.
+
+          source: A dataset and its associated metadata, defined as a Source 
+            object.
         """
         metadata = source.metadata
         label_map = dict()
         # append existing data using XPath expressions (for parsing)
-        for i in self._FIELD_LABEL:
-            if i in metadata['info'] and (not (i in self._ADDR_FIELD_LABEL)) and i != 'address':
+        for i in self.FIELD_LABEL:
+            if i in metadata['info'] and (not (i in self.ADDR_FIELD_LABEL)) and i != 'address':
                 if isinstance(metadata['info'][i], list):
                     label_map[i] = []
                     for t in metadata['info'][i]:
@@ -335,20 +455,12 @@ class Process_XML(Algorithm):
 
     def parse(self, source):
         """
-        Parses a dataset in XML format using the xml.etree.ElementTree module and 
-        extracts the necessary information to rewrite the data set into CSV format, 
-        as specified by a source file.
+        Parses a dataset in XML format to transform into a standardized CSV format.
 
         Args:
-            json_data: dictionary obtained by json.load when read from a source file
 
-        Raises:
-            ElementTree.ParseError: Incorrect XML format of the specified dataset.
-
-        Returns:
-            Return values are interpreted by 'process.py' as follows:
-            '0' : Successful reformatting.
-            '1' : Incorrect formatting of XML dataset.
+          source: A dataset and its associated metadata, defined as a Source 
+            object.
         """
         if not hasattr(source, 'label_map'):
             raise ValueError("Source object missing 'label_map', 'extract_labels' was not ran.")
@@ -369,14 +481,14 @@ class Process_XML(Algorithm):
         if "full_addr" in first_row:
             ind = first_row.index("full_addr")
             first_row.pop(ind)
-            for af in reversed(self._ADDR_FIELD_LABEL):
+            for af in reversed(self.ADDR_FIELD_LABEL):
                 first_row.insert(ind, af)
         cprint.writerow(first_row)
 
         for element in root.iter(header):
             row = []
             for key in tags:
-                if isinstance(tags[key], list) and key not in self._FORCE_LABEL:
+                if isinstance(tags[key], list) and key not in self.FORCE_LABEL:
                     entry = ''
                     for i in tags[key]:
                         subelement = element.find(i)
@@ -388,7 +500,7 @@ class Process_XML(Algorithm):
                         continue
                     else:
                         ap = self.address_parser(entry)
-                        for af in self._ADDR_FIELD_LABEL:
+                        for af in self.ADDR_FIELD_LABEL:
                             if self._ADDR_LABEL_TO_POSTAL[af] in [x[1] for x in ap]:
                                 ind = list(map(operator.itemgetter(1), ap)).index(self._ADDR_LABEL_TO_POSTAL[af])
                                 row.append(ap[ind][0])
@@ -400,7 +512,7 @@ class Process_XML(Algorithm):
                     entry = self._xml_empty_element_handler(entry)
                     entry = self._quick_scrub(entry)
                     ap = self.address_parser(entry)
-                    for af in self._ADDR_FIELD_LABEL:
+                    for af in self.ADDR_FIELD_LABEL:
                         if self._ADDR_LABEL_TO_POSTAL[af] in [x[1] for x in ap]:
                             ind = list(map(operator.itemgetter(1), ap)).index(self._ADDR_LABEL_TO_POSTAL[af])
                             row.append(ap[ind][0])
@@ -420,6 +532,14 @@ class Process_XML(Algorithm):
 
 
     def clean(self, source):
+        """
+        A general dataset cleaning method. (May be moved to Algorithm)
+
+        Args:
+
+          source: A dataset and its associated metadata, defined as a Source 
+            object.
+        """
         # DEBUG ###########
         os.rename(source.dirtypath, source.cleanpath)
 
@@ -430,20 +550,17 @@ class Process_XML(Algorithm):
         if the element cannot be found, the element is 'None'. This function is defined 
         to handle these cases.
 
-        Note:
-            This function is used by 'xml_parse'.
-
         Args:
-            element: A node in the XML tree.
+
+          element: A node in the XML tree.
 
         Returns:
-            'True' is returned if element's tag is missing from the header. From here,
-            'xml_parse' returns a detailed error message of the missing tag and 
-            terminates the data processing.
 
-            Otherwise, return the appropriate field contents.
+          '': missing or empty tag
+                  
+          element.text: tag text
         """
-        if element is None: # if the element is missing, return error
+        if element is None:
             return ''
         if not (element.text is None):
             return element.text
@@ -458,11 +575,33 @@ class Process_XML(Algorithm):
 
 class Source(object):
     """
-    Source dataset class.
+    Source dataset class. Contains metadata and other information about the dataset
+    and its dirty and clean copies.
+
+    Attributes:
+    
+      srcpath: path to source file relative to the OBR directory.
+
+      rawpath: path to the raw dataset relative to the OBR directory. This is
+        assigned './pddir/raw'.
+
+      dirtypath: path to the dirty dataset relative to the OBR directory. This is
+        assigned './pddir/dirty'.
+
+      cleanpath: path to the clean dataset relative to the OBR directory. This is
+        assigned './pddir/clean'.
+      dirtypath:
+
+      label_map: a dict object that stores the mapping of OBRs standardized labels
+        to the dataset's labels, as obtained by the source file.
     """
     def __init__(self, path):
         """
-        New source file object is created.
+        Initializes a new source file object.
+
+        Raises:
+        
+          OSError: Path to source file does not exist.
         """
         if not os.path.exists(path):
             raise OSError('Path "%s" does not exist.' % path)
@@ -477,7 +616,17 @@ class Source(object):
 
     def parse(self):
         """
-        Parses the source file. 
+        Parses the source file to check correction of syntax.
+
+        Raises:
+
+          LookupError: Associated with a missing tag.
+
+          ValueError: Associated with an incorrect entry or combination or entries.
+            For example, having an 'address' and 'full_addr' tag will raise this
+            error since they cannot both be used in a source file.
+
+          TypeError: Associated with an incorrect JSON type for a tag.
         """
         # required tags
         if 'format' not in self.metadata:
@@ -504,11 +653,11 @@ class Source(object):
             raise LookupError("'header' tag missing for format " + self.metadata['format'])
 
         if (self.metadata['format'] != 'csv') and ('header' in self.metadata) and (not isinstance(self.metadata['header'], str)):
-            raise ValueError("'header' must be a string.")
+            raise TypeError("'header' must be a string.")
 
         # url
         if 'url' in self.metadata and (not isinstance(self.metadata['url'], str)):
-            raise ValueError("'url' must be a string.")
+            raise TypeError("'url' must be a string.")
 
 
         # check that both full_addr and address are not in the source file
@@ -521,7 +670,7 @@ class Source(object):
                 raise TypeError("'address' tag must be an object.")
 
             for i in self.metadata['info']['address']:
-                if not (i in Algorithm._ADDR_FIELD_LABEL): # DEBUG ##################### 
+                if not (i in Algorithm.ADDR_FIELD_LABEL):
                     raise ValueError("'address' tag contains an invalid key.")
 
         # verify force is an object with valid tags
@@ -530,7 +679,7 @@ class Source(object):
                 raise TypeError("'force' tag must be an object.")
 
             for i in self.metadata['force']:
-                if not (i in Algorithm._FORCE_LABEL): # DEBUG ##################### 
+                if not (i in Algorithm.FORCE_LABEL):
                     raise ValueError("'force' tag contains an invalid key.")
                 elif ('address' in self.metadata['info']) and (i in self.metadata['info']['address']):
                     raise ValueError("Key '", i, "' appears in 'force' and 'address'.")
@@ -551,7 +700,7 @@ class Source(object):
 
     def fetch_url(self):
         """
-        Fetches URL.
+        Downloads a dataset by fetching its URL and writing to the raw directory.
         """
         response = urllib.request.urlopen(self.metadata['url'])
         bytedata = response.read()
@@ -560,7 +709,11 @@ class Source(object):
 
     def raw_data_exists(self):
         """
-        Checks if raw dataset exists.
+        Checks if raw dataset exists in the required directory.
+
+        Raises:
+
+          OSError: Missing dataset in raw folder.
         """
         if not path.exists('./pddir/raw/' + self.metadata['file']):
             raise OSError("'" + self.metadata['file'] + "' not found in raw folder.")

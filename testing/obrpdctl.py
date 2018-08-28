@@ -6,6 +6,7 @@ import multiprocessing
 import os
 import sys
 import time
+import io
 import obr
 
 def process(source, ignore_proc, ignore_url, parse_address):
