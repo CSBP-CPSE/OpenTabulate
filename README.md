@@ -3,6 +3,12 @@ The OpenBusinessRepository (OBR) is a production system designed to create a lis
 
 The management and progression of the project is openly available as well at [taiga.io - OpenBusinessRepository](https://tree.taiga.io/project/virtualtorus-openbusinessrepository/).
 
+## Open data contribution
+
+Our repository already contains a source file section and `sources.csv` for open data that we have obtained and points of reference to that data. In the future we plan to host the processed and cleaned data on a server for the public to download.
+
+We are open to people contributing business data under the open data license. This can vary from referring us to data we do not have on the list or communicating with us directly if you are a group that maintains business data. We do not have a rigid process in doing this, but it would be appreciated that if you do refer us to data, that you write a source file for it (see documentation references below).
+
 ## Installation
 
 The host of the production system must be a Linux-based operating system, so packages such as `coreutils` are (often) included by default. Simply clone the repository:
@@ -51,6 +57,7 @@ In the `docs` folder there is documentation set up to teach you how to write sou
 
 - `CONTRIB.md` : A manual describing the features and options when writing a source file. For source file examples, see `sources`.
 - `SCHEME.md` : A summary of the production system and its features.
+- `FAQ.md` : Frequently asked questions page.
 - `SCRIPTS.md` : N/A.
 
 If you are interested in developing or inspecting the code, it has been commented and documented to the best of our ability.
