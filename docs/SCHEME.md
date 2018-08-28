@@ -30,26 +30,7 @@ When running this script, the following folder tree is created:
 
 ### pdctl.py
 
-The main interface for the production system is the `pdctl.py` interactive script. It's usage is described with the `-h/--help` options:
-
-```shell
-$ python tools/pdctl.py --help
-usage: pdctl.py [-h] [-p] [-u] [-j N] [--log FILE] SOURCE [SOURCE ...]
-
-A command-line interactive tool with the OBR.
-
-positional arguments:
-  SOURCE             path to source file
-
-optional arguments:
-  -h, --help         show this help message and exit
-  -p, --ignore-proc  check source files without processing data
-  -u, --ignore-url   ignore "url" entries from source files
-  -j N, --jobs N     run at most N jobs asynchronously
-  --log FILE         log output to FILE
-```
-
-The workflow of processing a single source is structured relatively simply by reading the Python scripts, however, it is summarized here for the reader.
+The main interface for the production system is the `pdctl.py` interactive script. The workflow of processing a single source is structured relatively simply by reading the Python scripts, however, it is summarized here for the reader.
 
 #### 1. parse the source file
 

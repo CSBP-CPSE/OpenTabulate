@@ -6,14 +6,54 @@ The management and progression of the project is openly available as well at [ta
 ## Installation
 
 The host of the production system must be a Linux-based operating system, so packages such as `coreutils` are (often) included by default. Simply clone the repository:
+
 ```bash
-git clone https://github.com/CSBP-CPSE/OpenBusinessRepository
+$ git clone https://github.com/CSBP-CPSE/OpenBusinessRepository
 ```
-To operate the data processing, which is managed by the `pdctl.py` script, you will need Python 3 and [pypostal](https://github.com/openvenues/pypostal).
+Then execute the `obr-init.py` script to create the data processing directories.
 
-## Usage
+To operate the data processing, which is managed by the `pdctl.py` script, you will need to install:
+- Python (version 3.5+)
+- [libpostal](https://github.com/openvenues/libpostal)
+- [pypostal](https://github.com/openvenues/pypostal)
 
-Assuming you are in the cloned directory, run `python pdctl.py --help` to see available options for the interactive processing script. Please see `./docs/` for documentation on how to get the production system up and running.
+## Help
+
+#### Interactive script and code
+
+Assuming you are in the cloned directory, run 
+
+```shell
+$ python tools/pdctl.py --help
+```
+
+which should print to standard output:
+
+```
+usage: pdctl.py [-h] [-p] [-u] [-j N] [--log FILE] SOURCE [SOURCE ...]
+
+A command-line interactive tool with the OBR.
+
+positional arguments:
+  SOURCE             path to source file
+
+optional arguments:
+  -h, --help         show this help message and exit
+  -p, --ignore-proc  check source files without processing data
+  -u, --ignore-url   ignore "url" entries from source files
+  -j N, --jobs N     run at most N jobs asynchronously
+  --log FILE         log output to FILE
+```
+
+#### Documentation
+
+In the `docs` folder there is documentation set up to teach you how to write source files, a primer to operate the system, and so forth.
+
+- `CONTRIB.md` : A manual describing the features and options when writing a source file. For source file examples, see `sources`.
+- `SCHEME.md` : A summary of the production system and its features.
+- `SCRIPTS.md` : N/A.
+
+If you are interested in developing or inspecting the code, it has been commented and documented to the best of our ability.
 
 ## Issues
 
