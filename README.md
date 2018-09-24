@@ -7,11 +7,11 @@ The management and progression of the project is openly available as well at [ta
 
 The repository already contains a source file section and `sources.csv` for existing open data and points of reference to those data. In the future development of the project, one option will be to host the processed and cleaned data on a server for the public to download.
 
-You can contribute business data available under an open data license. This can vary from referring us to data we do not have on the list or communicating with us directly if you are a group that maintains business data. We do not have a rigid process in doing this, but it would be appreciated that if you do refer us to data, that you write a source file for it (see documentation references below).
+You can contribute to the OBR, with data available under an open data license. This can be done by referring us to data we do not have on the list or communicating with us directly if you are a group that maintains business micro data. The best way to add new business data is to write a source file for it (see documentation references below).
 
 ## Installation
 
-The host of the production system must be a Linux-based operating system, so packages such as `coreutils` are (often) included by default. Simply clone the repository:
+The host of the OBR must be a Linux-based operating system, so packages such as `coreutils` are (often) included by default. To start, simply clone the repository:
 
 ```bash
 $ git clone https://github.com/CSBP-CPSE/OpenBusinessRepository
@@ -53,19 +53,19 @@ optional arguments:
 
 #### Documentation
 
-In the `docs` folder there is documentation set up to teach you how to write source files, a primer to operate the system, and so forth.
+In the `docs` folder there is documentation on how to write source files, a primer to operate the system, and so forth.
 
 - `CONTRIB.md` : A manual describing the features and options when writing a source file. For source file examples, see `sources`.
 - `SCHEME.md` : A summary of the production system and its features.
 - `FAQ.md` : Frequently asked questions page.
 - `SCRIPTS.md` : N/A.
 
-If you are interested in developing or inspecting the code, it has been commented and documented to the best of our ability.
+The code of the OBR has been commented and documented. If you are interested in developing or inspecting, keep in mind that the OBR is an exploratory project and all the codes and documentation are work in progress. 
 
 ## Issues
 
-Post questions, enhancement requests, and bugs in [Issues](https://github.com/CSBP-CPSE/OpenBusinessRepository/issues).
+You can post questions, enhancement requests, and bugs in [Issues](https://github.com/CSBP-CPSE/OpenBusinessRepository/issues).
 
 ## Additional remarks
 
-For code readability and ease of future implementation, most of our code is being ported to `obr.py`. It represents a reimplementation of our production system into the object-oriented programming style. Currently it remains in the `testing` folder and is incomplete with missing documentation.
+For code readability and ease of future implementation, most of the code is being ported to `obr.py`. It represents a reimplementation of the OBR into the object-oriented programming style. Currently it remains in the `testing` folder and is incomplete with missing documentation.
