@@ -1,13 +1,13 @@
 # OpenBusinessRepository
-The OpenBusinessRepository (OBR) is a listing of businesses records from open data sources. It includes only data or information that is  available to the public on the Internet under an open data license.
+The OpenBusinessRepository (OBR) is a repository of businesses micro-records from open data sources. It includes only data or information that is available to the public on the Internet under an open data license.
 
 The management and progression of the project is openly available as well at [taiga.io - OpenBusinessRepository](https://tree.taiga.io/project/virtualtorus-openbusinessrepository/).
 
 ## Open data contribution
 
-Our repository already contains a source file section and `sources.csv` for open data that we have obtained and points of reference to that data. In the future we plan to host the processed and cleaned data on a server for the public to download.
+The repository already contains a source file section and `sources.csv` for existing open data and points of reference to those data. In the future development of the project, one option will be to host the processed and cleaned data on a server for the public to download.
 
-We are open to people contributing business data under the open data license. This can vary from referring us to data we do not have on the list or communicating with us directly if you are a group that maintains business data. We do not have a rigid process in doing this, but it would be appreciated that if you do refer us to data, that you write a source file for it (see documentation references below).
+You can contribute business data available under an open data license. This can vary from referring us to data we do not have on the list or communicating with us directly if you are a group that maintains business data. We do not have a rigid process in doing this, but it would be appreciated that if you do refer us to data, that you write a source file for it (see documentation references below).
 
 ## Installation
 
