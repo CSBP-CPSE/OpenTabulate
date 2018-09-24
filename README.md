@@ -1,5 +1,5 @@
 # OpenBusinessRepository
-The OpenBusinessRepository (OBR) is a production system designed to create a listing of businesses records from open data sources. It includes only data or information that was already available to the public on the Internet, as defined by the open data license.
+The OpenBusinessRepository (OBR) is a listing of businesses records from open data sources. It includes only data or information that is  available to the public on the Internet under an open data license.
 
 The management and progression of the project is openly available as well at [taiga.io - OpenBusinessRepository](https://tree.taiga.io/project/virtualtorus-openbusinessrepository/).
 
