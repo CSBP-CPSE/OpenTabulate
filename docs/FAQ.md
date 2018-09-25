@@ -2,11 +2,11 @@
 
 #### What is the OBR?
 
-OBR (an abbreviation of OpenBusinessRepository) is a software-based solution to one of many projects attributing to Statistics Canada's open data initiative. Its purpose is to provide an open-source framework to integrate business data from Canadian municipalities and organizations that possess an open data license into a unified public database.
+The OpenBusinessRepository(OBR) is a software-based solution to one of DEIL's open data exploratory projects. Its purpose is to provide an open-source framework to integrate business microdata into a unified open database. Data are sourced from municipal, provincial, federal and other organizations that provide them under an open data license.
 
 #### What type of data does OBR support?
 
-Business register and licensing data in CSV and XML format.
+Business register and business licensing microdata in CSV and XML format.
 
 #### How do we use OBR?
 
@@ -19,7 +19,7 @@ Assuming you have completed the installation process, you:
 
 #### Why was the OBR constructed?
 
-To give background, most business data used for statistical analysis at Statistics Canada is obtained from surveys and administrative sources. Some of these administrative sources have or recently began releasing open data for businesses, and Statistics Canada can take advantage of this by being able to validate the information. Additionally, Statistics Canada can further contribute to the open data community by getting involved with unifying the data via processing and standardization, in order for it to be distributed back to the public for free use under the open data license.
+Municipalities, provinces, federal departments and other organizations have started to release business microdata (registers, listings etc.) with an open data license. This project is intended to explore the potential of these data sources for statistical purposes. In the future, this project could further contribute to the availability of open microdata by providing a unified and standardized database, distributed back to the public under an open data license.
 
 OBR is a small but core component of the exploratory project involving investigation of open data stemming from "authoritative" sources, such as public/private companies and provincial/municipal governments. By "open data", we refer to data accompanied with an open data license, which means the data is free to be distributed, claimed, and reused independent of the original source. Successful projects that pioneer the open data intiative, such as the Canadian civic address and building footprint databases, have given incentive to explore other types of data, such as business entity information. As a result, the OBR was made.
 
