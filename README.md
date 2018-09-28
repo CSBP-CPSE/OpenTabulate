@@ -5,17 +5,17 @@ projet est en cours de développement et tout le contenu de cette page doit êtr
 
 # OpenBusinessRepository
 
-The OpenBusinessRepository (OBR) is a repository of businesses micro-records from open data sources. It includes only data or information that is available to the public on the Internet under an open data license.
+The OpenBusinessRepository (OBR) is a repository of businesses micro-records from open data sources. It includes only data or information that is available to the public on the Internet under an open data license. The management and progression of the project is openly available as well at [taiga.io - OpenBusinessRepository](https://tree.taiga.io/project/virtualtorus-openbusinessrepository/).
 
-The management and progression of the project is openly available as well at [taiga.io - OpenBusinessRepository](https://tree.taiga.io/project/virtualtorus-openbusinessrepository/).
+OpenBusinessRepository (OBR) est un répertoire de micro-enregistrements d'entreprises développé à partir de sources de données ouvertes. Il ne comprend que des données ou des informations accessibles au public sur Internet sous une licence de données ouvertes. La gestion et la progression du projet sont également disponibles sur taiga.io
 
-## Open data contribution
+## Open data contribution / Contribution aux données ouvertes
 
-The repository already contains a source file section and `sources.csv` for existing open data and points of reference to those data. In the future development of the project, one option will be to host the processed and cleaned data on a server for the public to download.
+The repository already contains a source file section and `sources.csv` for existing open data and points of reference to those data. In the future development of the project, one option will be to host the processed and cleaned data on a server for the public to download. You can contribute to the OBR, with data available under an open data license. This can be done by referring us to data we do not have on the list or communicating with us directly if you are a group that maintains business micro data. The best way to add new business data is to write a source file for it (see documentation references below).
 
-You can contribute to the OBR, with data available under an open data license. This can be done by referring us to data we do not have on the list or communicating with us directly if you are a group that maintains business micro data. The best way to add new business data is to write a source file for it (see documentation references below).
+Le répertoire contient déjà une section de fichiers sources et `sources.csv` pour les données ouvertes existantes et les points de référence à ces données. Dans le développement futur du projet, une option sera d’héberger les données traitées et nettoyées sur un serveur pour que le public puisse les télécharger. Vous pouvez contribuer à l'OBR avec des données disponibles sous une licence de données ouvertes. Cela peut être fait en nous référant aux données que nous n'avons pas sur la liste ou en communiquant directement avec nous si vous êtes un groupe qui gère des microdonnées d'entreprise. La meilleure façon d'ajouter de nouvelles données d'entreprise consiste à y écrire un fichier source (voir les références de la documentation ci-dessous).
 
-## Installation
+## Installation / Installation
 
 The host of the OBR must be a Linux-based operating system, so packages such as `coreutils` are (often) included by default. To start, simply clone the repository:
 
@@ -29,7 +29,7 @@ To operate the data processing, which is managed by the `pdctl.py` script, you w
 - [libpostal](https://github.com/openvenues/libpostal)
 - [pypostal](https://github.com/openvenues/pypostal)
 
-## Help
+## Help / Aide
 
 #### Interactive script and code
 
@@ -68,10 +68,10 @@ In the `docs` folder there is documentation on how to write source files, a prim
 
 The code of the OBR has been commented and documented. If you are interested in developing or inspecting, keep in mind that the OBR is an exploratory project and all the codes and documentation are work in progress. 
 
-## Issues
+## Issues / Problèmes
 
 You can post questions, enhancement requests, and bugs in [Issues](https://github.com/CSBP-CPSE/OpenBusinessRepository/issues).
 
-## Additional remarks
+## Additional remarks / Remarques additionnelles
 
 For code readability and ease of future implementation, most of the code is being ported to `obr.py`. It represents a reimplementation of the OBR into the object-oriented programming style. Currently it remains in the `testing` folder and is incomplete with missing documentation.
