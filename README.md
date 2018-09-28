@@ -1,4 +1,10 @@
+# Important note / Note importante
+(EN) This is an exploratory and experimental open project. The project is currently in development and all the material on this page
+should be considered as part of work in progress. / (FR) Ce projet ouvert est exploratoire et expérimental. Le
+projet est en cours de développement et tout le contenu de cette page doit être considéré comme faisant partie des travaux en cours.
+
 # OpenBusinessRepository
+
 The OpenBusinessRepository (OBR) is a repository of businesses micro-records from open data sources. It includes only data or information that is available to the public on the Internet under an open data license.
 
 The management and progression of the project is openly available as well at [taiga.io - OpenBusinessRepository](https://tree.taiga.io/project/virtualtorus-openbusinessrepository/).
