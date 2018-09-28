@@ -27,4 +27,4 @@ The OBR is currently not portable to Windows or Mac OS X. Besides that, the proj
 
 #### What is the future of the OBR?
 
-There are a variety of enhancements to be added and additional steps to take to further progress the production system. Further improvements to data cleaning and cleaning up the documentation and code is part of our agenda, to make the data more usable, to open up and make our project friendly for potential developer contribution. Business data is a stepping stone for Statistics Canada's open data initiative and our project is its own leap to modernize the public sector's approach to data analytics and to provide elegant solutions to problems in data science.
+There are a variety of enhancements to be added and additional steps to take to further progress the OBR system. Further improvements to data cleaning and cleaning up the documentation and code is part of our agenda, to make the data more usable, to open up and make our project friendly for potential developer contribution. 
