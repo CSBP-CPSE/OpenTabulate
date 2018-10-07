@@ -375,7 +375,8 @@ class Process_CSV(Algorithm):
     def format_correction(self, source, data_encoding):
         """
         Corrects CSV datasets that possess rows with a number of entries not
-        agreeing with the total number of columns.
+        agreeing with the total number of columns. Additionally removes a
+        byte order mark if it exists.
 
         Args:
 
@@ -390,7 +391,11 @@ class Process_CSV(Algorithm):
         writer = csv.writer(dirty)
         flag = False
         size = 0
+        first_row = True
         for row in reader:
+            if first_row == True:
+                row[0] = re.sub(r"^\ufeff(.+)", r"\1", row[0])
+                first_row = False
             if flag == True:
                 while len(row) < size:
                     row.append("")
@@ -402,6 +407,7 @@ class Process_CSV(Algorithm):
         raw.close()
         dirty.close()
 
+        
     def clean(self, source):
         """
         A general dataset cleaning method. (May be moved to Algorithm)
@@ -612,7 +618,7 @@ class Source(object):
         self.dirtypath = None
         self.cleanpath = None
         self.label_map = None
-
+        
 
     def parse(self):
         """
