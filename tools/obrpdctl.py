@@ -9,14 +9,8 @@ import time
 import io
 import obr
 
-def process(source, ignore_proc, ignore_url, parse_address):
-    srcfile = obr.Source(source)
-    srcfile.parse()
-    if ignore_proc == True:
-        return
-    if ignore_url == False:
-        srcfile.fetch_url()
-    prodsys = obr.DataProcess(srcfile, parse_address)
+def process(source, parse_address):
+    prodsys = obr.DataProcess(source, parse_address)
     prodsys.process()
     
 
@@ -56,21 +50,34 @@ if input('Process data? (y:yes / *:exit): ') != 'y':
     print("Exiting.")
     exit(1)
 
-print("Loading address parser module...")
-
-from postal.parser import parse_address
-
 print("Logging production system output to '", args.log, "'.", sep="")
-print("Beginning data processing, please standby or grab a coffee. :-)")
 
 start_time = time.perf_counter()
+
+src = []
+for source in args.SOURCE:
+    srcfile = obr.Source(source)
+    print("Parsing :", srcfile.srcpath)
+    srcfile.parse()
+    print("Done.")
+    if args.ignore_url == False:
+        srcfile.fetch_url()
+    src.append(srcfile)
+
+if args.ignore_proc == True:
+    exit(0)
+    
+print("Loading address parser module...")
+from postal.parser import parse_address
+
+print("Beginning data processing, please standby or grab a coffee. :-)")
 
 if __name__ == '__main__':
     with multiprocessing.Pool(processes=args.jobs) as pool, open(args.log, 'w') as logger:
         # pool function calls of process.py here
         jobs = []
-        for source in args.SOURCE:
-            jobs.append(pool.apply_async(process, (source, args.ignore_proc, args.ignore_url, parse_address)))
+        for source in src:
+            jobs.append(pool.apply_async(process, (source, parse_address)))
         # wait for jobs to finish
         for pool_proc in jobs:
             #logger.write(pool_proc.get())
