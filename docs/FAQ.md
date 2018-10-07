@@ -14,7 +14,7 @@ Assuming you have completed the installation process, you:
 
 - Write source files as described in `./docs/CONTRIB.md` (refer to the `sources` folder for examples) 
 - If no `url` is provided for a source file, store the dataset in `./pddir/raw/`
-- Run `$ python tools/pdctl.py PATH-TO-SOURCE-1 PATH-TO-SOURCE-2 ...`
+- Run `$ python tools/obrpdctl.py PATH-TO-SOURCE-1 PATH-TO-SOURCE-2 ...`
 - Resulting files are in `./pddir/clean`
 
 #### Why was the OBR constructed?

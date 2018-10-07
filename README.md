@@ -36,13 +36,13 @@ To operate the data processing, which is managed by the `pdctl.py` script, you w
 Assuming you are in the cloned directory, run 
 
 ```shell
-$ python tools/pdctl.py --help
+$ python tools/obrpdctl.py --help
 ```
 
 which should print to standard output:
 
 ```
-usage: pdctl.py [-h] [-p] [-u] [-j N] [--log FILE] SOURCE [SOURCE ...]
+usage: obrpdctl.py [-h] [-p] [-u] [-j N] [--log FILE] SOURCE [SOURCE ...]
 
 A command-line interactive tool with the OBR.
 
@@ -71,7 +71,3 @@ The code of the OBR has been commented and documented. If you are interested in 
 ## Issues / Problèmes
 
 You can post questions, enhancement requests, and bugs in [Issues](https://github.com/CSBP-CPSE/OpenBusinessRepository/issues).
-
-## Additional remarks / Remarques additionnelles
-
-For code readability and ease of future implementation, most of the code is being ported to `obr.py`. It represents a reimplementation of the OBR into the object-oriented programming style. Currently it remains in the `testing` folder and is incomplete with missing documentation.
