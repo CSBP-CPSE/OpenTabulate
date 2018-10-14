@@ -8,8 +8,8 @@ Province of Quebec,,QC,https://www.donneesquebec.ca/recherche/fr/dataset/registr
 ,Fredericton,NB,
 ,Saint John,NB,
 ,Gatineau,QC,
-,Montréal,QC,
-,Québec City,QC,
+,MontrÃ©al,QC,
+,QuÃ©bec City,QC,
 ,Sherbrooke,QC,https://www.donneesquebec.ca/recherche/fr/dataset/repertoire-des-commerces
 ,Laval,QC,
 ,Repentigny,QC,
@@ -47,6 +47,7 @@ Province of Quebec,,QC,https://www.donneesquebec.ca/recherche/fr/dataset/registr
 ,Chilliwack,BC,
 ,Kelowna,BC,http://opendata.kelowna.ca/datasets/business-license
 ,Langley,BC,https://data-tol.opendata.arcgis.com/datasets/business-licenses
+,(NEW) Maple Ridge,BC, http://opengov.mapleridge.ca/datasets/business-licences
 ,Nanaimo,BC,https://www.nanaimo.ca/open-data-catalogue/DataBrowser/nanaimo/BusinessLicences#param=NOFILTER--DataView--Results
 ,Prince George,BC,
 ,Saanich,BC,
