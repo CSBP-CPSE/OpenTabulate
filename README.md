@@ -24,7 +24,7 @@ $ git clone https://github.com/CSBP-CPSE/OpenBusinessRepository
 ```
 Then execute the `obr-init.py` script to create the data processing directories.
 
-To operate the data processing, which is managed by the `pdctl.py` script, you will need to install:
+To operate the data processing, which is managed by the `obrpdctl.py` script, you will need to install:
 - Python (version 3.5+)
 - [libpostal](https://github.com/openvenues/libpostal)
 - [pypostal](https://github.com/openvenues/pypostal)
