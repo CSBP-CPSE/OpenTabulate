@@ -356,6 +356,17 @@ class Process_CSV(Algorithm):
                                     row.append("")
                             continue
                         # otherwise ...
+                    if key == "full_addr":
+                        entry = entity[tags[key]]
+                        entry = self._quick_scrub(entry)
+                        ap = self.address_parser(entry)
+                        for af in self.ADDR_FIELD_LABEL:
+                            if self._ADDR_LABEL_TO_POSTAL[af] in [x[1] for x in ap]:
+                                ind = list(map(operator.itemgetter(1), ap)).index(self._ADDR_LABEL_TO_POSTAL[af])
+                                row.append(ap[ind][0])
+                            else:
+                                row.append("")
+                        continue
                     if tags[key] != 'DPIFORCE':
                         entry = self._quick_scrub(entity[tags[key]])
                     else:
