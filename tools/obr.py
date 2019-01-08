@@ -35,7 +35,8 @@ import urllib.request
 
 class DataProcess(object):
     """
-    A data processing interface for a source file.
+    A data processing interface for a source file. If no arguments for the
+    __init__ method are provided, they default to 'None'.
 
     Attributes:
 
@@ -44,8 +45,13 @@ class DataProcess(object):
 
       postal_address_parser: An object containing an address parser method,
         defined by an AddressParser object.
+
+    [TO DO]:
+    * Split the "process" method into several methods
+    * Write "process" as a wrapper for the above TODO
+    * Improve naming convention for child classes of "Algorithm"
     """
-    def __init__(self, source, address_parser):
+    def __init__(self, source=None, address_parser=None, algorithm=None): # DEBUG - new function arguments
         """
         Initialize a DataProcess object.
 
@@ -58,8 +64,16 @@ class DataProcess(object):
             string as an argument.
         """
         self.source = source
+        self.postal_address_parser = address_parser
+        self.algorithm = algorithm
+
+    def setAddressParser(self, address_parser): # DEBUG - new function
+        """
+        Set the current address parser.
+        """
         self.postal_address_parser = AddressParser(address_parser)
 
+    
     def process(self):
         """
         Process a data set using methods from Algorithm.
@@ -72,6 +86,28 @@ class DataProcess(object):
         fmtproc.extract_labels(self.source) 
         fmtproc.parse(self.source)
         fmtproc.clean(self.source)
+
+    def preprocessCSV(self): # DEBUG - new function
+        """
+        Format dataset into OpenBusinessRepository's standardized CSV format.
+        """
+        if self.source.metadata['format'] == 'csv':
+            fmtproc = Process_CSV(self.postal_address_parser.parse)
+            fmtproc.format_correction(self.source, fmtproc.char_encode_check(self.source))
+        elif self.source.metadata['format'] == 'xml':
+            fmtproc = Process_XML(self.postal_address_parser.parse)
+
+        self.algorithm = fmtproc
+        
+
+    def extractLabels(self): # DEBUG - new function
+        self.algorithm.extract_labels(self.source)
+
+    def parse(self): # DEBUG - new function
+        self.algorithm.parse(self.source)
+
+    def clean(self): # DEBUG - new function
+        self.algorithm.clean(self.source)
         
 
 class AddressParser(object):
@@ -102,6 +138,11 @@ class AddressParser(object):
         Args:
 
           addr: A string containing the address to parse.
+
+        Returns:
+
+          self.address_parser(addr): parsed address in libpostal 
+            format.
         """
         return self.address_parser(addr)
 
@@ -126,6 +167,8 @@ class Algorithm(object):
 
       address_parser: Address parsing function to use.
     """
+
+    # supported field labels
     FIELD_LABEL = ['bus_name', 'trade_name', 'bus_type', 'bus_no', 'bus_desc', \
                     'lic_type', 'lic_no', 'bus_start_date', 'bus_cease_date', 'active', \
                     'full_addr', \
@@ -142,13 +185,16 @@ class Algorithm(object):
                     'qc_cae_1', 'qc_cae_desc_1', 'qc_cae_2', 'qc_cae_desc_2', \
                     'facebook', 'twitter', 'linkedin', 'youtube', 'instagram']
 
-
+    # supported address field labels
     ADDR_FIELD_LABEL = ['unit', 'house_number', 'road', 'city', 'prov', 'country', 'postcode']
 
+    # supported 'force' labels
     FORCE_LABEL = ['city', 'prov', 'country']
 
+    # supported encodings (as defined in Python standard library)
     ENCODING_LIST = ["utf-8", "cp1252", "cp437"]
-
+    
+    # conversion table for address labels to libpostal tags
     _ADDR_LABEL_TO_POSTAL = {'house_number' : 'house_number', \
                             'road' : 'road', \
                             'unit' : 'unit', \
@@ -158,7 +204,7 @@ class Algorithm(object):
                             'postcode' : 'postcode' }
 
 
-    def __init__(self, address_parser):
+    def __init__(self, address_parser=None): # DEBUG - EDITTED (changed function arguments)
         """
         Initializes Algorithm object.
 
@@ -653,7 +699,7 @@ class Source(object):
         if 'info' not in self.metadata:
             raise LookupError("info' tag is missing.")
 
-        # require tag types
+        # required tag types
         if not isinstance(self.metadata['format'], str):
             raise TypeError("'format' must be a string.")
         if not isinstance(self.metadata['file'], str):
