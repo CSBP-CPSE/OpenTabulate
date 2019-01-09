@@ -24,7 +24,9 @@ cmd_args.add_argument('-j', '--jobs', action='store', default=1, type=int, metav
                       help='run at most N jobs asynchronously')
 cmd_args.add_argument('--log', action='store', default="pdlog.txt", type=str, \
                       metavar='FILE', help='log output to FILE')
-cmd_args.add_argument('SOURCE', nargs='+', help='path to source file')
+cmd_args.add_argument('--initialize', action='store_true', default=False, \
+                      help='create processing directories')
+cmd_args.add_argument('SOURCE', nargs='*', default=None, help='path to source file')
 
 args = cmd_args.parse_args()
 
@@ -35,6 +37,19 @@ for i in range(0,len(args.SOURCE)):
 # change working directory
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
 os.chdir('..')
+
+if args.initialize == True:
+    PD_TREE = ['./pddir', './pddir/raw', './pddir/pp', './pddir/dirty', './pddir/clean']
+    print("Creating data processing directory tree in current working directory . . .")
+    for p in PD_TREE:
+        if not os.path.isdir(p):
+            os.makedirs(p)
+    print("Done.")
+    exit(0)
+
+if args.SOURCE == []:
+    print("Error! The following arguments are required: SOURCE")
+    exit(1)
 
 if args.jobs < 1:
     print("Error! Jobs should be a positive integer.")
