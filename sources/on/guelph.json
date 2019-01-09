@@ -1,5 +1,6 @@
 {
     "file": "on-guelph.csv",
+    "url": "http://data.open.guelph.ca/datafiles/BusinessLicence.csv",
     "format": "csv",
     "info": {
 	"bus_name": "Operating Name",

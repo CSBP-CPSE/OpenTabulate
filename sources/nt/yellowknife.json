@@ -1,5 +1,6 @@
 {
     "file": "nt-yellowknife.csv",
+    "url": "http://opendata.yellowknife.ca/home/ServeFile/0ead7112-bafe-4c0d-b0ca-b2220cc6d2a9?FileType=1",
     "format": "csv",
     "info": {
 	"bus_name": "BUSINESSNAME",

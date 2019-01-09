@@ -1,5 +1,6 @@
 {
     "file": "ab-banff.csv",
+    "url": "http://banffmaps.ca/opendata/csv/BanffOpenData_CSVs.zip",
     "format": "csv",
     "info": {
 	"bus_name": "BUSINESS_NAME",
@@ -16,5 +17,5 @@
 	"phone": "BUSINESS_NUMBER",
 	"home_bus": "HOME_OCCUPATION",
         "munic_bus": "RESIDENT"
-    }
+    },
 }

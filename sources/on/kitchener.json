@@ -1,5 +1,6 @@
 {
     "file": "on-kitchener.csv",
+    "url": "https://opendata.arcgis.com/datasets/9b9c871eafce491da8a3d926a8a44ef2_0.csv",
     "format": "csv",
     "info": {
 	"bus_name": "COMPANY_NAME",

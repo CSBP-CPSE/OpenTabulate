@@ -1,5 +1,6 @@
 {
     "file": "bcindigenousbusinesslistings.csv",
+    "url": "https://catalogue.data.gov.bc.ca/dataset/bdc81d33-1ab5-4882-9764-8701e8971bb7/resource/1b9d73d0-62a7-485f-a177-55e46701073a/download/bcindigenousbusinesslistings.csv",
     "format": "csv",
     "info": {
 	"bus_name": "Business Name",

@@ -1,5 +1,6 @@
 {
     "file": "MsbRegistryPublicDataFile.xml",
+    "url": "http://www10.fintrac-canafe.gc.ca/msb-esm/public/msb-search/zipdownload-eng/",
     "format": "xml",
     "header": "MsbInformation",
     "info": {

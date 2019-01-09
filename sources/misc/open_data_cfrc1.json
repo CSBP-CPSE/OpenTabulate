@@ -1,5 +1,6 @@
 {
     "file": "OPEN_DATA_1.xml",
+    "url": "http://www.ic.gc.ca/app/scr/cc/CorporationsCanada/download/OPEN_DATA_SPLIT.zip",
     "format": "xml",
     "header": "corporation",
     "info": {

@@ -1,5 +1,6 @@
 {
     "file": "bc-city_of_port_moody.csv",
+    "url": "https://data.portmoody.ca/api/views/xfrv-yr4p/rows.csv?accessType=DOWNLOAD",
     "format": "csv",
     "info": {
 	"bus_name": "Business Name",

@@ -1,5 +1,6 @@
 {
     "file": "on-brampton.csv",
+    "url": "https://opendata.arcgis.com/datasets/3cd59a895f404612b57e4c84fc8931be_0.csv",
     "format": "csv",
     "info": {
 	"bus_name": "COMPANY_NAME",

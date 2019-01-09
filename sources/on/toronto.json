@@ -1,7 +1,7 @@
 {
     "file": "on-toronto.csv",
-    "format": "csv",
     "url": "http://opendata.toronto.ca/mls/business.licences/business.licences.csv",
+    "format": "csv",
     "info": {
 	"bus_name": "Client Name",
 	"bus_type": "Category",
