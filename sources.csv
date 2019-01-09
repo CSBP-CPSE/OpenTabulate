@@ -1,61 +1,61 @@
-name,municipality,province,bus_data_link_1
-Money services,,,https://open.canada.ca/data/en/dataset/8beacccf-3b54-4d12-9cf7-24e2ada90a83
-Federal corporations,,,https://open.canada.ca/data/dataset/0032ce54-c5dd-4b66-99a0-320a7b5e99f2
-(NEW) 2016 List of charities, , , https://open.canada.ca/data/en/dataset/7ef067c4-07a8-4882-ade3-643d00fd6c49
-BC Indigenous,,BC,https://catalogue.data.gov.bc.ca/dataset/bc-indigenous-business-listings
-Province of Quebec,,QC,https://www.donneesquebec.ca/recherche/fr/dataset/registre-des-entreprises
-,Yellowknife,NT,http://opendata.yellowknife.ca/home/details/0ead7112-bafe-4c0d-b0ca-b2220cc6d2a9
-,Halifax,NS,
-,Fredericton,NB,
-,Saint John,NB,
-,Gatineau,QC,
-,Montréal,QC,
-,Québec City,QC,
-,Sherbrooke,QC,https://www.donneesquebec.ca/recherche/fr/dataset/repertoire-des-commerces
-,Laval,QC,
-,Repentigny,QC,
-,Shawinigan,QC,
-,Rimouski,QC,
-,Blainville,QC,
-,Brampton,ON,http://geohub.brampton.ca/datasets/brampton-business-directory
-,Burlington,ON,
-,Hamilton,ON,
-,London,ON,
-,Mississauga,ON,http://data.mississauga.ca/datasets/0b353768119042e8866b6fece7317493_0
-,Niagara Falls,ON,
-,Ottawa,ON,
-,Greater Sudbury,ON,http://opendata.greatersudbury.ca/datasets/business-licenses-csv
-,Toronto,ON,https://www.toronto.ca/city-government/data-research-maps/open-data/open-data-catalogue/#fcc40488-98eb-953b-7fa1-a35dab2f818c
-,Waterloo,ON,
-,Welland,ON,
-,Windsor,ON,
-,Guelph,ON,http://data.open.guelph.ca/dataset/business-licence
-,Kitchener,ON,https://open-kitchenergis.opendata.arcgis.com/datasets/business-directory
-,Haldimand County,ON,
-,Grey County,ON,
-,Durham,ON,http://opendata.durham.ca/datasets/business-directory
-,Brandon,MB,
-,Winnipeg,MB,
-,Regina,SK,
-,Saskatoon,SK,
-,Banff,AB,http://banffmaps.ca/opendata/
-,Edmonton,AB,https://data.edmonton.ca/Sustainable-Development/City-of-Edmonton-Business-Licenses/qhi4-bdpu
-,Medicine Hat,AB,
-,Red Deer,AB,
-,Strathcona County,AB,
-,Grande Prairie,AB,
-,Calgary,AB,https://data.calgary.ca/Business-and-Economic-Activity/Calgary-Business-Licenses-Data-Lens/6zmz-cx7g
-,Chilliwack,BC,
-,Kelowna,BC,http://opendata.kelowna.ca/datasets/business-license
-,Langley,BC,https://data-tol.opendata.arcgis.com/datasets/business-licenses
-,(NEW) Maple Ridge,BC, http://opengov.mapleridge.ca/datasets/business-licences
-,Nanaimo,BC,https://www.nanaimo.ca/open-data-catalogue/DataBrowser/nanaimo/BusinessLicences#param=NOFILTER--DataView--Results
-,Prince George,BC,
-,Saanich,BC,
-,Surrey,BC,https://data.surrey.ca/dataset/business-licences
-,New Westminster,BC,http://opendata.newwestcity.ca/datasets
-,North Vancouver,BC,
-,Port Moody,BC,https://data.portmoody.ca/Building-Bylaw-and-Licensing/Business-Licence-Applications/xfrv-yr4p
-,Vancouver,BC,https://data.vancouver.ca/datacatalogue/businessLicence.htm
-,Victoria,BC,http://opendata.victoria.ca/datasets/business-licences-current-year
-,Whitehorse,YT,
+name,frequency,municipality,province,od_root_url,license,description
+Money services,,,,https://open.canada.ca/data/en/dataset/8beacccf-3b54-4d12-9cf7-24e2ada90a83,https://open.canada.ca/en/open-government-licence-canada,
+Federal corporations,,,,https://open.canada.ca/data/dataset/0032ce54-c5dd-4b66-99a0-320a7b5e99f2,https://open.canada.ca/en/open-government-licence-canada,
+2016 List of charities,, , ,https://open.canada.ca/data/en/dataset/7ef067c4-07a8-4882-ade3-643d00fd6c49,https://open.canada.ca/en/open-government-licence-canada,
+BC Indigenous businesses,,,BC,https://catalogue.data.gov.bc.ca/dataset/bc-indigenous-business-listings,,
+Quebec enterprises,,,QC,https://www.donneesquebec.ca/recherche/fr/dataset/registre-des-entreprises,,
+,,Yellowknife,NT,http://opendata.yellowknife.ca/home/details/0ead7112-bafe-4c0d-b0ca-b2220cc6d2a9,,
+,,Halifax,NS,,,
+,,Fredericton,NB,,,
+,,Saint John,NB,,,
+,,Gatineau,QC,,,
+,,Montréal,QC,,,
+,,Québec City,QC,,,
+,,Sherbrooke,QC,https://www.donneesquebec.ca/recherche/fr/dataset/repertoire-des-commerces,,
+,,Laval,QC,,,
+,,Repentigny,QC,,,
+,,Shawinigan,QC,,,
+,,Rimouski,QC,,,
+,,Blainville,QC,,,
+,,Brampton,ON,http://geohub.brampton.ca/datasets/brampton-business-directory,,
+,,Burlington,ON,,,
+,,Hamilton,ON,,,
+,,London,ON,,,
+,,Mississauga,ON,http://data.mississauga.ca/datasets/0b353768119042e8866b6fece7317493_0,,
+,,Niagara Falls,ON,,,
+,,Ottawa,ON,,,
+,,Greater Sudbury,ON,http://opendata.greatersudbury.ca/datasets/business-licenses-csv,,
+,,Toronto,ON,https://www.toronto.ca/city-government/data-research-maps/open-data/open-data-catalogue/#fcc40488-98eb-953b-7fa1-a35dab2f818c,,
+,,Waterloo,ON,,,
+,,Welland,ON,,,
+,,Windsor,ON,,,
+,,Guelph,ON,http://data.open.guelph.ca/dataset/business-licence,,
+,,Kitchener,ON,https://open-kitchenergis.opendata.arcgis.com/datasets/business-directory,,
+,,Haldimand County,ON,,,
+,,Grey County,ON,,,
+,,Durham,ON,http://opendata.durham.ca/datasets/business-directory,,
+,,Brandon,MB,,,
+,,Winnipeg,MB,,,
+,,Regina,SK,,,
+,,Saskatoon,SK,,,
+,,Banff,AB,http://banffmaps.ca/opendata/,,
+,,Edmonton,AB,https://data.edmonton.ca/Sustainable-Development/City-of-Edmonton-Business-Licenses/qhi4-bdpu,,
+,,Medicine Hat,AB,,,
+,,Red Deer,AB,,,
+,,Strathcona County,AB,,,
+,,Grande Prairie,AB,,,
+,,Calgary,AB,https://data.calgary.ca/Business-and-Economic-Activity/Calgary-Business-Licenses-Data-Lens/6zmz-cx7g,,
+,,Chilliwack,BC,,,
+,,Kelowna,BC,http://opendata.kelowna.ca/datasets/business-license,,
+,,Langley,BC,https://data-tol.opendata.arcgis.com/datasets/business-licenses,,
+,,(NEW) Maple Ridge,BC,http://opengov.mapleridge.ca/datasets/business-licences,,
+,,Nanaimo,BC,https://www.nanaimo.ca/open-data-catalogue/DataBrowser/nanaimo/BusinessLicences#param=NOFILTER--DataView--Results,,
+,,Prince George,BC,,,
+,,Saanich,BC,,,
+,,Surrey,BC,https://data.surrey.ca/dataset/business-licences,,
+,,New Westminster,BC,http://opendata.newwestcity.ca/datasets,,
+,,North Vancouver,BC,,,
+,,Port Moody,BC,https://data.portmoody.ca/Building-Bylaw-and-Licensing/Business-Licence-Applications/xfrv-yr4p,,
+,,Vancouver,BC,https://data.vancouver.ca/datacatalogue/businessLicence.htm,,
+,,Victoria,BC,http://opendata.victoria.ca/datasets/business-licences-current-year,,
+,,Whitehorse,YT,,,
