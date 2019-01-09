@@ -51,7 +51,7 @@ class DataProcess(object):
     * Write "process" as a wrapper for the above TODO
     * Improve naming convention for child classes of "Algorithm"
     """
-    def __init__(self, source=None, address_parser=None, algorithm=None): # DEBUG - new function arguments
+    def __init__(self, source=None, address_parser=None, algorithm=None):
         """
         Initialize a DataProcess object.
 
@@ -62,12 +62,17 @@ class DataProcess(object):
 
           address_parser: An address parsing function which accepts a
             string as an argument.
+
+          algorithm: An object that is a child class of Algorithm.
         """
         self.source = source
-        self.postal_address_parser = address_parser
+
+        if address_parser != None:
+            self.postal_address_parser = AddressParser(address_parser)
+
         self.algorithm = algorithm
 
-    def setAddressParser(self, address_parser): # DEBUG - new function
+    def setAddressParser(self, address_parser):
         """
         Set the current address parser.
         """
@@ -76,37 +81,43 @@ class DataProcess(object):
     
     def process(self):
         """
-        Process a data set using methods from Algorithm.
+        Process a data set using wrapper methods for the Algorithm class.
+        """
+        self.prepareData()
+        self.extractLabels()
+        self.parse()
+        self.clean()
+
+    def prepareData(self):
+        """
+        'Algorithm' wrapper method. Formats a dataset into OpenBusinessRepository's 
+        standardized CSV format.
         """
         if self.source.metadata['format'] == 'csv':
             fmtproc = Process_CSV(self.postal_address_parser.parse)
             fmtproc.format_correction(self.source, fmtproc.char_encode_check(self.source))
         elif self.source.metadata['format'] == 'xml':
             fmtproc = Process_XML(self.postal_address_parser.parse)
-        fmtproc.extract_labels(self.source) 
-        fmtproc.parse(self.source)
-        fmtproc.clean(self.source)
-
-    def preprocessCSV(self): # DEBUG - new function
-        """
-        Format dataset into OpenBusinessRepository's standardized CSV format.
-        """
-        if self.source.metadata['format'] == 'csv':
-            fmtproc = Process_CSV(self.postal_address_parser.parse)
-            fmtproc.format_correction(self.source, fmtproc.char_encode_check(self.source))
-        elif self.source.metadata['format'] == 'xml':
-            fmtproc = Process_XML(self.postal_address_parser.parse)
-
         self.algorithm = fmtproc
         
-
-    def extractLabels(self): # DEBUG - new function
+    def extractLabels(self):
+        """
+        'Algorithm' wrapper method. Extracts data labels as indicated by a source file.
+        """
         self.algorithm.extract_labels(self.source)
 
-    def parse(self): # DEBUG - new function
+    def parse(self):
+        """
+        'Algorithm' wrapper method. Parses the source dataset based on label extraction,
+        and reformats the data into a dirty CSV file.
+        """
         self.algorithm.parse(self.source)
 
-    def clean(self): # DEBUG - new function
+    def clean(self):
+        """
+        'Algorithm' wrapper method. Applies basic data cleaning to a recently parsed
+        and reformatted dataset.
+        """
         self.algorithm.clean(self.source)
         
 
@@ -120,7 +131,7 @@ class AddressParser(object):
 
       address_parser: Address parsing function.
     """
-    def __init__(self, address_parser):
+    def __init__(self, address_parser=None):
         """
         Initialize an AddressParser object.
 
@@ -186,6 +197,7 @@ class Algorithm(object):
                     'facebook', 'twitter', 'linkedin', 'youtube', 'instagram']
 
     # supported address field labels
+    # note that the labels are ordered to conform to the Canada Post mailing address standard
     ADDR_FIELD_LABEL = ['unit', 'house_number', 'road', 'city', 'prov', 'country', 'postcode']
 
     # supported 'force' labels
@@ -209,7 +221,8 @@ class Algorithm(object):
         Initializes Algorithm object.
 
         Args:
-          address_parser: Address parsing function.
+          address_parser: Address parsing function. This is designed for an
+            AddressParser object or 'None'.
         """
         self.address_parser = address_parser
     

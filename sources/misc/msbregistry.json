@@ -9,7 +9,7 @@
 	"bus_no": "IncorporationNumber",
 	"bus_desc": "ActivityDescriptionEnglish",
 	"trade_name": "MsbOperateName",
-	"full_addr": ["StreetAddress", "CityName", "AlphaProvinceCode", "PostalZipCode"],
+	"full_addr": ["StreetAddress", "CityName", "AlphaProvinceCode", "AlphaCountryCode", "PostalZipCode"],
 	"lic_no": "MsbRegistrationNumber",
 	"phone": "PhoneNumber",
 	"website": "MsbWebsiteAddress"
