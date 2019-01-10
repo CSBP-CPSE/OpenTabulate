@@ -12,6 +12,8 @@ import obr
 def process(source, parse_address):
     prodsys = obr.DataProcess(source, parse_address)
     prodsys.process()
+    # DEBUG
+    #prodsys.blankFill()
     
 
 # Command line interaction

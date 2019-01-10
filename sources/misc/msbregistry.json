@@ -12,6 +12,6 @@
 	"full_addr": ["StreetAddress", "CityName", "AlphaProvinceCode", "AlphaCountryCode", "PostalZipCode"],
 	"lic_no": "MsbRegistrationNumber",
 	"phone": "PhoneNumber",
-	"website": "MsbWebsiteAddress"
+	"website": "MsbWebSiteAddress"
     }
 }

@@ -16,6 +16,14 @@ Statistics Canada
 ------------------------------------
 """
 
+#
+# Comments prefixes:
+# 
+# IMPORTANT - self explanatory
+# SUGGESTION - self explanatory
+# DEBUG - inserted code for the purpose of testing
+#
+
 ###########
 # MODULES #
 ###########
@@ -26,7 +34,7 @@ import json
 import csv
 from xml.etree import ElementTree
 import re
-import urllib.request
+import urllib.request as req
 
 
 #############################
@@ -43,13 +51,8 @@ class DataProcess(object):
       source: A dataset and its associated metadata, defined as a Source 
         object.
 
-      postal_address_parser: An object containing an address parser method,
+      dp_address_parser: An object containing an address parser method,
         defined by an AddressParser object.
-
-    [TO DO]:
-    * Split the "process" method into several methods
-    * Write "process" as a wrapper for the above TODO
-    * Improve naming convention for child classes of "Algorithm"
     """
     def __init__(self, source=None, address_parser=None, algorithm=None):
         """
@@ -68,7 +71,7 @@ class DataProcess(object):
         self.source = source
 
         if address_parser != None:
-            self.postal_address_parser = AddressParser(address_parser)
+            self.dp_address_parser = AddressParser(address_parser)
 
         self.algorithm = algorithm
 
@@ -76,7 +79,7 @@ class DataProcess(object):
         """
         Set the current address parser.
         """
-        self.postal_address_parser = AddressParser(address_parser)
+        self.dp_address_parser = AddressParser(address_parser)
 
     
     def process(self):
@@ -94,11 +97,12 @@ class DataProcess(object):
         standardized CSV format.
         """
         if self.source.metadata['format'] == 'csv':
-            fmtproc = Process_CSV(self.postal_address_parser.parse)
-            fmtproc.format_correction(self.source, fmtproc.char_encode_check(self.source))
+            fmt_algorithm = CSV_Algorithm(self.dp_address_parser)
+            fmt_algorithm.format_correction(self.source, fmt_algorithm.char_encode_check(self.source))
         elif self.source.metadata['format'] == 'xml':
-            fmtproc = Process_XML(self.postal_address_parser.parse)
-        self.algorithm = fmtproc
+            fmt_algorithm = XML_Algorithm(self.dp_address_parser)
+        # need this line to use the Algorithm wrapper methods
+        self.algorithm = fmt_algorithm
         
     def extractLabels(self):
         """
@@ -119,7 +123,13 @@ class DataProcess(object):
         and reformatted dataset.
         """
         self.algorithm.clean(self.source)
-        
+
+    def blankFill(self):
+        """
+        'Algorithm' wrapper method. Adds columns from the standard list by appending 
+        blanks.
+        """
+        self.algorithm.blank_fill(self.source)
 
 class AddressParser(object):
     """
@@ -216,12 +226,12 @@ class Algorithm(object):
                             'postcode' : 'postcode' }
 
 
-    def __init__(self, address_parser=None): # DEBUG - EDITTED (changed function arguments)
+    def __init__(self, address_parser=None):
         """
         Initializes Algorithm object.
 
         Args:
-          address_parser: Address parsing function. This is designed for an
+          address_parser: AddressParser object. This is designed for an
             AddressParser object or 'None'.
         """
         self.address_parser = address_parser
@@ -254,12 +264,12 @@ class Algorithm(object):
             else:
                 raise ValueError(data_enc + " is not a valid encoding.")
         else:
-            for e in self.ENCODING_LIST:
+            for enc in self.ENCODING_LIST:
                 try:
-                    with open('./pddir/raw/' + metadata['file'], encoding=e) as f:
+                    with open('./pddir/raw/' + metadata['file'], encoding=enc) as f:
                         for line in f:
                             pass
-                    return e
+                    return enc
                 except UnicodeDecodeError:
                     pass
             raise RuntimeError("Could not guess original character encoding.")
@@ -269,12 +279,21 @@ class Algorithm(object):
     # Support functions for the 'parse' method #
     ############################################
 
-    def _isRowEmpty(self, r):
+    def _generateFirstRow(self, tags):
+        row = [t for t in tags]
+        if "full_addr" in row:
+            ind = row.index("full_addr")
+            row.pop(ind)
+            for atag in reversed(self.ADDR_FIELD_LABEL):
+                row.insert(ind, atag)
+        return row
+
+    def _isRowEmpty(self, row):
         """
-        Checks if a list 'r' consists of only empty string entries.
+        Checks if a list 'row' consists of only empty string entries.
         """
-        for e in r:
-            if e != "":
+        for element in row:
+            if element != "":
                 return False
         return True
 
@@ -310,35 +329,32 @@ class Algorithm(object):
         LABELS = [i for i in self.FIELD_LABEL if i != "full_addr"]
 
         # open files for read and writing
-        f = open(source.cleanpath, 'r')
-        blank_fill_f = open(source.cleanpath + '-temp', 'w')
+        # 'f' refers to the original file, 'bff' refers to the new blank filled file
+        with open(source.cleanpath, 'r') as f, open(source.cleanpath + '-temp', 'w') as bff:
+            # initialize csv reader/writer
+            rf = csv.DictReader(f)
+            wf = csv.writer(bff, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
 
-        # initialize csv reader/writer
-        rf = csv.DictReader(f)
-        wf = csv.writer(blank_fill_f, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+            wf.writerow(LABELS)
 
-        wf.writerow(LABELS)
-
-        for old_row in rf:
-            row2write = []
-            for col in LABELS:
-                if col not in old_row:
-                    row2write.append("")
-                else:
-                    row2write.append(old_row[col])
-            wf.writerow(row2write)
-
-        blank_fill_f.close()
-        f.close()
+            for old_row in rf:
+                row2write = []
+                for col in LABELS:
+                    if col not in old_row:
+                        row2write.append("")
+                    else:
+                        row2write.append(old_row[col])
+                wf.writerow(row2write)
+                
         os.rename(source.cleanpath + '-temp', source.cleanpath)
 
+
     
-class Process_CSV(Algorithm):
+class CSV_Algorithm(Algorithm):
     """
     A child class of Algorithm, accompanied with methods designed for
     CSV-formatted datasets.
     """
-    
     def extract_labels(self, source):
         """
         Constructs a dictionary that stores only tags that were exclusively used in 
@@ -354,9 +370,9 @@ class Process_CSV(Algorithm):
         for i in self.FIELD_LABEL:
             if i in metadata['info'] and (not (i in self.ADDR_FIELD_LABEL)):
                 label_map[i] = metadata['info'][i]
+            # short circuit evaluation
             elif ('address' in metadata['info']) and (i in metadata['info']['address']):
-                AddressVarField = metadata['info']['address'][i]
-                label_map[i] = AddressVarField
+                label_map[i] = metadata['info']['address'][i] 
             elif ('force' in metadata) and (i in metadata['force']):
                 label_map[i] = 'DPIFORCE'
         source.label_map = label_map
@@ -377,71 +393,90 @@ class Process_CSV(Algorithm):
         filename = source.metadata['file']
         tags = source.label_map
         enc = self.char_encode_check(source)
-        csv_file_read = open(source.dirtypath, 'r', encoding=enc, newline='') # errors='ignore'
-        cparse = csv.DictReader(csv_file_read)
 
-        csv_file_write = open(source.dirtypath + '-temp', 'w')
-        cprint = csv.writer(csv_file_write, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+        with open(source.dirtypath, 'r', encoding=enc, newline='') as csv_file_read, \
+             open(source.dirtypath + '-temp', 'w') as csv_file_write:
+            csvreader = csv.DictReader(csv_file_read)
+            csvwriter = csv.writer(csv_file_write, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
 
-        # write the initial row which identifies each column
-        first_row = [f for f in tags]
-        if "full_addr" in first_row:
-            ind = first_row.index("full_addr")
-            first_row.pop(ind)
-            for af in reversed(self.ADDR_FIELD_LABEL):
-                first_row.insert(ind, af)
-        cprint.writerow(first_row)
-        try:
-            for entity in cparse:
-                row = []
-                for key in tags:
-                    # if key has a JSON array as a value
-                    if isinstance(tags[key], list) and key not in self.FORCE_LABEL:
-                        entry = ''
-                        for i in tags[key]:
-                            entry += entity[i] + ' '
-                        entry = self._quick_scrub(entry)
-                        # if key is full_addr and a JSON array
-                        if key != "full_addr":
-                            row.append(entry)
+            # write the initial row which identifies each column
+            col_labels = self._generateFirstRow(tags)
+            csvwriter.writerow(col_labels)
+
+            # SUGGESTION: this try-catch block does not appear for XML_Algorithm.
+            # Perhaps it's not needed?
+            try:
+                for entity in csvreader:
+                    row = []
+                    for key in tags:
+                        # # #
+                        # decision: Check if tags[key] is of type JSON array (list).
+                        # By design, FORCE keys should be ignored in this decision.
+                        #
+                        # depth: 1
+                        # # #
+                        if isinstance(tags[key], list) and key not in self.FORCE_LABEL:
+                            entry = ''
+                            for i in tags[key]:
+                                entry += entity[i] + ' '
+                            entry = self._quick_scrub(entry)
+                            # # #
+                            # decision: check if key is "full_addr"
+                            # depth: 2
+                            # # #
+                            if key != "full_addr":
+                                row.append(entry)
+                            else:
+                                ap_entry = self.address_parser.parse(entry)
+                                # SUGGESTION: This for loop is exclusively for libpostal output.
+                                # Perhaps it should be moved to the AddressParser object?
+                                for afl in self.ADDR_FIELD_LABEL:
+                                    if self._ADDR_LABEL_TO_POSTAL[afl] in [x[1] for x in ap_entry]:
+                                        ind = list(map(operator.itemgetter(1), ap_entry)).index(self._ADDR_LABEL_TO_POSTAL[afl])
+                                        row.append(ap_entry[ind][0])
+                                    else:
+                                        row.append("")
                             continue
-                        else:
-                            ap = self.address_parser(entry)
-                            for af in self.ADDR_FIELD_LABEL:
-                                if self._ADDR_LABEL_TO_POSTAL[af] in [x[1] for x in ap]:
-                                    ind = list(map(operator.itemgetter(1), ap)).index(self._ADDR_LABEL_TO_POSTAL[af])
-                                    row.append(ap[ind][0])
+                        # # #
+                        # decision: check if key is "full_addr"
+                        # depth: 1
+                        # # #
+                        if key == "full_addr":
+                            entry = entity[tags[key]]
+                            entry = self._quick_scrub(entry)
+                            ap_entry = self.address_parser.parse(entry)
+                            # SUGGESTION: This for loop is exclusively for libpostal output.
+                            # Perhaps it should be moved to the AddressParser object?
+                            for afl in self.ADDR_FIELD_LABEL:
+                                if self._ADDR_LABEL_TO_POSTAL[afl] in [x[1] for x in ap_entry]:
+                                    ind = list(map(operator.itemgetter(1), ap_entry)).index(self._ADDR_LABEL_TO_POSTAL[afl])
+                                    row.append(ap_entry[ind][0])
                                 else:
                                     row.append("")
                             continue
-                        # otherwise ...
-                    if key == "full_addr":
-                        entry = entity[tags[key]]
-                        entry = self._quick_scrub(entry)
-                        ap = self.address_parser(entry)
-                        for af in self.ADDR_FIELD_LABEL:
-                            if self._ADDR_LABEL_TO_POSTAL[af] in [x[1] for x in ap]:
-                                ind = list(map(operator.itemgetter(1), ap)).index(self._ADDR_LABEL_TO_POSTAL[af])
-                                row.append(ap[ind][0])
-                            else:
-                                row.append("")
-                        continue
-                    if tags[key] != 'DPIFORCE':
+                        # # #
+                        # decision: Check if tags[key] is defined as the DPIFORCE flag
+                        # depth: 1
+                        # # #
+                        if tags[key] == 'DPIFORCE':
+                            entry = self._quick_scrub(json_data['force'][key])
+                            row.append(entry)
+                            continue
+                        # # #
+                        # All other cases get handled here.
+                        # # #
                         entry = self._quick_scrub(entity[tags[key]])
-                    else:
-                        entry = self._quick_scrub(json_data['force'][key])
-                    row.append(entry)
-                if not self._isRowEmpty(row):
-                    cprint.writerow(row)
-        except KeyError:
-            print("[E] '", tags[key], "' is not a field name in the CSV file.", sep='')
-            csv_file_read.close()
-            csv_file_write.close()
+                        row.append(entry)
+                    if not self._isRowEmpty(row):
+                        csvwriter.writerow(row)
+            except KeyError:
+                print("[E] '", tags[key], "' is not a field name in the CSV file.", sep='')
+                # DEBUG: need a safe way to exit from here
+
         # success
-        csv_file_read.close()
-        csv_file_write.close()
         os.rename(source.dirtypath + '-temp', source.dirtypath)
 
+        
     def format_correction(self, source, data_encoding):
         """
         Corrects CSV datasets that possess rows with a number of entries not
@@ -487,12 +522,11 @@ class Process_CSV(Algorithm):
           source: A dataset and its associated metadata, defined as a Source 
             object.
         """
-        # DEBUG ###########
+        # IMPORTANT: Incomplete
         os.rename(source.dirtypath, source.cleanpath)
-
     
 
-class Process_XML(Algorithm):
+class XML_Algorithm(Algorithm):
     """
     A child class of Algorithm, accompanied with methods designed for
     XML-formatted datasets.
@@ -522,8 +556,8 @@ class Process_XML(Algorithm):
                     label_map[i] = ".//" + metadata['info'][i]
             # short circuit evaluation
             elif ('address' in metadata['info']) and (i in metadata['info']['address']):
-                XPathString = ".//" + metadata['info']['address'][i]
-                label_map[i] = XPathString
+                # note that the labels have to map to XPath expressions
+                label_map[i] = ".//" + metadata['info']['address'][i]
             elif ('force' in metadata) and (i in metadata['force']):
                 label_map[i] = 'DPIFORCE'
         source.label_map = label_map
@@ -549,62 +583,81 @@ class Process_XML(Algorithm):
         tree = ElementTree.parse(source.rawpath, parser=xmlp)
         root = tree.getroot()
 
-        csvfile = open(source.dirtypath, 'w')
-        cprint = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+        with open(source.dirtypath, 'w') as csvfile:
+            
+            csvwriter = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
 
-        # write the initial row which identifies each column
-        first_row = [f for f in tags]
-        if "full_addr" in first_row:
-            ind = first_row.index("full_addr")
-            first_row.pop(ind)
-            for af in reversed(self.ADDR_FIELD_LABEL):
-                first_row.insert(ind, af)
-        cprint.writerow(first_row)
+            # write the initial row which identifies each column
+            col_labels = self._generateFirstRow(tags)
+            csvwriter.writerow(col_labels)
 
-        for element in root.iter(header):
-            row = []
-            for key in tags:
-                if isinstance(tags[key], list) and key not in self.FORCE_LABEL:
-                    entry = ''
-                    for i in tags[key]:
-                        subelement = element.find(i)
-                        subelement = self._xml_empty_element_handler(subelement)
-                        entry += subelement + ' '
-                    entry = self._quick_scrub(entry)
-                    if key != "full_addr":
-                        row.append(entry)
+            for element in root.iter(header):
+                row = []
+                for key in tags:
+                    # # #
+                    # decision: Check if tags[key] is of type JSON array (list).
+                    # By design, FORCE keys should be ignored in this decision.
+                    #
+                    # depth: 1
+                    # # #
+                    if isinstance(tags[key], list) and key not in self.FORCE_LABEL:
+                        entry = ''
+                        for i in tags[key]:
+                            subelement = element.find(i)
+                            subelement = self._xml_empty_element_handler(subelement)
+                            entry += subelement + ' '
+                        entry = self._quick_scrub(entry)
+                        # # #
+                        # decision: check if key is "full_addr"
+                        # depth: 2
+                        # # #
+                        if key != "full_addr":
+                            row.append(entry)
+                        else:
+                            ap_entry = self.address_parser.parse(entry)
+                            # SUGGESTION: This for loop is exclusively for libpostal output.
+                            # Perhaps it should be moved to the AddressParser object?
+                            for afl in self.ADDR_FIELD_LABEL:
+                                if self._ADDR_LABEL_TO_POSTAL[afl] in [x[1] for x in ap_entry]:
+                                    ind = list(map(operator.itemgetter(1), ap_entry)).index(self._ADDR_LABEL_TO_POSTAL[afl])
+                                    row.append(ap_entry[ind][0])
+                                else:
+                                    row.append("")
                         continue
-                    else:
-                        ap = self.address_parser(entry)
-                        for af in self.ADDR_FIELD_LABEL:
-                            if self._ADDR_LABEL_TO_POSTAL[af] in [x[1] for x in ap]:
-                                ind = list(map(operator.itemgetter(1), ap)).index(self._ADDR_LABEL_TO_POSTAL[af])
-                                row.append(ap[ind][0])
+                    # # #
+                    # decision: check if key is "full_addr"
+                    # depth: 1
+                    # # #
+                    if key == "full_addr":
+                        entry = element.find(tags[key])
+                        entry = self._xml_empty_element_handler(entry)
+                        entry = self._quick_scrub(entry)
+                        ap_entry = self.address_parser.parse(entry)
+                        # SUGGESTION: This for loop is exclusively for libpostal output.
+                        # Perhaps it should be moved to the AddressParser object?
+                        for afl in self.ADDR_FIELD_LABEL:
+                            if self._ADDR_LABEL_TO_POSTAL[afl] in [x[1] for x in ap_entry]:
+                                ind = list(map(operator.itemgetter(1), ap_entry)).index(self._ADDR_LABEL_TO_POSTAL[afl])
+                                row.append(ap_entry[ind][0])
                             else:
                                 row.append("")
                         continue
-                if key == "full_addr":
-                    entry = element.find(tags[key])
-                    entry = self._xml_empty_element_handler(entry)
-                    entry = self._quick_scrub(entry)
-                    ap = self.address_parser(entry)
-                    for af in self.ADDR_FIELD_LABEL:
-                        if self._ADDR_LABEL_TO_POSTAL[af] in [x[1] for x in ap]:
-                            ind = list(map(operator.itemgetter(1), ap)).index(self._ADDR_LABEL_TO_POSTAL[af])
-                            row.append(ap[ind][0])
-                        else:
-                            row.append("")
-                    continue
-                # otherwise ...
-                if tags[key] != 'DPIFORCE':
+                    # # #
+                    # decision: Check if tags[key] is defined as the DPIFORCE flag
+                    # depth: 1
+                    # # #
+                    if tags[key] == 'DPIFORCE':
+                        entry = self._quick_scrub(json_data['force'][key])
+                        row.append(entry)
+                        continue
+                    # # #
+                    # All other cases get handled here.
+                    # # #
                     subelement = element.find(tags[key])
                     subel_content = self._xml_empty_element_handler(subelement)
                     row.append(self._quick_scrub(subel_content))
-                else:
-                    row.append(self._quick_scrub(json_data['force'][key]))
-            if not self._isRowEmpty(row):
-                cprint.writerow(row)
-        csvfile.close()
+                if not self._isRowEmpty(row):
+                    csvwriter.writerow(row)
 
 
     def clean(self, source):
@@ -616,7 +669,7 @@ class Process_XML(Algorithm):
           source: A dataset and its associated metadata, defined as a Source 
             object.
         """
-        # DEBUG ###########
+        # IMPORTANT: Incomplete
         os.rename(source.dirtypath, source.cleanpath)
 
 
@@ -710,7 +763,7 @@ class Source(object):
         if 'file' not in self.metadata:
             raise LookupError("'file' tag is missing.")
         if 'info' not in self.metadata:
-            raise LookupError("info' tag is missing.")
+            raise LookupError("'info' tag is missing.")
 
         # required tag types
         if not isinstance(self.metadata['format'], str):
@@ -761,27 +814,27 @@ class Source(object):
                     raise ValueError("Key '", i, "' appears in 'force' and 'address'.")
 
         # Set rawpath, dirtypath, and cleanpath values
-        fname = self.metadata['file']
-        self.rawpath = './pddir/raw/' + fname
-        if len(fname.split('.')) == 1:
-            self.dirtypath = './pddir/dirty/' + fname + "-dirty.csv"
+        filename = self.metadata['file']
+        self.rawpath = './pddir/raw/' + filename
+        if len(filename.split('.')) == 1:
+            self.dirtypath = './pddir/dirty/' + filename + "-dirty.csv"
         else:
-            self.dirtypath = './pddir/dirty/' + '.'.join(str(x) for x in fname.split('.')[:-1]) + "-dirty.csv"
+            self.dirtypath = './pddir/dirty/' + '.'.join(str(x) for x in filename.split('.')[:-1]) + "-dirty.csv"
 
-        if len(fname.split('.')) == 1:
-            self.cleanpath = './pddir/clean/' + fname + "-clean.csv"
+        if len(filename.split('.')) == 1:
+            self.cleanpath = './pddir/clean/' + filename + "-clean.csv"
         else:
-            self.cleanpath = './pddir/clean/' + '.'.join(str(x) for x in fname.split('.')[:-1]) + "-clean.csv"
+            self.cleanpath = './pddir/clean/' + '.'.join(str(x) for x in filename.split('.')[:-1]) + "-clean.csv"
         
 
     def fetch_url(self):
         """
         Downloads a dataset by fetching its URL and writing to the raw directory.
         """
-        response = urllib.request.urlopen(self.metadata['url'])
-        bytedata = response.read()
-        with open('./pddir/raw/' + self.metadata['file'], 'wb') as data_file:
-            data_file.write(bytedata)
+        response = req.urlopen(self.metadata['url'])
+        content = response.read()
+        with open('./pddir/raw/' + self.metadata['file'], 'wb') as data:
+            data.write(content)
 
     def raw_data_exists(self):
         """
