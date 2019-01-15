@@ -1,0 +1,16 @@
+{
+    "localfile": "edu-ab-calgary.csv",
+    "url": "https://data.calgary.ca/api/views/fd9t-tdn2/rows.csv?accessType=DOWNLOAD"
+    "format": "csv",
+    "info": {
+	"ins_name": "NAME",
+	"board_name": "BOARD",
+	"ins_type": "TYPE",
+	"full_addr": ["ADDRESS_AB", "CITY", "PROVINCE", "POSTAL_COD"],
+	"longitude": "longitude",
+	"latitude": "latitude"
+    },
+    "force": {
+	"country": "ca"
+    }
+}
