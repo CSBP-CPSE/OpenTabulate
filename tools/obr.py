@@ -28,13 +28,17 @@ Statistics Canada
 # MODULES #
 ###########
 
+import csv
+import json
 import operator
 import os
-import json
-import csv
-from xml.etree import ElementTree
 import re
+import requests
+import subprocess
 import urllib.request as req
+
+from xml.etree import ElementTree
+from zipfile import ZipFile
 
 
 #############################
@@ -86,11 +90,42 @@ class DataProcess(object):
         """
         Process a data set using wrapper methods for the Algorithm class.
         """
+        self.preprocessData()
         self.prepareData()
         self.extractLabels()
         self.parse()
         self.clean()
 
+    def preprocessData(self):
+        """
+        DEBUG/IMPORTANT: integrating new feature into OBR. The idea is to permit a
+          set of scripts to tune or adjust a dataset before OBR processes it,
+          where OBR does not apply this tuning or adjusting at any point.
+          This is a "dangerous" method, in that it permits arbitrary execution
+          of a script which is sent a single command line argument, which is
+          self.source.rawpath. The file name MUST NOT be altered! The script
+          must adjust the file inline or create a temporary copy that will
+          overwrite the original. 
+
+        Execute external scripts before processing using OpenBusinessRepository.
+        """
+        # DEBUG: omitted until review of other comments
+        #scr = self.source.preproc
+        if 'pre' in self.source.metadata:
+            scr = self.source.metadata['pre']
+        else:
+            return None
+            
+        if isinstance(scr, str):
+            print('DEBUG: Running script "%s".' % scr)
+            rc = subprocess.call([scr, self.source.rawpath])
+            print('DEBUG: process return code %d.' % rc)
+        elif isinstance(scr, list):
+            for subscr in scr:
+                print('DEBUG: Running script "%s".' % subscr)
+                rc = subprocess.call([subscr, self.source.rawpath])
+                print('DEBUG: process return code %d.' % rc)
+        
     def prepareData(self):
         """
         'Algorithm' wrapper method. Formats a dataset into OpenBusinessRepository's 
@@ -189,22 +224,36 @@ class Algorithm(object):
       address_parser: Address parsing function to use.
     """
 
-    # supported field labels
-    FIELD_LABEL = ['bus_name', 'trade_name', 'bus_type', 'bus_no', 'bus_desc', \
-                    'lic_type', 'lic_no', 'bus_start_date', 'bus_cease_date', 'active', \
-                    'full_addr', \
-                    'house_number', 'road', 'postcode', 'unit', 'city', 'prov', 'country', \
-                    'phone', 'fax', 'email', 'website', 'tollfree',\
-                    'comdist', 'region', \
-                    'longitude', \
-                    'latitude', \
-                    'no_employed', 'no_seasonal_emp', 'no_full_emp', 'no_part_emp', 'emp_range',\
-                    'home_bus', 'munic_bus', 'nonres_bus', \
-                    'exports', 'exp_cn_1', 'exp_cn_2', 'exp_cn_3', \
-                    'naics_2', 'naics_3', 'naics_4', 'naics_5', 'naics_6', \
-                    'naics_desc', \
-                    'qc_cae_1', 'qc_cae_desc_1', 'qc_cae_2', 'qc_cae_desc_2', \
-                    'facebook', 'twitter', 'linkedin', 'youtube', 'instagram']
+    # SUGGESTION: Change structure or organization of labels to make the program
+    # more generalizable. "Special handling" is only done to ADDR_FIELD_LABEL
+    # labels (only if you use 'full_addr'!) and FORCE_LABEL labels.
+    
+    # SUPPORTED FIELD LABELS
+    # general data labels (e.g. contact info, location)
+    _GENERAL_LABELS = ['full_addr', 'house_number', 'road', 'postcode', 'unit', 'city', 'prov', 'country', \
+                       'comdist', 'region', \
+                       'longitude', 'latitude', \
+                       'phone', 'fax', 'email', 'website', 'tollfree']
+
+    # business data labels
+    _BUSINESS_LABELS = ['bus_name', 'trade_name', 'bus_type', 'bus_no', 'bus_desc', \
+                        'lic_type', 'lic_no', 'bus_start_date', 'bus_cease_date', 'active', \
+                        'no_employed', 'no_seasonal_emp', 'no_full_emp', 'no_part_emp', 'emp_range',\
+                        'home_bus', 'munic_bus', 'nonres_bus', \
+                        'exports', 'exp_cn_1', 'exp_cn_2', 'exp_cn_3', \
+                        'naics_2', 'naics_3', 'naics_4', 'naics_5', 'naics_6', \
+                        'naics_desc', \
+                        'qc_cae_1', 'qc_cae_desc_1', 'qc_cae_2', 'qc_cae_desc_2', \
+                        'facebook', 'twitter', 'linkedin', 'youtube', 'instagram']
+
+    # DEBUG: IN PROGRESS
+    # 'ins_name' institution name
+    # 'ins_type' public, private, charter, seperate
+    # 'edu_level' education level (e.g. elementary, secondary, post-secondary)
+    # 'board_name' education board name of institution
+    _EDU_FACILITY_LABELS = ['ins_name', 'ins_type', 'edu_level', 'board_name']
+
+    FIELD_LABEL = _BUSINESS_LABELS + _GENERAL_LABELS
 
     # supported address field labels
     # note that the labels are ordered to conform to the Canada Post mailing address standard
@@ -258,7 +307,7 @@ class Algorithm(object):
         """
         metadata = source.metadata
         if 'encoding' in metadata:
-            data_enc = metadata.data['encoding']
+            data_enc = metadata['encoding']
             if data_enc in self.ENCODING_LIST:
                 return data_enc
             else:
@@ -266,7 +315,7 @@ class Algorithm(object):
         else:
             for enc in self.ENCODING_LIST:
                 try:
-                    with open('./pddir/raw/' + metadata['file'], encoding=enc) as f:
+                    with open('./pddir/raw/' + source.local_fname, encoding=enc) as f:
                         for line in f:
                             pass
                     return enc
@@ -390,12 +439,11 @@ class CSV_Algorithm(Algorithm):
         if not hasattr(source, 'label_map'):
             raise ValueError("Source object missing 'label_map', 'extract_labels' was not ran.")
 
-        filename = source.metadata['file']
         tags = source.label_map
         enc = self.char_encode_check(source)
 
         with open(source.dirtypath, 'r', encoding=enc, newline='') as csv_file_read, \
-             open(source.dirtypath + '-temp', 'w') as csv_file_write:
+             open(source.dirtypath + '-temp', 'w', encoding="utf-8") as csv_file_write:
             csvreader = csv.DictReader(csv_file_read)
             csvwriter = csv.writer(csv_file_write, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
 
@@ -470,7 +518,7 @@ class CSV_Algorithm(Algorithm):
                     if not self._isRowEmpty(row):
                         csvwriter.writerow(row)
             except KeyError:
-                print("[E] '", tags[key], "' is not a field name in the CSV file.", sep='')
+                print("[ERROR] ", source.local_fname," :'", tags[key], "' is not a field name in the CSV file. ", sep='')
                 # DEBUG: need a safe way to exit from here
 
         # success
@@ -479,7 +527,7 @@ class CSV_Algorithm(Algorithm):
         
     def format_correction(self, source, data_encoding):
         """
-        Corrects CSV datasets that possess rows with a number of entries not
+        Deletes rows of CSV datasets that have a number of entries not
         agreeing with the total number of columns. Additionally removes a
         byte order mark if it exists.
 
@@ -490,27 +538,27 @@ class CSV_Algorithm(Algorithm):
 
           data_encoding: The character encoding of the data.
         """
-        raw = open(source.rawpath, 'r', encoding=data_encoding)
-        dirty = open(source.dirtypath, 'w')
-        reader = csv.reader(raw)
-        writer = csv.writer(dirty)
-        flag = False
-        size = 0
-        first_row = True
-        for row in reader:
-            if first_row == True:
-                row[0] = re.sub(r"^\ufeff(.+)", r"\1", row[0])
-                first_row = False
-            if flag == True:
-                while len(row) < size:
-                    row.append("")
-                writer.writerow(row)
-            else:
-                size = len(row)
-                flag = True
-                writer.writerow(row)
-        raw.close()
-        dirty.close()
+        with open(source.rawpath, 'r', encoding=data_encoding) as raw, \
+             open(source.dirtypath, 'w', encoding=data_encoding) as dirty:
+            reader = csv.reader(raw)
+            writer = csv.writer(dirty)
+            flag = False
+            size = 0
+            first_row = True
+            for row in reader:
+                if first_row == True:
+                    row[0] = re.sub(r"^\ufeff(.+)", r"\1", row[0])
+                    first_row = False
+                # SUGGESTION: log information about removed/ignored rows
+                if flag == True:
+                    if len(row) != size:
+                        continue
+                    else:
+                        writer.writerow(row)
+                else:
+                    size = len(row)
+                    flag = True
+                    writer.writerow(row)
 
         
     def clean(self, source):
@@ -575,7 +623,6 @@ class XML_Algorithm(Algorithm):
         if not hasattr(source, 'label_map'):
             raise ValueError("Source object missing 'label_map', 'extract_labels' was not ran.")
 
-        filename = source.metadata['file']
         tags = source.label_map
         header = source.metadata['header']
         enc = self.char_encode_check(source)
@@ -583,7 +630,7 @@ class XML_Algorithm(Algorithm):
         tree = ElementTree.parse(source.rawpath, parser=xmlp)
         root = tree.getroot()
 
-        with open(source.dirtypath, 'w') as csvfile:
+        with open(source.dirtypath, 'w', encoding="utf-8") as csvfile:
             
             csvwriter = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
 
@@ -719,10 +766,13 @@ class Source(object):
 
       cleanpath: path to the clean dataset relative to the OBR directory. This is
         assigned './pddir/clean'.
-      dirtypath:
 
       label_map: a dict object that stores the mapping of OBRs standardized labels
         to the dataset's labels, as obtained by the source file.
+      
+      # DEBUG: TO BE ADDED LATER
+      preproc: a path, list of paths, or 'None' of executable scripts found in the
+        OBR directory (for convention, they are stored in the scripts folder).
     """
     def __init__(self, path):
         """
@@ -737,11 +787,13 @@ class Source(object):
         self.srcpath = path
         with open(path) as f:
             self.metadata = json.load(f)
+        self.local_fname = None
         self.rawpath = None
         self.dirtypath = None
         self.cleanpath = None
         self.label_map = None
-        
+        # DEBUG/IMPORTANT: omitted until review of other comments
+        #self.preproc = None
 
     def parse(self):
         """
@@ -760,16 +812,16 @@ class Source(object):
         # required tags
         if 'format' not in self.metadata:
             raise LookupError("'format' tag is missing.")
-        if 'file' not in self.metadata:
-            raise LookupError("'file' tag is missing.")
+        if 'localfile' not in self.metadata:
+            raise LookupError("'localfile' tag is missing.")
         if 'info' not in self.metadata:
             raise LookupError("'info' tag is missing.")
 
         # required tag types
         if not isinstance(self.metadata['format'], str):
             raise TypeError("'format' must be a string.")
-        if not isinstance(self.metadata['file'], str):
-            raise TypeError("'file' must be a string.")
+        if not isinstance(self.metadata['localfile'], str):
+            raise TypeError("'localfile' must be a string.")
         if not isinstance(self.metadata['info'], dict):
             raise TypeError("'info' must be an object.")
 
@@ -788,7 +840,17 @@ class Source(object):
         if 'url' in self.metadata and (not isinstance(self.metadata['url'], str)):
             raise TypeError("'url' must be a string.")
 
-
+        # pre
+        # IMPORTANT: uncomment/review later after testing preprocessing in DataProcess class
+        """
+        if 'pre' in self.metadata:
+            if not (isinstance(self.metadata['pre'], str) or isinstance(self.metadata['pre'], list)):
+                raise TypeError("'pre' must be a string or array of strings.")
+            elif isinstance(self.metadata['pre'], list):
+                for entry in self.metadata['pre']:
+                    if not isinstance(entry, str):
+                        raise TypeError("'pre' must be a string or array of strings.")
+        """
         # check that both full_addr and address are not in the source file
         if ('address' in self.metadata['info']) and ('full_addr' in self.metadata['info']):
             raise ValueError("Cannot have both 'full_addr' and 'address' tags in source file.")
@@ -813,29 +875,66 @@ class Source(object):
                 elif ('address' in self.metadata['info']) and (i in self.metadata['info']['address']):
                     raise ValueError("Key '", i, "' appears in 'force' and 'address'.")
 
-        # Set rawpath, dirtypath, and cleanpath values
-        filename = self.metadata['file']
-        self.rawpath = './pddir/raw/' + filename
-        if len(filename.split('.')) == 1:
-            self.dirtypath = './pddir/dirty/' + filename + "-dirty.csv"
+        # set local_fname, rawpath, dirtypath, and cleanpath values
+        self.local_fname = self.metadata['localfile'].split(':')[0]
+        self.rawpath = './pddir/raw/' + self.local_fname
+        if len(self.local_fname.split('.')) == 1:
+            self.dirtypath = './pddir/dirty/' + self.local_fname + "-dirty.csv"
         else:
-            self.dirtypath = './pddir/dirty/' + '.'.join(str(x) for x in filename.split('.')[:-1]) + "-dirty.csv"
+            self.dirtypath = './pddir/dirty/' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + "-dirty.csv"
 
-        if len(filename.split('.')) == 1:
-            self.cleanpath = './pddir/clean/' + filename + "-clean.csv"
+        if len(self.local_fname.split('.')) == 1:
+            self.cleanpath = './pddir/clean/' + self.local_fname + "-clean.csv"
         else:
-            self.cleanpath = './pddir/clean/' + '.'.join(str(x) for x in filename.split('.')[:-1]) + "-clean.csv"
-        
+            self.cleanpath = './pddir/clean/' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + "-clean.csv"
 
+        # set preproc value(s) if pre is defined
+        # IMPORTANT: uncomment/review later after testing preprocessing in DataProcess class
+        """
+        if 'pre' in self.metadata:
+            if isinstance(self.metadata['pre'], str) and not os.path.exists(self.metadata['pre']):
+                raise OSError('Preprocessing script "%s" does not exist.' % script_path)
+            elif isinstance(self.metadata['pre'], list):
+                for script_path in self.metadata['pre']:
+                    if not os.path.exists(script_path):
+                        raise OSError('Preprocessing script "%s" does not exist.' % script_path)
+            self.preproc = self.metadata['pre']
+        """
+                
     def fetch_url(self):
         """
         Downloads a dataset by fetching its URL and writing to the raw directory.
         """
-        response = req.urlopen(self.metadata['url'])
-        content = response.read()
-        with open('./pddir/raw/' + self.metadata['file'], 'wb') as data:
-            data.write(content)
+        # use requests library if protocol is HTTP
+        if self.metadata['url'][0:4] == "http":
+            response = requests.get(self.metadata['url'])
+            content = response.content
+        # otherwise, use urllib to handle other protocols (e.g. FTP)
+        else:
+            response = req.urlopen(self.metadata['url'])
+            content = response.read()
+            
+        if 'compression' in self.metadata:
+            # IMPORTANT/DEBUG: needs review and safeguards! using this functionality is experimental and dangerous
+            if self.metadata['compression'] == "zip":
+                with open('./pddir/raw/' + self.metadata['localarchive'], 'wb') as data:
+                    data.write(content)
+        else:
+            with open('./pddir/raw/' + self.metadata['localfile'], 'wb') as data:
+                data.write(content)
 
+    def archive_extraction(self):
+        if self.metadata['compression'] == "zip":
+            with ZipFile('./pddir/raw/' + self.metadata['localarchive'], 'r') as zip_file:
+                archive_fname = self.metadata['localfile'].split(':')
+                if len(archive_fname) == 1:
+                    zip_file.extract(archive_fname[0], './pddir/raw/')
+                else:
+                    zip_file.extract(archive_fname[1], './pddir/raw/')
+                    os.rename('./pddir/raw/' + archive_fname[1], './pddir/raw/' + self.local_fname)
+
+
+    # SUGGESTION: this function is not being used!!
     def raw_data_exists(self):
         """
         Checks if raw dataset exists in the required directory.
@@ -844,8 +943,8 @@ class Source(object):
 
           OSError: Missing dataset in raw folder.
         """
-        if not path.exists('./pddir/raw/' + self.metadata['file']):
-            raise OSError("'" + self.metadata['file'] + "' not found in raw folder.")
+        if not path.exists('./pddir/raw/' + self.metadata['localfile']):
+            raise OSError("'" + self.metadata['localfile'] + "' not found in raw folder.")
 
 
 ######################

@@ -10,6 +10,7 @@ import io
 import obr
 
 def process(source, parse_address):
+    print("DEBUG:", source.local_fname)
     prodsys = obr.DataProcess(source, parse_address)
     prodsys.process()
     # DEBUG
@@ -22,6 +23,8 @@ cmd_args.add_argument('-p', '--ignore-proc', action='store_true', default=False,
                       help='check source files without processing data')
 cmd_args.add_argument('-u', '--ignore-url', action='store_true', default=False, \
                       help='ignore "url" entries from source files')
+cmd_args.add_argument('-z', '--no-decompress', action='store_true', default=False, \
+                      help='do not decompress files from compressed archives')
 cmd_args.add_argument('-j', '--jobs', action='store', default=1, type=int, metavar='N', \
                       help='run at most N jobs asynchronously')
 cmd_args.add_argument('--log', action='store', default="pdlog.txt", type=str, \
@@ -69,25 +72,34 @@ if input('Process data? (y:yes / *:exit): ') != 'y':
 
 print("Logging production system output to '", args.log, "'.", sep="")
 
-start_time = time.perf_counter()
-
 src = []
+urls = []
+
 for source in args.SOURCE:
+    print("Creating source object:", source)
     srcfile = obr.Source(source)
-    print("Parsing :", srcfile.srcpath)
+    print("Parsing...")
     srcfile.parse()
     print("Done.")
-    if args.ignore_url == False:
+    if 'url' not in srcfile.metadata:
+        print("WARNING: This source file does not have a URL.")
+    if args.ignore_url == False and ('url' in srcfile.metadata) and (srcfile.metadata['url'] not in urls):
         srcfile.fetch_url()
+        urls.append(srcfile.metadata['url'])
+    if args.no_decompress == False and 'compression' in srcfile.metadata:
+        srcfile.archive_extraction()
     src.append(srcfile)
 
 if args.ignore_proc == True:
     exit(0)
     
+print("Beginning data processing, please standby or grab a coffee. :-)")
 print("Loading address parser module...")
 from postal.parser import parse_address
+print("Finished loading libpostal address parser.")
+print("Starting multiprocessing.Pool jobs...")
 
-print("Beginning data processing, please standby or grab a coffee. :-)")
+start_time = time.perf_counter()
 
 if __name__ == '__main__':
     with multiprocessing.Pool(processes=args.jobs) as pool, open(args.log, 'w') as logger:
@@ -102,4 +114,5 @@ if __name__ == '__main__':
 
 end_time = time.perf_counter()            
 
-print("Completed multiprocessing execution in", end_time - start_time, "seconds.")
+print("Completed multiprocessing.Pool execution in", end_time - start_time, "seconds.")
+print("Data processing complete.")
