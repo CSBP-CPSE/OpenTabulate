@@ -1,72 +1,88 @@
-# Important note / Note importante
-(EN) This is an exploratory and experimental open project. The project is currently in development and all the material on this page
-should be considered as part of work in progress. / (FR) Ce projet ouvert est exploratoire et expérimental. Le
-projet est en cours de développement et tout le contenu de cette page doit être considéré comme faisant partie des travaux en cours.
+#### Important note / Note importante
+
+(EN) This is an exploratory and experimental open project. The project is currently in development and all the material on this page should be considered as part of work in progress. / (FR) Ce projet ouvert est exploratoire et expérimental. Le projet est en cours de développement et tout le contenu de cette page doit être considéré comme faisant partie des travaux en cours.
 
 # OpenBusinessRepository
 
-The OpenBusinessRepository (OBR) is a repository of businesses micro-records from open data sources. It includes only data or information that is available to the public on the Internet under an open data license. The management and progression of the project is openly available as well at [taiga.io - OpenBusinessRepository](https://tree.taiga.io/project/virtualtorus-openbusinessrepository/).
-
-OpenBusinessRepository (OBR) est un répertoire de micro-enregistrements d'entreprises développé à partir de sources de données ouvertes. Il ne comprend que des données ou des informations accessibles au public sur Internet sous une licence de données ouvertes. La gestion et la progression du projet sont également disponibles sur taiga.io
+The OpenBusinessRepository (OBR) is open-source software designed to centralize, process, and clean data. It is inspired by projects such as OpenAddresses and is tailored to publicly available business data, such as open register and licensing information. 
 
 ## Open data contribution / Contribution aux données ouvertes
 
-The repository already contains a source file section and `sources.csv` for existing open data and points of reference to those data. In the future development of the project, one option will be to host the processed and cleaned data on a server for the public to download. You can contribute to the OBR, with data available under an open data license. This can be done by referring us to data we do not have on the list or communicating with us directly if you are a group that maintains business micro data. The best way to add new business data is to write a source file for it (see documentation references below).
+Currently, the project brings together open licensed data from authoritative sources in Canada such as municipal and provincial governments. The current set of data sources is listed in `sources/business-sources.csv`, including their respective links to both the licenses and datasets. 
 
-Le répertoire contient déjà une section de fichiers sources et `sources.csv` pour les données ouvertes existantes et les points de référence à ces données. Dans le développement futur du projet, une option sera d’héberger les données traitées et nettoyées sur un serveur pour que le public puisse les télécharger. Vous pouvez contribuer à l'OBR avec des données disponibles sous une licence de données ouvertes. Cela peut être fait en nous référant aux données que nous n'avons pas sur la liste ou en communiquant directement avec nous si vous êtes un groupe qui gère des microdonnées d'entreprise. La meilleure façon d'ajouter de nouvelles données d'entreprise consiste à y écrire un fichier source (voir les références de la documentation ci-dessous).
+Part of the future development of this project is to host the processed and cleaned business data on a server for the public to download. You can contribute to the OBR with data available under an open data license. This can be done by referring us to data we do not have on the list or communicating with us directly if you are part of a group that maintains business data. The best way to add new business data is to write a source file for it (see documentation references below).
 
 ## Installation / Installation
 
-The host of the OBR must be a Linux-based operating system, so packages such as `coreutils` are (often) included by default. To start, simply clone the repository:
+A basic setup of the data processing software will at least require
+
+- [Python](https://www.python.org/downloads/) (version 3.5+)
+- [requests](http://docs.python-requests.org/en/master/), compatible with your verison of Python
+
+Once those are installed, clone the repository
 
 ```bash
 $ git clone https://github.com/CSBP-CPSE/OpenBusinessRepository
 ```
-Then execute the `obr-init.py` script to create the data processing directories.
 
-To operate the data processing, which is managed by the `obrpdctl.py` script, you will need to install:
-- Python (version 3.5+)
-- [libpostal](https://github.com/openvenues/libpostal)
-- [pypostal](https://github.com/openvenues/pypostal)
+and run the command
+
+```shell
+$ python tools/obrpdctl.py --initialize
+``` 
+
+in the cloned directory to create the data processing directories.
+
+## Optional dependencies / Dépendances optionnelles
+
+To process sources with the `full_addr` tag, an address parser is required. Below are the currently supported address parsers.
+
+- [libpostal](https://github.com/openvenues/libpostal) (and [pypostal](https://github.com/openvenues/pypostal) for Python bindings)
 
 ## Help / Aide
 
-#### Interactive script and code
+#### Interactive data processing script
 
-Assuming you are in the cloned directory, run 
+To print the help prompt, run 
 
 ```shell
 $ python tools/obrpdctl.py --help
 ```
 
-which should print to standard output:
+which prints
 
 ```
-usage: obrpdctl.py [-h] [-p] [-u] [-j N] [--log FILE] SOURCE [SOURCE ...]
+usage: obrpdctl.py [-h] [-p] [-u] [-z] [-j N] [--log FILE] [--initialize]
+                   [SOURCE [SOURCE ...]]
 
 A command-line interactive tool with the OBR.
 
 positional arguments:
-  SOURCE             path to source file
+  SOURCE               path to source file
 
 optional arguments:
-  -h, --help         show this help message and exit
-  -p, --ignore-proc  check source files without processing data
-  -u, --ignore-url   ignore "url" entries from source files
-  -j N, --jobs N     run at most N jobs asynchronously
-  --log FILE         log output to FILE
+  -h, --help           show this help message and exit
+  -p, --ignore-proc    check source files without processing data
+  -u, --ignore-url     ignore "url" entries from source files
+  -z, --no-decompress  do not decompress files from compressed archives
+  -j N, --jobs N       run at most N jobs asynchronously
+  --log FILE           log output to FILE
+  --initialize         create processing directories
 ```
 
 #### Documentation
 
-In the `docs` folder there is documentation on how to write source files, a primer to operate the system, and so forth.
+All of our documentation currently resides in the `docs` folder. The contents are summarized below.
 
-- `CONTRIB.md` : A manual describing the features and options when writing a source file. For source file examples, see `sources`.
-- `SCHEME.md` : A summary of the production system and its features.
+- `CONTRIB.md` : A manual to get started with writing source files. For a data contributor, we would appreciate if you can also write a source file for your dataset. For numerous source file examples, see `sources`.
+- `SCHEME.md` : A summary of the production system and its features. A workflow diagram of the data processing will be added in the future.
 - `FAQ.md` : Frequently asked questions page.
-- `SCRIPTS.md` : N/A.
 
-The code of the OBR has been commented and documented. If you are interested in developing or inspecting, keep in mind that the OBR is an exploratory project and all the codes and documentation are work in progress. 
+If you want to tinker around with the code, the core parts are in the `tools` directory. You may also generate the API documentation of OBR by running
+
+```shell
+$ pydoc tools/obr.py
+```
 
 ## Issues / Problèmes
 

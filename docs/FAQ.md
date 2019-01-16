@@ -13,9 +13,9 @@ Business register and business licensing microdata in CSV and XML format.
 Assuming you have completed the installation process, you:
 
 - Write source files as described in `./docs/CONTRIB.md` (refer to the `sources` folder for examples) 
-- If no `url` is provided for a source file, store the dataset in `./pddir/raw/`
-- Run `$ python tools/obrpdctl.py PATH-TO-SOURCE-1 PATH-TO-SOURCE-2 ...`
-- Resulting files are in `./pddir/clean`
+- Download the using OBR and the source file, or manually into `./pddir/raw/`
+- Process the data using the script `$ python tools/obrpdctl.py PATH-TO-SOURCE-1 PATH-TO-SOURCE-2 ...`
+- The processed files, which are in CSV format, are placed in `./pddir/clean`
 
 #### Why was the OBR constructed?
 
@@ -23,8 +23,8 @@ Municipalities, provinces, federal departments and other organizations have star
 
 #### What limitations are present in the OBR?
 
-The OBR is currently not portable to Windows or Mac OS X. Besides that, the project is relatively young, it has a lot of room for growth and improvement. If you feel there is something missing, address it in [Issues](https://github.com/CSBP-CPSE/OpenBusinessRepository/issues).
+There are numerous features and code adjustments that have to be made to make OBR a more user-friendly program. The project altogther is relatively young and has a lot of room for growth and improvement. If you feel there is something missing, address it in [Issues](https://github.com/CSBP-CPSE/OpenBusinessRepository/issues).
 
 #### What is the future of the OBR?
 
-There are a variety of enhancements to be added and additional steps to take to further progress the OBR system. Further improvements to data cleaning and cleaning up the documentation and code is part of our agenda, to make the data more usable, to open up and make our project friendly for potential developer contribution. 
+There are a variety of enhancements to be added and additional steps to take to further progress the OBR system. Writing and implementing good cleaning algorithms is a major part of our agenda and also to generalize the script to other types of data other than business data.
