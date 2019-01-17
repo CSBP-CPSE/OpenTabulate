@@ -74,8 +74,8 @@ optional arguments:
 
 All of our documentation currently resides in the `docs` folder. The contents are summarized below.
 
+- `APPENDIX.md` : A summary of key features and a few technical bits. A couple of sections here are revelant to those who want to get to know the code.
 - `CONTRIB.md` : A manual to get started with writing source files. For a data contributor, we would appreciate if you can also write a source file for your dataset. For numerous source file examples, see `sources`.
-- `SCHEME.md` : A summary of the production system and its features. A workflow diagram of the data processing will be added in the future.
 - `FAQ.md` : Frequently asked questions page.
 
 If you want to tinker around with the code, the core parts are in the `tools` directory. You may also generate the API documentation of OBR by running
