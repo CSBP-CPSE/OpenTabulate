@@ -1,4 +1,0 @@
-#!/bin/bash
-
-# Remove byte order mark
-sed -i '1s/\xEF\xBB\xBF//' $1
