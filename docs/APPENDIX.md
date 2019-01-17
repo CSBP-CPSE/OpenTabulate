@@ -1,6 +1,6 @@
 # Appendix
 
-#### OpenBusinessRepository directory
+### OpenBusinessRepository directory
 
 | Path | Description |
 | ---- | ----------- |
@@ -10,7 +10,7 @@
 | `tools/` | OpenBusinessRepository's core data processing and cleaning scripts reside here. | 
 | `README.md` | General information about the project. | 
 
-#### Initialize flag and directories
+### Initialize flag and directories
 
 Running the `--initialize` flag for `obrpdctl.py` generates the following directory tree in your cloned directory:
 
@@ -31,13 +31,13 @@ The functionality of having these directories are described in the table below.
 | `dirty` | Datasets from ~~`pp`~~ `raw` are sent here during processing. They represent datasets converted to CSV format that have not been cleaned yet. |
 | `clean` | Datasets are sent here after cleaning. |
 
-#### Program workflow
+### Program workflow
 
 The main interface for the production system is the `obrpdctl.py` interactive script. The workflow of processing source files is summarized in the following chart. Hopefully this is a good reference when inspecting the source code.
 
-![Workflow](docs/workflow.png)
+![Workflow](workflow.png)
 
-#### Current key features
+### Current key features
 
 + **Downloading data.** The data can be referenced by a URL to be retrieved. The data can also be compressed or archived.
 + **Character encoding handler.** In the event that no encoding is provided, a class method is used to check for a valid decoding in a linear order based on the data (e.g. Canadian data will likely involve Latin character sets).
