@@ -8,12 +8,12 @@
 	"bus_desc": "PRODUCT_DESC",
 	"active": "OPERATIONAL",
 	"address": {
-	    "house_number": "STREET_NUM",
-	    "road": ["STREET_NAME", "STREET_TYPE", "STREET_DIRECTION"],
+	    "street_no": "STREET_NUM",
+	    "street_name": ["STREET_NAME", "STREET_TYPE", "STREET_DIRECTION"],
 	    "unit": "UNIT",
 	    "city": "CITY",
 	    "postcode": "POSTAL_CODE",
-	    "prov": "PROVINCE"
+	    "prov/terr": "PROVINCE"
 	},
 	"latitude": "Y",
 	"longitude": "X",

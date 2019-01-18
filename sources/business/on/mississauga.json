@@ -6,8 +6,8 @@
 	"bus_name": "Name",
 	"bus_no": "BID",
 	"address" : {
-	    "house_number": "StreetNo",
-	    "road": "StreetName",
+	    "street_no": "StreetNo",
+	    "street_name": "StreetName",
 	    "unit": "UnitNo",
 	    "postcode": "PostalCode"
 	},

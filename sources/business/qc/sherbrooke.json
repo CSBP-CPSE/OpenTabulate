@@ -7,8 +7,8 @@
 	"bus_name": "NomLocat",
 	"bus_desc": "NomMix",
 	"address": {
-	    "house_number": "NumRueLocal",
-	    "road": "RueLocal",
+	    "street_no": "NumRueLocal",
+	    "street_name": "RueLocal",
 	    "unit": "NumBureauLocat",
 	    "city": "VilleLocal",
 	    "postcode": "PostalLocal"

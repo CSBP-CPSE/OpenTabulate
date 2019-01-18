@@ -7,8 +7,8 @@
 	"bus_type": "Products or Services",
 	"full_address": "Mailing_Address",
 	"address": {
-	    "house_number": "Number",
-	    "road": "Street",
+	    "street_no": "Number",
+	    "street_name": "Street",
 	    "unit": "Unit",
 	    "postcode": "Postal Code"
 	},

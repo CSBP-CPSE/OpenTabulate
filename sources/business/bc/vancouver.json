@@ -11,11 +11,11 @@
 	"lic_no": "LicenceNumber",
 	"no_employed": "NumberOfEmployees",
 	"address": {
-	    "house_number": "House",
-	    "road": "Street",
+	    "street_no": "House",
+	    "street_name": "Street",
 	    "unit": "Unit",
 	    "city": "City",
-	    "prov": "Province",
+	    "prov/terr": "Province",
 	    "country": "Country",
 	    "postcode": "PostalCode"
 	},

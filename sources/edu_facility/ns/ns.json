@@ -1,0 +1,21 @@
+{
+    "localfile": "edu-ns.csv",
+    "url": "https://data.novascotia.ca/api/views/n3je-weps/rows.csv?accessType=DOWNLOAD",
+    "format": "csv",
+    "pre": "./scripts/edu_facility/ns/edu-ns.sh",
+    "info": {
+	"ins_name": "SCHLNAME",
+	"board_name": "BRDNAME",
+	"board_no": "BRDCODE",
+	"school_yr": "SCHLYR",
+	"full_addr": ["CIVIC1", "CIVIC2", "CPOSTCODE"],
+	"phone": "PHONE",
+	"fax": "FAX",
+	"email": "EMAIL",
+	"longitude": "LONG",
+	"latitude": "LAT"
+    },
+    "force": {
+	"country": "ca"
+    }
+}

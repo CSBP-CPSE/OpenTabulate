@@ -1,7 +1,8 @@
-sources_path,name,frequency,municipality,province,od_root_url,license,description
-,Calgary school locations,,Calgary,AB,https://data.calgary.ca/Services-and-Amenities/School-Locations/fd9t-tdn2,https://data.calgary.ca/stories/s/u45n-7awa/,
-,BC schools – school locations,,,BC,https://catalogue.data.gov.bc.ca/dataset/bc-schools-school-locations,https://www2.gov.bc.ca/gov/content/data/open-data/open-government-license-bc,
-,Nova Scotia directory of public schools,,,NS,https://data.novascotia.ca/Education-Primary-to-Grade-12/Nova-Scotia-Map-Directory-of-Public-Schools/hcdu-5rtg,https://novascotia.ca/opendata/licence.asp,
-,Ontario public school contact information,,,ON,https://www.ontario.ca/data/ontario-public-school-contact-information,https://www.ontario.ca/page/open-government-licence-ontario,
-,Ontario private school contact information,,,ON,http://www.edu.gov.on.ca/eng/general/elemsec/privsch/,https://www.ontario.ca/page/open-government-licence-ontario,
-,Prince Edward Island public school locations,,,PE,https://data.princeedwardisland.ca/Education-and-Community/Map-of-Public-School-Locations/i88d-iiha,https://www.princeedwardisland.ca/en/information/finance/open-government-licence-prince-edward-island,
+sources_path,Dataset name,Last updated,Open data,City/Region,Province/Territory,Source,License or Terms of Use,Attribution statement,Description,JSON path
+,Alberta school and school authority student population,2018-06-27,Y,,AB,https://open.canada.ca/data/en/dataset/e5ada449-0242-47a4-ab46-181216dec8ca,https://open.alberta.ca/licence,,,
+,BC schools – school locations,,Y,,BC,https://catalogue.data.gov.bc.ca/dataset/bc-schools-school-locations,https://www2.gov.bc.ca/gov/content/data/open-data/open-government-license-bc,,,sources/edu_facility/bc/bc.json
+,Nova Scotia directory of public schools,,Y,,NS,https://data.novascotia.ca/Education-Primary-to-Grade-12/Nova-Scotia-Map-Directory-of-Public-Schools/hcdu-5rtg,https://novascotia.ca/opendata/licence.asp,,,sources/edu_facility/ns/ns.json
+,Ontario public school contact information,,Y,,ON,https://www.ontario.ca/data/ontario-public-school-contact-information,https://www.ontario.ca/page/open-government-licence-ontario,,,sources/edu_facility/on/on_public.json
+,Ontario private school contact information,,Y,,ON,http://www.edu.gov.on.ca/eng/general/elemsec/privsch/,https://www.ontario.ca/page/open-government-licence-ontario,,,
+,Prince Edward Island public school locations,,Y,,PE,https://data.princeedwardisland.ca/Education-and-Community/Map-of-Public-School-Locations/i88d-iiha,https://www.princeedwardisland.ca/en/information/finance/open-government-licence-prince-edward-island,,,sources/edu_facility/pe/edu-pe.json
+,Calgary school locations,,Y,Calgary,AB,https://data.calgary.ca/Services-and-Amenities/School-Locations/fd9t-tdn2,https://data.calgary.ca/stories/s/u45n-7awa/,,,sources/edu_facility/ab/calgary.json

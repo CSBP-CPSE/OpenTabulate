@@ -7,8 +7,8 @@
 	"bus_no": "ID",
 	"bus_desc": "PROFILE",
 	"address" : {
-	    "house_number": "STREET_NUMBER",
-	    "road": "STREET_NAME",
+	    "street_no": "STREET_NUMBER",
+	    "street_name": "STREET_NAME",
 	    "unit": "UNIT",
 	    "postcode": "POSTAL_CODE"
 	},

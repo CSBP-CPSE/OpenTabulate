@@ -8,11 +8,11 @@
 	"bus_desc": "BusinessDescription",
 	"bus_start_date": "approval_type_date",
 	"address": {
-	    "house_number": "CivicAddressHouse",
-	    "road": "CivicAddressStreet",
+	    "street_no": "CivicAddressHouse",
+	    "street_name": "CivicAddressStreet",
 	    "unit": "CivicAddressUnit",
 	    "city": "CivicAddressCity",
-	    "prov": "CivicAddressProvince"
+	    "prov/terr": "CivicAddressProvince"
 	},
 	"naics_4": "NAICSDetail",
 	"latitude": "Latitude",

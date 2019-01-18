@@ -1,0 +1,14 @@
+{
+    "localfile": "edu-pe.csv",
+    "url": "https://data.princeedwardisland.ca/api/views/i88d-iiha/rows.csv?accessType=DOWNLOAD",
+    "format": "csv",
+    "info": {
+	"ins_name": "Name",
+	"full_addr": "Address",
+	"longitude": "Longitude",
+	"latitude": "Latitude"
+    },
+    "force": {
+	"country": "ca"
+    }
+}

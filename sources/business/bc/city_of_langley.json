@@ -7,8 +7,8 @@
 	"lic_type": "Licence_Desc",
 	"address": {
 	    "unit": "Civic_Unit",
-	    "house_number": "Civic_House",
-	    "road": "Civic_Street"
+	    "street_no": "Civic_House",
+	    "street_name": "Civic_Street"
 	},
 	"naics_6": "NAICS_Primary",
 	"naics_desc": "NAICS_Primary_Desc",

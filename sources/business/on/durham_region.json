@@ -7,11 +7,11 @@
 	"bus_no": "Business_Id",
 	"bus_desc": "Business_Description",
 	"address" : {
-	    "house_number": "Street_Number",
-	    "road": [ "Street_Name", "Street_Type", "Street_Direction" ],
+	    "street_no": "Street_Number",
+	    "street_name": [ "Street_Name", "Street_Type", "Street_Direction" ],
 	    "unit": "Unit_Number",
 	    "city": "City",
-	    "prov": "Province",
+	    "prov/terr": "Province",
 	    "postcode": "Site_Postal_Code"
 	},
 	"latitude": "Y",

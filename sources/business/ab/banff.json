@@ -12,8 +12,8 @@
 	"bus_cease_date": "CEASED_DATE",
 	"bus_type": "PROPOSED_BUSINESS",
 	"address": {
-	    "house_number": "STREET_NUMBER",
-	    "road": "STREET_NAME",
+	    "street_no": "STREET_NUMBER",
+	    "street_name": "STREET_NAME",
 	    "unit": "UNIT"
 	},
 	"phone": "BUSINESS_NUMBER",
