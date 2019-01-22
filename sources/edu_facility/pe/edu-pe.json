@@ -7,8 +7,5 @@
 	"full_addr": "Address",
 	"longitude": "Longitude",
 	"latitude": "Latitude"
-    },
-    "force": {
-	"country": "ca"
     }
 }

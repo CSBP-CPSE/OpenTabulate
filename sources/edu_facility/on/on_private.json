@@ -5,14 +5,11 @@
     "pre": "./scripts/edu_facility/on/edu-private-on.sh",
     "info": {
 	"ins_name": "School Name",
+	"ins_code": "School Number",
 	"edu_level": "School Level",
 	"full_addr": ["Street Address", "Suite", "City", "Province", "Postal Code"],
 	"phone": "Telephone Number",
 	"fax": "Fax",
 	"website": "School Website"
-    },
-    "force": {
-	"country": "ca",
-	"ins_type": "private"
     }
 }

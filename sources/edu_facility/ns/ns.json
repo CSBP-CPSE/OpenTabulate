@@ -5,8 +5,9 @@
     "pre": "./scripts/edu_facility/ns/edu-ns.sh",
     "info": {
 	"ins_name": "SCHLNAME",
+	"ins_code": "SCHLCODE",
 	"board_name": "BRDNAME",
-	"board_no": "BRDCODE",
+	"board_code": "BRDCODE",
 	"school_yr": "SCHLYR",
 	"full_addr": ["CIVIC1", "CIVIC2", "CPOSTCODE"],
 	"phone": "PHONE",
@@ -14,8 +15,5 @@
 	"email": "EMAIL",
 	"longitude": "LONG",
 	"latitude": "LAT"
-    },
-    "force": {
-	"country": "ca"
     }
 }
