@@ -1,4 +1,4 @@
-Dataset name,Last updated,Open data,City/Region,Province/Territory,Source,License or Terms of Use,Attribution statement,Description,JSON path
+Dataset name,Last updated,Open data,City/Region,Province/Territory,Source,License or Terms of Use,Attribution statement,Comments,JSON path
 Money services,,Y,,,https://open.canada.ca/data/en/dataset/8beacccf-3b54-4d12-9cf7-24e2ada90a83,https://open.canada.ca/en/open-government-licence-canada,,,misc/msbregistry.json
 Federal corporations,,Y,,,https://open.canada.ca/data/dataset/0032ce54-c5dd-4b66-99a0-320a7b5e99f2,https://open.canada.ca/en/open-government-licence-canada,,,misc/open_data_cfrc{1..40}.json
 2016 list of charities,,Y, , ,https://open.canada.ca/data/en/dataset/7ef067c4-07a8-4882-ade3-643d00fd6c49,https://open.canada.ca/en/open-government-licence-canada,,,misc/2016charities.json
@@ -25,6 +25,7 @@ Quebéc enterprises,,Y,,QC,https://www.donneesquebec.ca/recherche/fr/dataset/reg
 ,,Y,Port Moody,BC,https://data.portmoody.ca/Building-Bylaw-and-Licensing/Business-Licence-Applications/xfrv-yr4p,http://www.portmoody.ca/index.aspx?page=1354,,,bc/city_of_port_moody.json
 ,,Y,Vancouver,BC,https://data.vancouver.ca/datacatalogue/businessLicence.htm,https://vancouver.ca/your-government/open-data-catalogue.aspx,,,bc/vancouver.json
 ,,Y,Victoria,BC,http://opendata.victoria.ca/datasets/business-licences-current-year,http://opendata.victoria.ca/pages/open-data-licence,,,bc/victoria.json
+,,,,,,,,,
 ,,,Halifax,NS,,,,,
 ,,,Fredericton,NB,,,,,
 ,,,Saint John,NB,,,,,
