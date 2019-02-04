@@ -1,5 +1,5 @@
 {
-    "localfile": "edu-public-on.csv",
+    "localfile": "edu-on-public_schools.csv",
     "url": "https://files.ontario.ca/opendata/public_schools_contact_january2019_en.txt",
     "format": "csv",
     "database_type": "education",

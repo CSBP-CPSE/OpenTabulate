@@ -1,5 +1,5 @@
 {
-    "localfile": "edu-private-on.csv",
+    "localfile": "edu-on-private_schools.csv",
     "url": "https://files.ontario.ca/opendata/private_schools_contact_information_jan_2019_en.xlsx",
     "format": "csv",
     "database_type": "education",
