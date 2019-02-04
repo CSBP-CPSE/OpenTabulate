@@ -1,7 +1,7 @@
 """
-This module defines the OpenBusinessRepository API, which contains classes and
-methods for a data processing production system. In abstraction, Source objects
-are created to represent everything about a dataset, such as its metadata and 
+This module defines the OpenTabulate API, which contains classes and methods 
+for a data processing production system. In abstraction, Source objects are 
+created to represent everything about a dataset, such as its metadata and 
 references to its location. The modification of Source objects by DataProcess 
 objects represents this idea of the data being processed, cleaned, and formatted. 
 A DataProcess object uses the Algorithm class methods and its child classes to 
@@ -89,54 +89,61 @@ class DataProcess(object):
     def process(self):
         """
         Process a data set using wrapper methods for the Algorithm class.
+        Some are conditioned with respect to command line arguments,
+        such as pre and post processing.
         """
-        self.preprocessData()
+        if self.source.pre_flag:
+            self.preprocessData()
         self.prepareData()
         self.extractLabels()
         self.parse()
         self.clean()
+        if self.source.post_flag:
+            self.postprocessData()
+        if self.source.blank_fill_flag:
+            self.blankFill()
 
     def preprocessData(self):
         """
-        DEBUG/IMPORTANT: integrating new feature into OBR. The idea is to permit a
-          set of scripts to tune or adjust a dataset before OBR processes it,
-          where OBR does not apply this tuning or adjusting at any point.
-          This is a "dangerous" method, in that it permits arbitrary execution
-          of a script which is sent a single command line argument, which is
-          self.source.rawpath. The file name MUST NOT be altered! The script
-          must adjust the file inline or create a temporary copy that will
-          overwrite the original. 
+        (EXPERIMENTAL) Execute external scripts before processing. 
 
-        Execute external scripts before processing using OpenBusinessRepository.
+        This is a "dangerous" method, in that it permits arbitrary execution
+        of a script which is sent a single command line argument, which is
+        self.source.rawpath. The file name MUST NOT be altered! The script
+        must adjust the file inline or create a temporary copy that will
+        overwrite the original. 
         """
-        # DEBUG: omitted until review of other comments
-        #scr = self.source.preproc
+
+        # check if a preprocessing script is provided
         if 'pre' in self.source.metadata:
             scr = self.source.metadata['pre']
         else:
             return None
-            
+
+        # string argument for script path
         if isinstance(scr, str):
-            print('DEBUG: Running script "%s".' % scr)
+            print('DEBUG: Running preprocessing script "%s".' % scr)
             rc = subprocess.call([scr, self.source.rawpath])
             print('DEBUG: process return code %d.' % rc)
+        # list of strings argument for script path
         elif isinstance(scr, list):
             for subscr in scr:
-                print('DEBUG: Running script "%s".' % subscr)
+                print('DEBUG: Running preprocessing script "%s".' % subscr)
                 rc = subprocess.call([subscr, self.source.rawpath])
                 print('DEBUG: process return code %d.' % rc)
-        
+
+                
     def prepareData(self):
         """
-        'Algorithm' wrapper method. Formats a dataset into OpenBusinessRepository's 
-        standardized CSV format.
+        'Algorithm' wrapper method. Selects a child class of 'Algorithm' to prepare formatting
+        of data into a standardized CSV format.
         """
         if self.source.metadata['format'] == 'csv':
-            fmt_algorithm = CSV_Algorithm(self.dp_address_parser)
+            fmt_algorithm = CSV_Algorithm(self.dp_address_parser, self.source.metadata['database_type'])
             fmt_algorithm.format_correction(self.source, fmt_algorithm.char_encode_check(self.source))
         elif self.source.metadata['format'] == 'xml':
-            fmt_algorithm = XML_Algorithm(self.dp_address_parser)
-        # need this line to use the Algorithm wrapper methods
+            fmt_algorithm = XML_Algorithm(self.dp_address_parser, self.source.metadata['database_type'])
+        # need the following line so the Algorithm wrapper methods work
         self.algorithm = fmt_algorithm
         
     def extractLabels(self):
@@ -158,6 +165,36 @@ class DataProcess(object):
         and reformatted dataset.
         """
         self.algorithm.clean(self.source)
+
+    def postprocessData(self):
+        """
+        (EXPERIMENTAL) Execute external scripts after processing and cleaning.
+
+        This is a "dangerous" method, in that it permits arbitrary execution
+        of a script which is sent a single command line argument, which is
+        self.source.cleanpath. The file name MUST NOT be altered! The script
+        must adjust the file inline or create a temporary copy that will
+        overwrite the original. 
+        """
+
+        # check if a preprocessing script is provided
+        if 'post' in self.source.metadata:
+            scr = self.source.metadata['post']
+        else:
+            return None
+
+        # string argument for script path
+        if isinstance(scr, str):
+            print('DEBUG: Running postprocess script "%s".' % scr)
+            rc = subprocess.call([scr, self.source.cleanpath])
+            print('DEBUG: process return code %d.' % rc)
+        # list of strings argument for script path
+        elif isinstance(scr, list):
+            for subscr in scr:
+                print('DEBUG: Running postprocess script "%s".' % subscr)
+                rc = subprocess.call([subscr, self.source.cleanpath])
+                print('DEBUG: process return code %d.' % rc)
+
 
     def blankFill(self):
         """
@@ -213,24 +250,17 @@ class Algorithm(object):
 
     Attributes:
 
-      FIELD_LABEL: Standardized field names.
+      FIELD_LABEL: Standardized field names for the database type.
 
       ADDR_FIELD_LABEL: Standardized address field names.
-
-      FORCE_LABEL: Field names acceptable by 'force' tag.
 
       ENCODING_LIST: List of character encodings to test.
 
       address_parser: Address parsing function to use.
     """
 
-    # SUGGESTION: Change structure or organization of labels to make the program
-    # more generalizable. "Special handling" is only done to ADDR_FIELD_LABEL
-    # labels (only if you use 'full_addr'!) and FORCE_LABEL labels.
-    
-    # SUPPORTED FIELD LABELS
     # general data labels (e.g. contact info, location)
-    _GENERAL_LABELS = ['full_addr', 'house_number', 'road', 'postcode', 'unit', 'city', 'prov', 'country', \
+    _GENERAL_LABELS = ['full_addr', 'street_no', 'street_name', 'postcode', 'unit', 'city', 'prov/terr', 'country', \
                        'comdist', 'region', \
                        'longitude', 'latitude', \
                        'phone', 'fax', 'email', 'website', 'tollfree']
@@ -246,36 +276,29 @@ class Algorithm(object):
                         'qc_cae_1', 'qc_cae_desc_1', 'qc_cae_2', 'qc_cae_desc_2', \
                         'facebook', 'twitter', 'linkedin', 'youtube', 'instagram']
 
-    # DEBUG: IN PROGRESS
-    # 'ins_name' institution name
-    # 'ins_type' public, private, charter, seperate
-    # 'edu_level' education level (e.g. elementary, secondary, post-secondary)
-    # 'board_name' education board name of institution
-    _EDU_FACILITY_LABELS = ['ins_name', 'ins_type', 'edu_level', 'board_name']
-
-    FIELD_LABEL = _BUSINESS_LABELS + _GENERAL_LABELS
+    # education data labels
+    _EDU_FACILITY_LABELS = ['ins_name', 'ins_type', 'ins_code', 'edu_level', 'board_name', \
+                            'board_code', 'school_yr', 'range', 'kindergarten', 'elementary', \
+                            'secondary', 'post-secondary']
 
     # supported address field labels
     # note that the labels are ordered to conform to the Canada Post mailing address standard
-    ADDR_FIELD_LABEL = ['unit', 'house_number', 'road', 'city', 'prov', 'country', 'postcode']
-
-    # supported 'force' labels
-    FORCE_LABEL = ['city', 'prov', 'country']
+    ADDR_FIELD_LABEL = ['unit', 'street_no', 'street_name', 'city', 'prov/terr', 'country', 'postcode']
 
     # supported encodings (as defined in Python standard library)
     ENCODING_LIST = ["utf-8", "cp1252", "cp437"]
     
     # conversion table for address labels to libpostal tags
-    _ADDR_LABEL_TO_POSTAL = {'house_number' : 'house_number', \
-                            'road' : 'road', \
+    _ADDR_LABEL_TO_POSTAL = {'street_no' : 'house_number', \
+                            'street_name' : 'road', \
                             'unit' : 'unit', \
                             'city' : 'city', \
-                            'prov' : 'state', \
+                            'prov/terr' : 'state', \
                             'country' : 'country', \
                             'postcode' : 'postcode' }
 
 
-    def __init__(self, address_parser=None):
+    def __init__(self, address_parser=None, database_type=None):
         """
         Initializes Algorithm object.
 
@@ -284,7 +307,14 @@ class Algorithm(object):
             AddressParser object or 'None'.
         """
         self.address_parser = address_parser
+        self.database_type = database_type
+        
+        if self.database_type == "education":
+            self.FIELD_LABEL = self._EDU_FACILITY_LABELS + self._GENERAL_LABELS
+        else: # default to business
+            self.FIELD_LABEL = self._BUSINESS_LABELS + self._GENERAL_LABELS
     
+
     def char_encode_check(self, source):
         """
         Identifies the character encoding of a source by reading the metadata
@@ -379,7 +409,7 @@ class Algorithm(object):
 
         # open files for read and writing
         # 'f' refers to the original file, 'bff' refers to the new blank filled file
-        with open(source.cleanpath, 'r') as f, open(source.cleanpath + '-temp', 'w') as bff:
+        with open(source.cleanpath, 'r') as f, open(source.cleanpath + '.bf', 'w') as bff:
             # initialize csv reader/writer
             rf = csv.DictReader(f)
             wf = csv.writer(bff, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
@@ -395,9 +425,128 @@ class Algorithm(object):
                         row2write.append(old_row[col])
                 wf.writerow(row2write)
                 
-        os.rename(source.cleanpath + '-temp', source.cleanpath)
 
+    def clean(self, source):
+        """
+        A general dataset cleaning method.
 
+        Args:
+
+          source: A dataset and its associated metadata, defined as a Source 
+            object.
+        """
+        error_flag = False
+        
+        with open(source.dirtypath, 'r') as dirty, \
+             open(source.cleanpath, 'w') as clean, \
+             open(source.cleanpath + ".errors", 'w') as error:
+
+            csvreader = csv.DictReader(dirty)
+            csvwriter = csv.DictWriter(clean, fieldnames=csvreader.fieldnames, quoting=csv.QUOTE_ALL)
+
+            error_headers = ['ERROR'] + csvreader.fieldnames
+            csverror = csv.DictWriter(error, fieldnames=error_headers, quoting=csv.QUOTE_ALL)
+            
+            csvwriter.writeheader()
+            csverror.writeheader()
+            
+            for row in csvreader:
+                # general field cleaning
+                # clean postal codes
+                if 'postcode' in csvreader.fieldnames and row['postcode'] != '':
+                    postal_code = row['postcode']
+                    postal_code = re.sub(r"\s+", "", postal_code)
+                    postal_code = postal_code.upper()
+                    row['postcode'] = postal_code
+
+                    # check string length
+                    if len(postal_code) != 6:
+                        row['ERROR'] = "postcode:"
+                        csverror.writerow(row)
+                        error_flag = True
+                        continue
+
+                    # check character frequency
+                    alpha = 0
+                    digit = 0
+                    for c in postal_code:
+                        if c.isalpha():
+                            alpha += 1
+                        elif c.isdigit():
+                            digit += 1
+                    if alpha != 3 or digit != 3:
+                        row['ERROR'] = "postcode:"
+                        csverror.writerow(row)
+                        error_flag = True
+                        continue
+
+                    # check structure
+                    if not re.match(r'[A-Z][0-9][A-Z][0-9][A-Z][0-9]', postal_code):
+                        row['ERROR'] = "postcode"
+                        csverror.writerow(row)
+                        error_flag = True
+                        continue
+
+                if 'phone' in csvreader.fieldnames and row['phone'] != '':
+                    phone_number = row['phone']
+                    phone_number = re.sub(r"[\s\(\)-]", "", phone_number)
+                    row['phone'] = phone_number
+
+                if 'fax' in csvreader.fieldnames and row['fax'] != '':
+                    fax_number = row['fax']
+                    fax_number = re.sub(r"[\s\(\)-]", "", fax_number)
+                    row['fax'] = fax_number
+
+                
+                if 'prov/terr' in csvreader.fieldnames and row['prov/terr'] != '':
+                    province_territory_shortlist = ["ab", "bc", "mb", "nb", "nl", "ns", "nt", "nu", "on", "pe", "qc", "sk", "yt"]
+                    long_to_short_map = {"alberta": "ab", \
+                                         "british columbia": "bc", \
+                                         "manitoba": "mb", \
+                                         "new brunswick": "nb", \
+                                         "newfoundland": "nl", \
+                                         "nova scotia": "ns", \
+                                         "northwest territories": "nt", \
+                                         "nunavut": "nu", \
+                                         "ontario": "on", \
+                                         "prince edward island": "pe", \
+                                         "québec": "qc", \
+                                         "saskatchewan": "sk", \
+                                         "yukon": "yt"}
+
+                    if row['prov/terr'] in province_territory_shortlist:
+                        pass
+                    elif row['prov/terr'] in long_to_short_map:
+                        row['prov/terr'] = long_to_short_map[row['prov/terr']]
+                    else:
+                        row['ERROR'] = "prov/terr"
+                        csverror.writerow(row)
+                        error_flag = True
+                        continue
+
+                if 'country' in csvreader.fieldnames and row['country'] != '':
+                    if row['country'] in ["ca", "canada"]:
+                        row['country'] = "ca"
+                    else:
+                        row['ERROR'] = "country"
+                        csverror.writerow(row)
+                        error_flag = True
+                        continue
+
+                # business label cleaning
+                if self.database_type == "business":
+                    pass
+                    
+                # education label cleaning
+                if self.database_type == "education":
+                    pass
+
+                
+                csvwriter.writerow(row)
+                    
+        if error_flag == False:
+            os.remove(source.cleanpath + ".errors")
+        os.remove(source.dirtypath)
     
 class CSV_Algorithm(Algorithm):
     """
@@ -422,8 +571,6 @@ class CSV_Algorithm(Algorithm):
             # short circuit evaluation
             elif ('address' in metadata['info']) and (i in metadata['info']['address']):
                 label_map[i] = metadata['info']['address'][i] 
-            elif ('force' in metadata) and (i in metadata['force']):
-                label_map[i] = 'DPIFORCE'
         source.label_map = label_map
 
 
@@ -442,7 +589,7 @@ class CSV_Algorithm(Algorithm):
         tags = source.label_map
         enc = self.char_encode_check(source)
 
-        with open(source.dirtypath, 'r', encoding=enc, newline='') as csv_file_read, \
+        with open(source.dirtypath, 'r', encoding=enc) as csv_file_read, \
              open(source.dirtypath + '-temp', 'w', encoding="utf-8") as csv_file_write:
             csvreader = csv.DictReader(csv_file_read)
             csvwriter = csv.writer(csv_file_write, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
@@ -459,14 +606,18 @@ class CSV_Algorithm(Algorithm):
                     for key in tags:
                         # # #
                         # decision: Check if tags[key] is of type JSON array (list).
-                        # By design, FORCE keys should be ignored in this decision.
                         #
                         # depth: 1
                         # # #
-                        if isinstance(tags[key], list) and key not in self.FORCE_LABEL:
+                        if isinstance(tags[key], list):
                             entry = ''
                             for i in tags[key]:
-                                entry += entity[i] + ' '
+                                # check if 'i' is of the form 'force:*'
+                                ii = i.split(':')
+                                if len(ii) == 1:
+                                    entry += entity[i] + ' '
+                                elif len(ii) == 2:
+                                    entry += ii[1] + ' '
                             entry = self._quick_scrub(entry)
                             # # #
                             # decision: check if key is "full_addr"
@@ -503,17 +654,14 @@ class CSV_Algorithm(Algorithm):
                                     row.append("")
                             continue
                         # # #
-                        # decision: Check if tags[key] is defined as the DPIFORCE flag
-                        # depth: 1
-                        # # #
-                        if tags[key] == 'DPIFORCE':
-                            entry = self._quick_scrub(json_data['force'][key])
-                            row.append(entry)
-                            continue
-                        # # #
                         # All other cases get handled here.
                         # # #
-                        entry = self._quick_scrub(entity[tags[key]])
+                        # check if 'tags[key]' is of the form 'force:*'
+                        ee = tags[key].split(':')
+                        if len(ee) == 1:
+                            entry = self._quick_scrub(entity[ee[0]])
+                        elif len(ee) == 2:
+                            entry = self._quick_scrub(ee[1])
                         row.append(entry)
                     if not self._isRowEmpty(row):
                         csvwriter.writerow(row)
@@ -521,7 +669,6 @@ class CSV_Algorithm(Algorithm):
                 print("[ERROR] ", source.local_fname," :'", tags[key], "' is not a field name in the CSV file. ", sep='')
                 # DEBUG: need a safe way to exit from here
 
-        # success
         os.rename(source.dirtypath + '-temp', source.dirtypath)
 
         
@@ -538,20 +685,31 @@ class CSV_Algorithm(Algorithm):
 
           data_encoding: The character encoding of the data.
         """
+        error_flag = False
+        
         with open(source.rawpath, 'r', encoding=data_encoding) as raw, \
-             open(source.dirtypath, 'w', encoding=data_encoding) as dirty:
+             open(source.dirtypath, 'w', encoding=data_encoding) as dirty, \
+             open(source.dirtypath + '.errors', 'w', encoding=data_encoding) as error:
             reader = csv.reader(raw)
             writer = csv.writer(dirty)
+            errors = csv.writer(error)
+            
             flag = False
             size = 0
             first_row = True
+            line = 1
+            
             for row in reader:
                 if first_row == True:
                     row[0] = re.sub(r"^\ufeff(.+)", r"\1", row[0])
                     first_row = False
-                # SUGGESTION: log information about removed/ignored rows
+
                 if flag == True:
                     if len(row) != size:
+                        error_flag = True
+                        print("ERROR: Missing or too many entries on line ", line, ".", sep='')
+                        errors.writerow(["FC" + str(line)] + row) # FC for format correction method
+                        line += 1
                         continue
                     else:
                         writer.writerow(row)
@@ -559,20 +717,11 @@ class CSV_Algorithm(Algorithm):
                     size = len(row)
                     flag = True
                     writer.writerow(row)
+                    errors.writerow(['ERROR'] + row)
+                line += 1
 
-        
-    def clean(self, source):
-        """
-        A general dataset cleaning method. (May be moved to Algorithm)
-
-        Args:
-
-          source: A dataset and its associated metadata, defined as a Source 
-            object.
-        """
-        # IMPORTANT: Incomplete
-        os.rename(source.dirtypath, source.cleanpath)
-    
+        if error_flag == False:
+            os.remove(source.dirtypath + '.errors')
 
 class XML_Algorithm(Algorithm):
     """
@@ -606,8 +755,6 @@ class XML_Algorithm(Algorithm):
             elif ('address' in metadata['info']) and (i in metadata['info']['address']):
                 # note that the labels have to map to XPath expressions
                 label_map[i] = ".//" + metadata['info']['address'][i]
-            elif ('force' in metadata) and (i in metadata['force']):
-                label_map[i] = 'DPIFORCE'
         source.label_map = label_map
 
 
@@ -647,12 +794,17 @@ class XML_Algorithm(Algorithm):
                     #
                     # depth: 1
                     # # #
-                    if isinstance(tags[key], list) and key not in self.FORCE_LABEL:
+                    if isinstance(tags[key], list):
                         entry = ''
                         for i in tags[key]:
-                            subelement = element.find(i)
-                            subelement = self._xml_empty_element_handler(subelement)
-                            entry += subelement + ' '
+                            # check if 'i' is of the form 'force:*'
+                            ii = i.split(':')
+                            if len(ii) == 1:
+                                subelement = element.find(i)
+                                subelement = self._xml_empty_element_handler(subelement)
+                                entry += subelement + ' '
+                            elif len(ii) == 2:
+                                entry += ii[1] + ' '
                         entry = self._quick_scrub(entry)
                         # # #
                         # decision: check if key is "full_addr"
@@ -690,34 +842,20 @@ class XML_Algorithm(Algorithm):
                                 row.append("")
                         continue
                     # # #
-                    # decision: Check if tags[key] is defined as the DPIFORCE flag
-                    # depth: 1
-                    # # #
-                    if tags[key] == 'DPIFORCE':
-                        entry = self._quick_scrub(json_data['force'][key])
-                        row.append(entry)
-                        continue
-                    # # #
                     # All other cases get handled here.
                     # # #
-                    subelement = element.find(tags[key])
-                    subel_content = self._xml_empty_element_handler(subelement)
+                    # check if 'tags[key]' is of the form 'force:*'
+                    ee = tags[key].split(':')
+                    if len(ee) == 1:
+                        subelement = element.find(ee[0])
+                        subel_content = self._xml_empty_element_handler(subelement)
+                    elif len(ee) == 2:
+                        subel_content = ee[1]
                     row.append(self._quick_scrub(subel_content))
                 if not self._isRowEmpty(row):
                     csvwriter.writerow(row)
 
 
-    def clean(self, source):
-        """
-        A general dataset cleaning method. (May be moved to Algorithm)
-
-        Args:
-
-          source: A dataset and its associated metadata, defined as a Source 
-            object.
-        """
-        # IMPORTANT: Incomplete
-        os.rename(source.dirtypath, source.cleanpath)
 
 
     def _xml_empty_element_handler(self, element):
@@ -758,6 +896,10 @@ class Source(object):
     
       srcpath: path to source file relative to the OBR directory.
 
+      metadata: JSON dumps from source file
+
+      local_fname: 'root' name of the dataset file (without prefixes)
+
       rawpath: path to the raw dataset relative to the OBR directory. This is
         assigned './pddir/raw'.
 
@@ -769,12 +911,13 @@ class Source(object):
 
       label_map: a dict object that stores the mapping of OBRs standardized labels
         to the dataset's labels, as obtained by the source file.
-      
-      # DEBUG: TO BE ADDED LATER
-      preproc: a path, list of paths, or 'None' of executable scripts found in the
-        OBR directory (for convention, they are stored in the scripts folder).
+
+      database_type: string which indicates the type of database, intended to be
+        interpreted by the DataProcess class when determining standardized column 
+        names.
     """
-    def __init__(self, path):
+    def __init__(self, path, pre_flag=False, post_flag=False, no_fetch_flag=True, \
+                 no_extract_flag=True, blank_fill_flag=False):
         """
         Initializes a new source file object.
 
@@ -787,13 +930,21 @@ class Source(object):
         self.srcpath = path
         with open(path) as f:
             self.metadata = json.load(f)
+
+        # determined by command line arguments
+        self.pre_flag = pre_flag
+        self.post_flag = post_flag
+        self.no_fetch_flag = no_fetch_flag
+        self.no_extract_flag = no_extract_flag
+        self.blank_fill_flag = blank_fill_flag
+        
+        # determined during parsing
         self.local_fname = None
         self.rawpath = None
         self.dirtypath = None
         self.cleanpath = None
         self.label_map = None
-        # DEBUG/IMPORTANT: omitted until review of other comments
-        #self.preproc = None
+        self.database_type = None
 
     def parse(self):
         """
@@ -808,6 +959,8 @@ class Source(object):
             error since they cannot both be used in a source file.
 
           TypeError: Associated with an incorrect JSON type for a tag.
+
+          OSError: A path for pre or post processing scripts was not found.
         """
         # required tags
         if 'format' not in self.metadata:
@@ -816,6 +969,8 @@ class Source(object):
             raise LookupError("'localfile' tag is missing.")
         if 'info' not in self.metadata:
             raise LookupError("'info' tag is missing.")
+        if 'database_type' not in self.metadata:
+            raise LookupError("'database_type' tag is missing.")
 
         # required tag types
         if not isinstance(self.metadata['format'], str):
@@ -824,11 +979,20 @@ class Source(object):
             raise TypeError("'localfile' must be a string.")
         if not isinstance(self.metadata['info'], dict):
             raise TypeError("'info' must be an object.")
+        if not isinstance(self.metadata['database_type'], str):
+            raise TypeError("'database_type' must be a string.")
 
         # required formats
         if (self.metadata['format'] != 'xml') and (self.metadata['format'] != 'csv'):
             raise ValueError("Unsupported data format '" + self.metadata['format'] + "'")
 
+        # required database types
+        if (self.metadata['database_type'] != 'business') and \
+           (self.metadata['database_type'] != 'education'):
+            raise ValueError("Unsupported database type '" + self.metadata['database_type'] + "'")
+
+        # OPTIONAL TAGS
+        
         # required header if format is not csv
         if (self.metadata['format'] != 'csv') and ('header' not in self.metadata):
             raise LookupError("'header' tag missing for format " + self.metadata['format'])
@@ -840,17 +1004,52 @@ class Source(object):
         if 'url' in self.metadata and (not isinstance(self.metadata['url'], str)):
             raise TypeError("'url' must be a string.")
 
-        # pre
-        # IMPORTANT: uncomment/review later after testing preprocessing in DataProcess class
-        """
+        # compression
+        if 'compression' in self.metadata:
+            if not isinstance(self.metadata['compression'], str):
+                raise TypeError("'compression' must be a string.")
+            if self.metadata['compression'] != 'zip':
+                raise ValueError("Unsupported compression format '" + self.metadata['compression'] + "'")
+
+        # localarchive
+        if ('localarchive' in self.metadata) and ('compression' not in self.metadata):
+            raise LookupError("'compression' tag missing for localarchive " + self.metadata['localarchive'])
+
+        # preprocessing type and path existence check
         if 'pre' in self.metadata:
             if not (isinstance(self.metadata['pre'], str) or isinstance(self.metadata['pre'], list)):
-                raise TypeError("'pre' must be a string or array of strings.")
-            elif isinstance(self.metadata['pre'], list):
+                raise TypeError("'pre' must be a string or a list of strings.")
+
+            if isinstance(self.metadata['pre'], list):
                 for entry in self.metadata['pre']:
                     if not isinstance(entry, str):
-                        raise TypeError("'pre' must be a string or array of strings.")
-        """
+                        raise TypeError("'pre' must be a string or a list of strings.")
+
+            if isinstance(self.metadata['pre'], str) and not os.path.exists(self.metadata['pre']):
+                raise OSError('Preprocessing script "%s" does not exist.' % script_path)
+            elif isinstance(self.metadata['pre'], list):
+                for script_path in self.metadata['pre']:
+                    if not os.path.exists(script_path):
+                        raise OSError('Preprocessing script "%s" does not exist.' % script_path)
+
+        # postprocessing type and path existence check
+        if 'post' in self.metadata:
+            if not (isinstance(self.metadata['post'], str) or isinstance(self.metadata['post'], list)):
+                raise TypeError("'post' must be a string or a list of strings.")
+
+            if isinstance(self.metadata['post'], list):
+                for entry in self.metadata['post']:
+                    if not isinstance(entry, str):
+                        raise TypeError("'post' must be a string or a list of strings.")
+
+            if isinstance(self.metadata['post'], str) and not os.path.exists(self.metadata['post']):
+                raise OSError('Postprocessing script "%s" does not exist.' % script_path)
+            elif isinstance(self.metadata['post'], list):
+                for script_path in self.metadata['post']:
+                    if not os.path.exists(script_path):
+                        raise OSError('Postprocessing script "%s" does not exist.' % script_path)                    
+
+
         # check that both full_addr and address are not in the source file
         if ('address' in self.metadata['info']) and ('full_addr' in self.metadata['info']):
             raise ValueError("Cannot have both 'full_addr' and 'address' tags in source file.")
@@ -864,17 +1063,7 @@ class Source(object):
                 if not (i in Algorithm.ADDR_FIELD_LABEL):
                     raise ValueError("'address' tag contains an invalid key.")
 
-        # verify force is an object with valid tags
-        if 'force' in self.metadata:
-            if not (isinstance(self.metadata['force'], dict)):
-                raise TypeError("'force' tag must be an object.")
-
-            for i in self.metadata['force']:
-                if not (i in Algorithm.FORCE_LABEL):
-                    raise ValueError("'force' tag contains an invalid key.")
-                elif ('address' in self.metadata['info']) and (i in self.metadata['info']['address']):
-                    raise ValueError("Key '", i, "' appears in 'force' and 'address'.")
-
+        
         # set local_fname, rawpath, dirtypath, and cleanpath values
         self.local_fname = self.metadata['localfile'].split(':')[0]
         self.rawpath = './pddir/raw/' + self.local_fname
@@ -888,23 +1077,14 @@ class Source(object):
         else:
             self.cleanpath = './pddir/clean/' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + "-clean.csv"
 
-        # set preproc value(s) if pre is defined
-        # IMPORTANT: uncomment/review later after testing preprocessing in DataProcess class
-        """
-        if 'pre' in self.metadata:
-            if isinstance(self.metadata['pre'], str) and not os.path.exists(self.metadata['pre']):
-                raise OSError('Preprocessing script "%s" does not exist.' % script_path)
-            elif isinstance(self.metadata['pre'], list):
-                for script_path in self.metadata['pre']:
-                    if not os.path.exists(script_path):
-                        raise OSError('Preprocessing script "%s" does not exist.' % script_path)
-            self.preproc = self.metadata['pre']
-        """
                 
     def fetch_url(self):
         """
         Downloads a dataset by fetching its URL and writing to the raw directory.
         """
+        if self.no_fetch_flag == True:
+            return None
+        
         # use requests library if protocol is HTTP
         if self.metadata['url'][0:4] == "http":
             response = requests.get(self.metadata['url'])
@@ -915,7 +1095,6 @@ class Source(object):
             content = response.read()
             
         if 'compression' in self.metadata:
-            # IMPORTANT/DEBUG: needs review and safeguards! using this functionality is experimental and dangerous
             if self.metadata['compression'] == "zip":
                 with open('./pddir/raw/' + self.metadata['localarchive'], 'wb') as data:
                     data.write(content)
@@ -924,6 +1103,9 @@ class Source(object):
                 data.write(content)
 
     def archive_extraction(self):
+        if self.no_extract_flag == True:
+            return None
+        
         if self.metadata['compression'] == "zip":
             with ZipFile('./pddir/raw/' + self.metadata['localarchive'], 'r') as zip_file:
                 archive_fname = self.metadata['localfile'].split(':')
@@ -933,28 +1115,25 @@ class Source(object):
                     zip_file.extract(archive_fname[1], './pddir/raw/')
                     os.rename('./pddir/raw/' + archive_fname[1], './pddir/raw/' + self.local_fname)
 
+############################
+# LOGGING / DEBUGGING MODE #
+############################
 
-    # SUGGESTION: this function is not being used!!
-    def raw_data_exists(self):
-        """
-        Checks if raw dataset exists in the required directory.
+class Logger(object):
+    """
+    (IN PROGRESS) A logging class to write logs for debugging.
+    """
+    def __init__(self):
+        pass
 
-        Raises:
+    def write(self):
+        pass
 
-          OSError: Missing dataset in raw folder.
-        """
-        if not path.exists('./pddir/raw/' + self.metadata['localfile']):
-            raise OSError("'" + self.metadata['localfile'] + "' not found in raw folder.")
+    def flush(self):
+        pass
 
+    def __enter__(self):
+        pass
 
-######################
-# OBR.PY DEBUG BLOCK #
-######################
-
-if __name__ == "__main__":
-    from postal.parser import parse_address
-    s = Source('./sources/misc/msbregistry.json')
-    s.parse()
-    d = DataProcess(s, parse_address)
-    d.process()
-    
+    def __exit__(self):
+        pass

@@ -7,7 +7,7 @@ import os
 import sys
 import time
 import io
-import obr
+import opentabulate
 
 def process(source, parse_address):
     print("DEBUG:", source.local_fname)
@@ -19,16 +19,22 @@ def process(source, parse_address):
 
 # Command line interaction
 cmd_args = argparse.ArgumentParser(description='A command-line interactive tool with the OBR.')
+cmd_args.add_argument('-b', '--blank-fill', action='store_true', default=False, \
+                      help='append blank entries for missing source file columns')
 cmd_args.add_argument('-p', '--ignore-proc', action='store_true', default=False, \
                       help='check source files without processing data')
 cmd_args.add_argument('-u', '--ignore-url', action='store_true', default=False, \
                       help='ignore "url" entries from source files')
 cmd_args.add_argument('-z', '--no-decompress', action='store_true', default=False, \
                       help='do not decompress files from compressed archives')
+cmd_args.add_argument('--pre', action='store_true', default=False, \
+                      help='(EXPERIMENTAL) allow preprocessing script to run')
+cmd_args.add_argument('--post', action='store_true', default=False, \
+                      help='(EXPERIMENTAL) allow postprocessing script to run')
 cmd_args.add_argument('-j', '--jobs', action='store', default=1, type=int, metavar='N', \
                       help='run at most N jobs asynchronously')
 cmd_args.add_argument('--log', action='store', default="pdlog.txt", type=str, \
-                      metavar='FILE', help='log output to FILE')
+                      metavar='FILE', help='(NOT FUNCTIONAL) log output to FILE')
 cmd_args.add_argument('--initialize', action='store_true', default=False, \
                       help='create processing directories')
 cmd_args.add_argument('SOURCE', nargs='*', default=None, help='path to source file')
@@ -44,7 +50,7 @@ os.chdir(os.path.dirname(os.path.realpath(__file__)))
 os.chdir('..')
 
 if args.initialize == True:
-    PD_TREE = ['./pddir', './pddir/raw', './pddir/pp', './pddir/dirty', './pddir/clean']
+    PD_TREE = ['./pddir', './pddir/raw', './pddir/dirty', './pddir/clean']
     print("Creating data processing directory tree in current working directory . . .")
     for p in PD_TREE:
         if not os.path.isdir(p):
@@ -77,16 +83,17 @@ urls = []
 
 for source in args.SOURCE:
     print("Creating source object:", source)
-    srcfile = obr.Source(source)
+    srcfile = obr.Source(source, args.pre, args.post, args.ignore_url, \
+                         args.no_decompress, args.blank_fill)
     print("Parsing...")
     srcfile.parse()
     print("Done.")
     if 'url' not in srcfile.metadata:
         print("WARNING: This source file does not have a URL.")
-    if args.ignore_url == False and ('url' in srcfile.metadata) and (srcfile.metadata['url'] not in urls):
+    if ('url' in srcfile.metadata) and (srcfile.metadata['url'] not in urls):
         srcfile.fetch_url()
         urls.append(srcfile.metadata['url'])
-    if args.no_decompress == False and 'compression' in srcfile.metadata:
+    if 'compression' in srcfile.metadata:
         srcfile.archive_extraction()
     src.append(srcfile)
 
