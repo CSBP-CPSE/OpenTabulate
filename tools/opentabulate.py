@@ -264,6 +264,11 @@ class Algorithm(object):
                             'board_code', 'school_yr', 'range', 'kindergarten', 'elementary', \
                             'secondary', 'post-secondary']
 
+    # hospital data labels
+    _HOSPITAL_LABELS = ['hospital_name','hospital_type','health_authority','hours', 'county']
+    # hospital data labels
+    _LIBRARY_LABELS = ['library_name','library_type','library_board','hours', 'county']
+
     # supported address field labels
     # note that the labels are ordered to conform to the Canada Post mailing address standard
     ADDR_FIELD_LABEL = ['unit', 'street_no', 'street_name', 'city', 'prov/terr', 'country', 'postcode']
@@ -294,6 +299,10 @@ class Algorithm(object):
         
         if self.database_type == "education":
             self.FIELD_LABEL = self._EDU_FACILITY_LABELS + self._GENERAL_LABELS
+        elif self.database_type == "hospital":
+            self.FIELD_LABEL = self._HOSPITAL_LABELS + self._GENERAL_LABELS
+        elif self.database_type == "library":
+            self.FIELD_LABEL = self._LIBRARY_LABELS + self._GENERAL_LABELS
         else: # default to business
             self.FIELD_LABEL = self._BUSINESS_LABELS + self._GENERAL_LABELS
     
@@ -523,8 +532,14 @@ class Algorithm(object):
                 # education label cleaning
                 if self.database_type == "education":
                     pass
+                    
+                # hospital label cleaning
+                if self.database_type == "hospital":
+                    pass
 
-                
+                # library label cleaning
+                if self.database_type == "library":
+                    pass
                 csvwriter.writerow(row)
                     
         if error_flag == False:
@@ -970,6 +985,8 @@ class Source(object):
 
         # required database types
         if (self.metadata['database_type'] != 'business') and \
+	   (self.metadata['database_type'] != 'hospital') and \
+	   (self.metadata['database_type'] != 'library') and \
            (self.metadata['database_type'] != 'education'):
             raise ValueError("Unsupported database type '" + self.metadata['database_type'] + "'")
 
