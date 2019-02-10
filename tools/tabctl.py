@@ -11,7 +11,7 @@ import opentabulate
 
 def process(source, parse_address):
     print("DEBUG:", source.local_fname)
-    prodsys = obr.DataProcess(source, parse_address)
+    prodsys = opentabulate.DataProcess(source, parse_address)
     prodsys.process()
     # DEBUG
     #prodsys.blankFill()
@@ -83,7 +83,7 @@ urls = []
 
 for source in args.SOURCE:
     print("Creating source object:", source)
-    srcfile = obr.Source(source, args.pre, args.post, args.ignore_url, \
+    srcfile = opentabulate.Source(source, args.pre, args.post, args.ignore_url, \
                          args.no_decompress, args.blank_fill)
     print("Parsing...")
     srcfile.parse()
