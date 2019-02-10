@@ -8,7 +8,6 @@ import os
 import signal
 import time
 
-<<<<<<< HEAD
 # process data using OpenTabulate's API
 def process(source, parse_address, verbose):
     #pool_worker_id = multiprocessing.current_process().name
@@ -56,15 +55,6 @@ def log_cleanup(log_name, no_jobs):
                     log_file.write(pw_log.read())
                 os.remove(pw)
 """        
-=======
-def process(source, parse_address):
-    print("DEBUG:", source.local_fname)
-    prodsys = opentabulate.DataProcess(source, parse_address)
-    prodsys.process()
-    # DEBUG
-    #prodsys.blankFill()
-    
->>>>>>> c9d692a0eaf1f58d82eb7ea592c347c54800e36c
 
 # Command line interaction
 cmd_args = argparse.ArgumentParser(description='OpenTabulate: a command-line data tabulation tool.')
@@ -129,11 +119,7 @@ src = []
 urls = []
 
 for source in args.SOURCE:
-<<<<<<< HEAD
     print("[DEBUG]: Creating source object:", source)
-=======
-    print("Creating source object:", source)
->>>>>>> c9d692a0eaf1f58d82eb7ea592c347c54800e36c
     srcfile = opentabulate.Source(source, args.pre, args.post, args.ignore_url, \
                          args.no_decompress, args.blank_fill)
     print("[DEBUG]: Parsing contents...")
