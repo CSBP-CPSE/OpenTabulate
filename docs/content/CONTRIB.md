@@ -64,7 +64,7 @@ The following tags are generally for data file handling and naming. These tags m
 | `localarchive` | string | The (desired) name of the local archive (e.g. `zip`, `tar`) stored in `./pddir/raw/`. | No | Requires `compression`. |
 | `url` | string | A URL string giving the direct link to the data set. | No | Requires `localarchive` and `compression` if the URL refers to an archive download. |
 | `format` | string | Dataset file format. Currently supports `csv` and `xml`. | Yes | None. |
-| `database_type` | string | Dataset type to define which `info` tags to use. Currently supports `business` and `education`. | Yes | None. |
+| `database_type` | string | Dataset type to define which `info` tags to use. Currently supports `business`, `education`, 'hospital', and 'library'. | Yes | None. |
 | `compression` | string | The compression algorithm for the archive containing your dataset. Currently supports `zip`. | No | None. | 
 | `encoding` | string | Dataset character encoding, which can be "utf-8", "cp1252", or "cp437". If not specified, the encoding is guessed from this list. | No | None. |
 | `pre` | string/list | A path or list of paths to run pre-processing scripts. | No | None. |
@@ -144,6 +144,27 @@ These keys can be used for any `database_type`.
 | `elementary` | string/list | Binary output indicating if the school supports elementary students. | No | None. |
 | `secondary` | string/list | Binary output indicating if the school supports secondary students. | No | None. |
 | `post-secondary` | string/list | Binary output indicating if the school supports post-secondary students. | No | None. |
+
+
+### Hospital info tags 
+
+| Key | JSON Type | Description | Required? | Dependencies |
+| --- | --------- | ----------- | --------- | ------------ |
+| `hospital_name` | string/list | Name of hospital or health centre. | No | None. |
+| `hospital_type` | string/list | Type of health centre (e.g. Community Hospital, Community Health Centre, etc.) | No | None. |
+| `health_authority` | string/list | Regional governing health authority. | No | None. |
+| `hours` | string/list | Hours of service | No | None. |
+| `county` | string/list | County or region. | No | None. |
+
+### Library info tags 
+
+| Key | JSON Type | Description | Required? | Dependencies |
+| --- | --------- | ----------- | --------- | ------------ |
+| `library_name` | string/list | Library name. | No | None. |
+| `library_type` | string/list | Library type (depends on the provider, example values are branch or head, or municipal). | No | None. |
+| `library_board` | string/list | Name of governing library board. | No | None. |
+| `hours` | string/list | Hours of service | No | None. |
+| `county` | string/list | County or region | No | None. |
 
 ### Address info tag
 
