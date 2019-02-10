@@ -16,7 +16,7 @@ A basic setup of the data processing software will at least require
 Once those are installed, clone the repository
 
 ```bash
-$ git clone https://github.com/CSBP-CPSE/OpenBusinessRepository
+$ git clone https://github.com/CSBP-CPSE/OpenTabulate
 ```
 
 and run the command
@@ -39,4 +39,4 @@ Please refer to the user-friendly documentation [here](docs/WELCOME.md).
 
 ## Issues / Problèmes
 
-You can post questions, enhancement requests, and bugs in [Issues](https://github.com/CSBP-CPSE/OpenBusinessRepository/issues).
+You can post questions, enhancement requests, and bugs in [Issues](https://github.com/CSBP-CPSE/OpenTabulate/issues).

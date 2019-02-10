@@ -35,6 +35,7 @@ import os
 import re
 import requests
 import subprocess
+import sys
 import urllib.request as req
 
 from xml.etree import ElementTree
@@ -85,24 +86,6 @@ class DataProcess(object):
         """
         self.dp_address_parser = AddressParser(address_parser)
 
-    
-    def process(self):
-        """
-        Process a data set using wrapper methods for the Algorithm class.
-        Some are conditioned with respect to command line arguments,
-        such as pre and post processing.
-        """
-        if self.source.pre_flag:
-            self.preprocessData()
-        self.prepareData()
-        self.extractLabels()
-        self.parse()
-        self.clean()
-        if self.source.post_flag:
-            self.postprocessData()
-        if self.source.blank_fill_flag:
-            self.blankFill()
-
     def preprocessData(self):
         """
         (EXPERIMENTAL) Execute external scripts before processing. 
@@ -122,15 +105,15 @@ class DataProcess(object):
 
         # string argument for script path
         if isinstance(scr, str):
-            print('DEBUG: Running preprocessing script "%s".' % scr)
+            print('[DEBUG]: Running preprocessing script "%s".' % scr)
             rc = subprocess.call([scr, self.source.rawpath])
-            print('DEBUG: process return code %d.' % rc)
+            print('[DEBUG]: process return code %d.' % rc)
         # list of strings argument for script path
         elif isinstance(scr, list):
             for subscr in scr:
-                print('DEBUG: Running preprocessing script "%s".' % subscr)
+                print('[DEBUG]: Running preprocessing script "%s".' % subscr)
                 rc = subprocess.call([subscr, self.source.rawpath])
-                print('DEBUG: process return code %d.' % rc)
+                print('[DEBUG]: process return code %d.' % rc)
 
                 
     def prepareData(self):
@@ -185,15 +168,15 @@ class DataProcess(object):
 
         # string argument for script path
         if isinstance(scr, str):
-            print('DEBUG: Running postprocess script "%s".' % scr)
+            print('[DEBUG]: Running postprocess script "%s".' % scr)
             rc = subprocess.call([scr, self.source.cleanpath])
-            print('DEBUG: process return code %d.' % rc)
+            print('[DEBUG]: process return code %d.' % rc)
         # list of strings argument for script path
         elif isinstance(scr, list):
             for subscr in scr:
-                print('DEBUG: Running postprocess script "%s".' % subscr)
+                print('[DEBUG]: Running postprocess script "%s".' % subscr)
                 rc = subprocess.call([subscr, self.source.cleanpath])
-                print('DEBUG: process return code %d.' % rc)
+                print('[DEBUG]: process return code %d.' % rc)
 
 
     def blankFill(self):
@@ -598,8 +581,6 @@ class CSV_Algorithm(Algorithm):
             col_labels = self._generateFirstRow(tags)
             csvwriter.writerow(col_labels)
 
-            # SUGGESTION: this try-catch block does not appear for XML_Algorithm.
-            # Perhaps it's not needed?
             try:
                 for entity in csvreader:
                     row = []
@@ -666,8 +647,9 @@ class CSV_Algorithm(Algorithm):
                     if not self._isRowEmpty(row):
                         csvwriter.writerow(row)
             except KeyError:
-                print("[ERROR] ", source.local_fname," :'", tags[key], "' is not a field name in the CSV file. ", sep='')
-                # DEBUG: need a safe way to exit from here
+                print("[ERROR] ", source.local_fname," :'", tags[key], "' is not a field name in the CSV file. ", file=sys.stderr, sep='')
+                # DEBUG: need a safe way to exit from here!!!
+                exit(1)
 
         os.rename(source.dirtypath + '-temp', source.dirtypath)
 
@@ -1123,17 +1105,40 @@ class Logger(object):
     """
     (IN PROGRESS) A logging class to write logs for debugging.
     """
-    def __init__(self):
-        pass
+    def __init__(self, id, logfile="pdlog.txt"):
+        self.log = open(id + ".tmp", 'w')
+        self.logfile = logfile
+        self.id = id
 
-    def write(self):
-        pass
+    def write(self, message):
+        self.log.write(message)
 
     def flush(self):
-        pass
+        self.log.flush()
 
     def __enter__(self):
-        pass
+        return self
 
     def __exit__(self):
-        pass
+        self.log.close()
+
+class Logger(object):
+    """
+    (IN PROGRESS) A logging class to write logs for debugging.
+    """
+    def __init__(self, id, logfile="pdlog.txt"):
+        self.log = open(id + ".tmp", 'w')
+        self.logfile = logfile
+        self.id = id
+
+    def write(self, message):
+        self.log.write(message)
+
+    def flush(self):
+        self.log.flush()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self):
+        self.log.close()
