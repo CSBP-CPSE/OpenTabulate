@@ -139,11 +139,20 @@ for source in args.SOURCE:
 
 if args.ignore_proc == True:
     exit(0)
-    
+
+# optionally load address parser
+for srcdata in src:
+    if 'full_addr' in srcdata['info']:
+        print("[INFO]: Loading address parser module...")
+        try:
+            from postal.parser import parse_address
+        except ImportError:
+            print("[ERROR]: Failed to load address parser module", file=sys.stderr)
+            exit(1)
+        print("[INFO]: Finished loading libpostal address parser")
+        break
+
 print("[INFO]: Beginning data processing, please standby or grab a coffee. :-)")
-print("[INFO]: Loading address parser module...")
-from postal.parser import parse_address
-print("[INFO]: Finished loading libpostal address parser.")
 print("[INFO]: Starting multiprocessing.Pool jobs...")
 
 start_time = time.perf_counter()
