@@ -401,7 +401,7 @@ class Algorithm(object):
 
         # open files for read and writing
         # 'f' refers to the original file, 'bff' refers to the new blank filled file
-        with open(source.cleanpath, 'r') as f, open(source.cleanpath + '.bf', 'w') as bff:
+        with open(source.cleanpath, 'r') as f, open(source.blankfillpath, 'w') as bff:
             # initialize csv reader/writer
             rf = csv.DictReader(f)
             wf = csv.writer(bff, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
@@ -431,7 +431,7 @@ class Algorithm(object):
         
         with open(source.dirtypath, 'r') as dirty, \
              open(source.cleanpath, 'w') as clean, \
-             open(source.cleanpath + ".errors", 'w') as error:
+             open(source.cleanerror, 'w') as error:
 
             csvreader = csv.DictReader(dirty)
             csvwriter = csv.DictWriter(clean, fieldnames=csvreader.fieldnames, quoting=csv.QUOTE_ALL)
@@ -543,7 +543,7 @@ class Algorithm(object):
                 csvwriter.writerow(row)
                     
         if error_flag == False:
-            os.remove(source.cleanpath + ".errors")
+            os.remove(source.cleanerror)
         os.remove(source.dirtypath)
     
 class CSV_Algorithm(Algorithm):
@@ -686,7 +686,7 @@ class CSV_Algorithm(Algorithm):
         
         with open(source.rawpath, 'r', encoding=data_encoding) as raw, \
              open(source.dirtypath, 'w', encoding=data_encoding) as dirty, \
-             open(source.dirtypath + '.errors', 'w', encoding=data_encoding) as error:
+             open(source.dirtyerror, 'w', encoding=data_encoding) as error:
             reader = csv.reader(raw)
             writer = csv.writer(dirty)
             errors = csv.writer(error)
@@ -718,7 +718,7 @@ class CSV_Algorithm(Algorithm):
                 line += 1
 
         if error_flag == False:
-            os.remove(source.dirtypath + '.errors')
+            os.remove(source.dirtyerror)
 
 class XML_Algorithm(Algorithm):
     """
@@ -906,6 +906,10 @@ class Source(object):
       cleanpath: path to the clean dataset relative to the OBR directory. This is
         assigned './pddir/clean'.
 
+      blankfillpath: path to a clean dataset with missing tabulation columns inserted
+        as blank filled entries, relative to the OBR directory. This appears in
+        './pddir/clean'.
+
       label_map: a dict object that stores the mapping of OBRs standardized labels
         to the dataset's labels, as obtained by the source file.
 
@@ -938,8 +942,13 @@ class Source(object):
         # determined during parsing
         self.local_fname = None
         self.rawpath = None
+        
         self.dirtypath = None
         self.cleanpath = None
+        self.dirtyerror = None
+        self.cleanerror = None
+        self.blankfillpath = None
+        
         self.label_map = None
         self.database_type = None
 
@@ -1067,14 +1076,23 @@ class Source(object):
         self.local_fname = self.metadata['localfile'].split(':')[0]
         self.rawpath = './pddir/raw/' + self.local_fname
         if len(self.local_fname.split('.')) == 1:
-            self.dirtypath = './pddir/dirty/' + self.local_fname + "-dirty.csv"
+            self.dirtypath = './pddir/dirty/dirty-' + self.local_fname + ".csv"
+            self.dirtyerror = './pddir/dirty/err-dirty-' + self.local_fname + ".csv"
         else:
-            self.dirtypath = './pddir/dirty/' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + "-dirty.csv"
+            self.dirtypath = './pddir/dirty/dirty-' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + ".csv"
+            self.dirtyerror = './pddir/dirty/err-dirty-' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + ".csv"
 
         if len(self.local_fname.split('.')) == 1:
-            self.cleanpath = './pddir/clean/' + self.local_fname + "-clean.csv"
+            self.cleanpath = './pddir/clean/clean-' + self.local_fname + ".csv"
+            self.cleanerror = './pddir/clean/err-clean-' + self.local_fname + ".csv"
         else:
-            self.cleanpath = './pddir/clean/' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + "-clean.csv"
+            self.cleanpath = './pddir/clean/clean-' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + ".csv"
+            self.cleanerror = './pddir/clean/err-clean-' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + ".csv"
+
+        if len(self.local_fname.split('.')) == 1:
+            self.blankfillpath = './pddir/clean/bf-clean-' + self.local_fname + ".csv"
+        else:
+            self.blankfillpath = './pddir/clean/bf-clean-' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + ".csv"
 
                 
     def fetch_url(self):
