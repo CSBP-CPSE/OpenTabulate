@@ -664,6 +664,7 @@ class CSV_Algorithm(Algorithm):
             except KeyError:
                 print("[ERROR] ", source.local_fname," :'", tags[key], "' is not a field name in the CSV file. ", file=sys.stderr, sep='')
                 # DEBUG: need a safe way to exit from here!!!
+                # this simply kills the pool worker process
                 exit(1)
 
         os.rename(source.dirtypath + '-temp', source.dirtypath)
@@ -704,7 +705,7 @@ class CSV_Algorithm(Algorithm):
                 if flag == True:
                     if len(row) != size:
                         error_flag = True
-                        print("ERROR: Missing or too many entries on line ", line, ".", sep='')
+                        print("[ERROR]: Missing or too many entries on line ", line, ".", sep='')
                         errors.writerow(["FC" + str(line)] + row) # FC for format correction method
                         line += 1
                         continue
@@ -1034,7 +1035,7 @@ class Source(object):
                         raise TypeError("'pre' must be a string or a list of strings.")
 
             if isinstance(self.metadata['pre'], str) and not os.path.exists(self.metadata['pre']):
-                raise OSError('Preprocessing script "%s" does not exist.' % script_path)
+                raise OSError('Preprocessing script "%s" does not exist.' % self.metadata['pre'])
             elif isinstance(self.metadata['pre'], list):
                 for script_path in self.metadata['pre']:
                     if not os.path.exists(script_path):
@@ -1051,7 +1052,7 @@ class Source(object):
                         raise TypeError("'post' must be a string or a list of strings.")
 
             if isinstance(self.metadata['post'], str) and not os.path.exists(self.metadata['post']):
-                raise OSError('Postprocessing script "%s" does not exist.' % script_path)
+                raise OSError('Postprocessing script "%s" does not exist.' % self.metadata['post'])
             elif isinstance(self.metadata['post'], list):
                 for script_path in self.metadata['post']:
                     if not os.path.exists(script_path):

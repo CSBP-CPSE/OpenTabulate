@@ -6,6 +6,7 @@ import multiprocessing
 import opentabulate
 import os
 import signal
+import sys
 import time
 
 # process data using OpenTabulate's API
@@ -36,7 +37,7 @@ def process(source, parse_address, verbose):
     if prodsys.source.blank_fill_flag:
         print("[DEBUG]: Running 'blankFill()' due to blank-fill flag")
         prodsys.blankFill()
-        print("[DEBUG]: Completed'")
+        print("[DEBUG]: Completed")
     print("[DEBUG]: Tabulating '", prodsys.source.local_fname, "' complete.", sep='')
 
 # signal handler for log files
@@ -141,8 +142,8 @@ if args.ignore_proc == True:
     exit(0)
 
 # optionally load address parser
-for srcdata in src:
-    if 'full_addr' in srcdata['info']:
+for so in src:
+    if 'full_addr' in so.metadata['info']:
         print("[INFO]: Loading address parser module...")
         try:
             from postal.parser import parse_address
