@@ -93,6 +93,9 @@ These keys can be used for any `database_type`.
 | `region` | string/list | Region name (_not_ province or territory). | No | None. |
 | `longitude` | string/list | Location refering to the geographic coordinate system. | No | None. |
 | `latitude` | string/list | Location refering to the geographic coordinate system. | No | None. |
+| `hours` | string/list | Hours of service | No | None. |
+| `county` | string/list | County or region | No | None. |
+
 
 ##### Business info tags
 
@@ -153,8 +156,6 @@ These keys can be used for any `database_type`.
 | `hospital_name` | string/list | Name of hospital or health centre. | No | None. |
 | `hospital_type` | string/list | Type of health centre (e.g. Community Hospital, Community Health Centre, etc.) | No | None. |
 | `health_authority` | string/list | Regional governing health authority. | No | None. |
-| `hours` | string/list | Hours of service | No | None. |
-| `county` | string/list | County or region. | No | None. |
 
 ### Library info tags 
 
@@ -163,8 +164,7 @@ These keys can be used for any `database_type`.
 | `library_name` | string/list | Library name. | No | None. |
 | `library_type` | string/list | Library type (depends on the provider, example values are branch or head, or municipal). | No | None. |
 | `library_board` | string/list | Name of governing library board. | No | None. |
-| `hours` | string/list | Hours of service | No | None. |
-| `county` | string/list | County or region | No | None. |
+
 
 ### Address info tag
 
