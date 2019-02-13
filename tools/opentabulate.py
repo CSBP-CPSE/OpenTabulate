@@ -246,7 +246,7 @@ class Algorithm(object):
     _GENERAL_LABELS = ['full_addr', 'street_no', 'street_name', 'postcode', 'unit', 'city', 'prov/terr', 'country', \
                        'comdist', 'region', \
                        'longitude', 'latitude', \
-                       'phone', 'fax', 'email', 'website', 'tollfree']
+                       'phone', 'fax', 'email', 'website', 'tollfree','hours', 'county']
 
     # business data labels
     _BUSINESS_LABELS = ['bus_name', 'trade_name', 'bus_type', 'bus_no', 'bus_desc', \
@@ -265,9 +265,9 @@ class Algorithm(object):
                             'secondary', 'post-secondary']
 
     # hospital data labels
-    _HOSPITAL_LABELS = ['hospital_name','hospital_type','health_authority','hours', 'county']
+    _HOSPITAL_LABELS = ['hospital_name','hospital_type','health_authority']
     # hospital data labels
-    _LIBRARY_LABELS = ['library_name','library_type','library_board','hours', 'county']
+    _LIBRARY_LABELS = ['library_name','library_type','library_board']
 
     # supported address field labels
     # note that the labels are ordered to conform to the Canada Post mailing address standard
