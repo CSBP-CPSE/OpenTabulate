@@ -76,9 +76,9 @@ The following tags are generally for data file handling and naming. These tags m
 
 The tag `info` is defined as a JSON object, which is another set of curly braces `"info": {...}`.
 
-##### General info tags
+#### General info tags
 
-These keys can be used for any `database_type`.
+These keys can be used for any `database_type`. Currently, all of them refer to non-address location and contact information.
 
 | Key | JSON Type | Description | Required? | Dependencies |
 | --- | --------- | ----------- | --------- | ------------ |
@@ -94,7 +94,7 @@ These keys can be used for any `database_type`.
 | `longitude` | string/list | Location refering to the geographic coordinate system. | No | None. |
 | `latitude` | string/list | Location refering to the geographic coordinate system. | No | None. |
 
-##### Business info tags
+#### Business info tags
 
 | Key | JSON Type | Description | Required? | Dependencies |
 | --- | --------- | ----------- | --------- | ------------ |
@@ -128,7 +128,7 @@ These keys can be used for any `database_type`.
 | `youtube` | string/list | YouTube channel. | No | None. |
 | `instagram` | string/list | Instagram account.  | No | None. |
 
-### Education facility info tags 
+#### Education facility info tags 
 
 | Key | JSON Type | Description | Required? | Dependencies |
 | --- | --------- | ----------- | --------- | ------------ |
@@ -140,13 +140,16 @@ These keys can be used for any `database_type`.
 | `board_code` | string/list | School board name or district code. (note: usually specific to the data provider) | No | None. |
 | `school_yr` | string/list | School year attributed to the data entry. | No | None. |
 | `range` | string/list | Education level range (e.g. K-12). | No | None. |
-| `kindergarten` | string/list | Binary output indicating if the school supports kindergarten. | No | None. |
-| `elementary` | string/list | Binary output indicating if the school supports elementary students. | No | None. |
-| `secondary` | string/list | Binary output indicating if the school supports secondary students. | No | None. |
-| `post-secondary` | string/list | Binary output indicating if the school supports post-secondary students. | No | None. |
+| `ecs` | string/list | Early childhood services? (binary output)\* | No | None. |
+| `kindergarten` | string/list | Kindergarten? (binary output)\* | No | None. |
+| `elementary` | string/list | Elementary education? (binary output)\* | No | None. |
+| `middle` | string/list | Lower secondary education? (binary output)\* | No | None. |
+| `secondary` | string/list | Upper secondary education? (binary output)\* | No | None. |
+| `post-secondary` | string/list | Post-secondary education? (binary output)\* | No | None. |
 
+\* These categories were chosen with respect to [ISCED](https://en.wikipedia.org/wiki/International_Standard_Classification_of_Education) (Internation Standard Classification of Education).
 
-### Hospital info tags 
+#### Hospital info tags 
 
 | Key | JSON Type | Description | Required? | Dependencies |
 | --- | --------- | ----------- | --------- | ------------ |
@@ -156,7 +159,7 @@ These keys can be used for any `database_type`.
 | `hours` | string/list | Hours of service | No | None. |
 | `county` | string/list | County or region. | No | None. |
 
-### Library info tags 
+#### Library info tags 
 
 | Key | JSON Type | Description | Required? | Dependencies |
 | --- | --------- | ----------- | --------- | ------------ |
@@ -166,7 +169,7 @@ These keys can be used for any `database_type`.
 | `hours` | string/list | Hours of service | No | None. |
 | `county` | string/list | County or region | No | None. |
 
-### Address info tag
+#### Address info tag
 
 The `address` tag is a JSON object defined inside `info`. Note that this cannot be used simultaneously with `full_addr`, since the latter invokes an address parser, whereas this tag is reserved for datasets that have already separated the address tokens.
 

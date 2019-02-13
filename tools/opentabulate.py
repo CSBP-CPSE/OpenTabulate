@@ -30,6 +30,7 @@ Statistics Canada
 
 import csv
 import json
+import logging
 import operator
 import os
 import re
@@ -105,15 +106,15 @@ class DataProcess(object):
 
         # string argument for script path
         if isinstance(scr, str):
-            print('[DEBUG]: Running preprocessing script "%s".' % scr)
+            #print('[DEBUG]: Running preprocessing script "%s".' % scr)
             rc = subprocess.call([scr, self.source.rawpath])
-            print('[DEBUG]: process return code %d.' % rc)
+            #print('[DEBUG]: process return code %d.' % rc)
         # list of strings argument for script path
         elif isinstance(scr, list):
             for subscr in scr:
-                print('[DEBUG]: Running preprocessing script "%s".' % subscr)
+                #print('[DEBUG]: Running preprocessing script "%s".' % subscr)
                 rc = subprocess.call([subscr, self.source.rawpath])
-                print('[DEBUG]: process return code %d.' % rc)
+                #print('[DEBUG]: process return code %d.' % rc)
 
                 
     def prepareData(self):
@@ -168,15 +169,15 @@ class DataProcess(object):
 
         # string argument for script path
         if isinstance(scr, str):
-            print('[DEBUG]: Running postprocess script "%s".' % scr)
+            #print('[DEBUG]: Running postprocess script "%s".' % scr)
             rc = subprocess.call([scr, self.source.cleanpath])
-            print('[DEBUG]: process return code %d.' % rc)
+            #print('[DEBUG]: process return code %d.' % rc)
         # list of strings argument for script path
         elif isinstance(scr, list):
             for subscr in scr:
-                print('[DEBUG]: Running postprocess script "%s".' % subscr)
+                #print('[DEBUG]: Running postprocess script "%s".' % subscr)
                 rc = subprocess.call([subscr, self.source.cleanpath])
-                print('[DEBUG]: process return code %d.' % rc)
+                #print('[DEBUG]: process return code %d.' % rc)
 
 
     def blankFill(self):
@@ -261,8 +262,8 @@ class Algorithm(object):
 
     # education data labels
     _EDU_FACILITY_LABELS = ['ins_name', 'ins_type', 'ins_code', 'edu_level', 'board_name', \
-                            'board_code', 'school_yr', 'range', 'kindergarten', 'elementary', \
-                            'secondary', 'post-secondary']
+                            'board_code', 'school_yr', 'range', 'ecs', 'kindergarten', 'elementary', \
+                            'middle', 'secondary', 'post-secondary']
 
     # hospital data labels
     _HOSPITAL_LABELS = ['hospital_name','hospital_type','health_authority','hours', 'county']
@@ -532,6 +533,7 @@ class Algorithm(object):
                 # education label cleaning
                 if self.database_type == "education":
                     pass
+                    #if 'range' in csvreader.fieldnames and row['range'] != '':
                     
                 # hospital label cleaning
                 if self.database_type == "hospital":
@@ -662,7 +664,7 @@ class CSV_Algorithm(Algorithm):
                     if not self._isRowEmpty(row):
                         csvwriter.writerow(row)
             except KeyError:
-                print("[ERROR] ", source.local_fname," :'", tags[key], "' is not a field name in the CSV file. ", file=sys.stderr, sep='')
+                print("[ERROR]: source ", source.local_fname," - '", tags[key], "' is not a field name in the CSV file", file=sys.stderr, sep='')
                 # DEBUG: need a safe way to exit from here!!!
                 # this simply kills the pool worker process
                 exit(1)
@@ -705,7 +707,7 @@ class CSV_Algorithm(Algorithm):
                 if flag == True:
                     if len(row) != size:
                         error_flag = True
-                        print("[ERROR]: Missing or too many entries on line ", line, ".", sep='')
+                        print("[ERROR]: source ", source.local_fname, " - Missing or too many entries on line ", line, file=sys.stderr, sep='')
                         errors.writerow(["FC" + str(line)] + row) # FC for format correction method
                         line += 1
                         continue
@@ -1132,49 +1134,3 @@ class Source(object):
                 else:
                     zip_file.extract(archive_fname[1], './pddir/raw/')
                     os.rename('./pddir/raw/' + archive_fname[1], './pddir/raw/' + self.local_fname)
-
-############################
-# LOGGING / DEBUGGING MODE #
-############################
-
-class Logger(object):
-    """
-    (IN PROGRESS) A logging class to write logs for debugging.
-    """
-    def __init__(self, id, logfile="pdlog.txt"):
-        self.log = open(id + ".tmp", 'w')
-        self.logfile = logfile
-        self.id = id
-
-    def write(self, message):
-        self.log.write(message)
-
-    def flush(self):
-        self.log.flush()
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self):
-        self.log.close()
-
-class Logger(object):
-    """
-    (IN PROGRESS) A logging class to write logs for debugging.
-    """
-    def __init__(self, id, logfile="pdlog.txt"):
-        self.log = open(id + ".tmp", 'w')
-        self.logfile = logfile
-        self.id = id
-
-    def write(self, message):
-        self.log.write(message)
-
-    def flush(self):
-        self.log.flush()
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self):
-        self.log.close()
