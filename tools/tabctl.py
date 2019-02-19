@@ -162,10 +162,24 @@ if __name__ == '__main__':
         for source in src:
             jobs.append(pool.apply_async(process, (source, parse_address, args.verbose)))
         # wait for jobs to finish
+        results = []
         for pool_proc in jobs:
-            pool_proc.get()
-
+            results.append(pool_proc.get())
 end_time = time.perf_counter()            
 
 print("Completed pool work in", end_time - start_time, "seconds.")
+
+errors_detected = False
+
+for i in range(0,len(src)):
+    if results[i] != 0:
+        errors_detected = True
+        break
+
+if errors_detected:
+    print("*!* Error occurred during processing of:") 
+    for i in range(0,len(src)):
+        print("*!", src[i].local_fname)
+    print("*!* Please refer to the [ERROR] tagged messages during output.")
+    
 print("Data processing complete.")
