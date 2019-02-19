@@ -15,35 +15,38 @@ import time
 def process(source, parse_address, verbose):
     pool_worker_id = multiprocessing.current_process().name
     prodsys = opentabulate.DataProcess(source, parse_address)
-    plog = logging.getLogger(source.local_fname)
+    srclog = logging.getLogger(source.local_fname)
     
-    plog.debug("Starting tabulation for '%s'" % prodsys.source.local_fname)
+    srclog.debug("Starting tabulation for '%s'" % prodsys.source.local_fname)
     if prodsys.source.pre_flag and 'pre' in source.metadata:
-        plog.warning("Running 'preprocessData()' method due to --pre flag and 'pre' key")
+        srclog.warning("Running 'preprocessData()' method due to --pre flag and 'pre' key")
         prodsys.preprocessData()
-        plog.warning("Completed 'preprocessData()'")
-    plog.debug("Calling 'prepareData()'")
+        srclog.warning("Completed 'preprocessData()'")
+    srclog.debug("Calling 'prepareData()'")
     prodsys.prepareData()
-    plog.debug("Done")
-    plog.debug("Calling 'extractLabels()'")
+    srclog.debug("Done")
+    srclog.debug("Calling 'extractLabels()'")
     prodsys.extractLabels()
-    plog.debug("Done")
-    plog.debug("Initiating 'parse()' method...")
-    prodsys.parse()
-    plog.debug("Completed")
-    plog.debug("Initiating 'clean()' method...")
+    srclog.debug("Done")
+    srclog.debug("Initiating 'parse()' method...")
+    try:
+        prodsys.parse()
+    except:
+        return 1
+    srclog.debug("Completed")
+    srclog.debug("Initiating 'clean()' method...")
     prodsys.clean()
-    plog.debug("Completed")
+    srclog.debug("Completed")
     if prodsys.source.post_flag and 'post' in source.metadata:
-        plog.warning("Running 'postprocessData()' due to --post flag and 'post' key")
+        srclog.warning("Running 'postprocessData()' due to --post flag and 'post' key")
         prodsys.postprocessData()
-        plog.warning("Completed 'postprocessData()'")
+        srclog.warning("Completed 'postprocessData()'")
     if prodsys.source.blank_fill_flag:
-        plog.debug("Running 'blankFill()' due to blank-fill flag")
+        srclog.debug("Running 'blankFill()' due to blank-fill flag")
         prodsys.blankFill()
-        plog.debug("Completed")
-    plog.debug("Tabulating '%s' complete." % prodsys.source.local_fname)
-    
+        srclog.debug("Completed")
+    srclog.debug("Tabulating '%s' complete." % prodsys.source.local_fname)
+    return 0
 
 # Command line interaction
 cmd_args = argparse.ArgumentParser(description='OpenTabulate: a command-line data tabulation tool.')
@@ -64,7 +67,7 @@ cmd_args.add_argument('-j', '--jobs', action='store', default=1, type=int, metav
 cmd_args.add_argument('--log', action='store_const', const="tablog.txt", \
                       help='(NOT FUNCTIONAL) log output to tablog.txt')
 cmd_args.add_argument('-v', '--verbose', action='store_true',
-                      help='(EXPERIMENTAL) enable debug mode printing')
+                      help='enable debug mode printing')
 cmd_args.add_argument('--initialize', action='store_true', default=False, \
                       help='create processing directories')
 cmd_args.add_argument('SOURCE', nargs='*', default=None, help='path to source file')
@@ -105,7 +108,7 @@ if args.verbose:
 else:
     logging.basicConfig(format='[%(levelname)s] <%(name)s>: %(message)s', level=logging.WARNING)
     
-if input('Process data? (y:yes / *:exit): ') != 'y':
+if input('Process data? (enter yes in capital letters): ') != 'YES':
     print("Exiting.")
     exit(1)
 

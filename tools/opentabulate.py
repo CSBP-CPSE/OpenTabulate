@@ -106,15 +106,13 @@ class DataProcess(object):
 
         # string argument for script path
         if isinstance(scr, str):
-            #print('[DEBUG]: Running preprocessing script "%s".' % scr)
             rc = subprocess.call([scr, self.source.rawpath])
-            #print('[DEBUG]: process return code %d.' % rc)
+            self.source.log.warning("'%s' return code: %d" % (scr, rc))
         # list of strings argument for script path
         elif isinstance(scr, list):
             for subscr in scr:
-                #print('[DEBUG]: Running preprocessing script "%s".' % subscr)
                 rc = subprocess.call([subscr, self.source.rawpath])
-                #print('[DEBUG]: process return code %d.' % rc)
+                self.source.log.warning("'%s' return code: %d" % (subscr, rc))
 
                 
     def prepareData(self):
@@ -169,15 +167,13 @@ class DataProcess(object):
 
         # string argument for script path
         if isinstance(scr, str):
-            #print('[DEBUG]: Running postprocess script "%s".' % scr)
             rc = subprocess.call([scr, self.source.cleanpath])
-            #print('[DEBUG]: process return code %d.' % rc)
+            self.source.log.warning("'%s' return code: %d" % (scr, rc))
         # list of strings argument for script path
         elif isinstance(scr, list):
             for subscr in scr:
-                #print('[DEBUG]: Running postprocess script "%s".' % subscr)
                 rc = subprocess.call([subscr, self.source.cleanpath])
-                #print('[DEBUG]: process return code %d.' % rc)
+                self.source.log.warning("'%s' return code: %d" % (subscr, rc))
 
 
     def blankFill(self):
@@ -584,7 +580,8 @@ class CSV_Algorithm(Algorithm):
             object.
         """
         if not hasattr(source, 'label_map'):
-            raise ValueError("Source object missing 'label_map', 'extract_labels' was not ran.")
+            source.log.error("Source object missing 'label_map', 'extract_labels' was not ran")
+            raise ValueError("Source object missing 'label_map'")
 
         tags = source.label_map
         enc = self.char_encode_check(source)
@@ -664,10 +661,8 @@ class CSV_Algorithm(Algorithm):
                     if not self._isRowEmpty(row):
                         csvwriter.writerow(row)
             except KeyError:
-                print("[ERROR]: source ", source.local_fname," - '", tags[key], "' is not a field name in the CSV file", file=sys.stderr, sep='')
-                # DEBUG: need a safe way to exit from here!!!
-                # this simply kills the pool worker process
-                exit(1)
+                source.log.error("'%s' is not a field name, terminating processing early" % tags[key])
+                raise
 
         os.rename(source.dirtypath + '-temp', source.dirtypath)
 
@@ -707,7 +702,7 @@ class CSV_Algorithm(Algorithm):
                 if flag == True:
                     if len(row) != size:
                         error_flag = True
-                        print("[ERROR]: source ", source.local_fname, " - Missing or too many entries on line ", line, file=sys.stderr, sep='')
+                        source.log.error("Missing or too many entries on line %s" % line)
                         errors.writerow(["FC" + str(line)] + row) # FC for format correction method
                         line += 1
                         continue
@@ -955,6 +950,8 @@ class Source(object):
         self.label_map = None
         self.database_type = None
 
+        self.log = None
+
     def parse(self):
         """
         Parses the source file to check correction of syntax.
@@ -1096,6 +1093,8 @@ class Source(object):
             self.blankfillpath = './pddir/clean/bf-clean-' + self.local_fname + ".csv"
         else:
             self.blankfillpath = './pddir/clean/bf-clean-' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + ".csv"
+
+        self.log = logging.getLogger(self.local_fname)
 
                 
     def fetch_url(self):
