@@ -263,8 +263,12 @@ class Algorithm(object):
 
     # hospital data labels
     _HOSPITAL_LABELS = ['hospital_name','hospital_type','health_authority']
+
     # hospital data labels
     _LIBRARY_LABELS = ['library_name','library_type','library_board']
+
+    # fire station labels
+    _FIRE_HALL_LABELS = ['fire_stn_name']
 
     # supported address field labels
     # note that the labels are ordered to conform to the Canada Post mailing address standard
@@ -281,7 +285,6 @@ class Algorithm(object):
                             'prov/terr' : 'state', \
                             'country' : 'country', \
                             'postcode' : 'postcode' }
-
 
     def __init__(self, address_parser=None, database_type=None):
         """
@@ -300,9 +303,13 @@ class Algorithm(object):
             self.FIELD_LABEL = self._HOSPITAL_LABELS + self._GENERAL_LABELS
         elif self.database_type == "library":
             self.FIELD_LABEL = self._LIBRARY_LABELS + self._GENERAL_LABELS
-        else: # default to business
+        elif self.database_type == "fire_hall":
+            self.FIELD_LABEL = self._FIRE_HALL_LABELS + self._GENERAL_LABELS
+        elif self.database_type == "business":
             self.FIELD_LABEL = self._BUSINESS_LABELS + self._GENERAL_LABELS
-    
+        else:
+            self.FIELD_LABEL = None
+            
 
     def char_encode_check(self, source):
         """
@@ -996,6 +1003,7 @@ class Source(object):
         if (self.metadata['database_type'] != 'business') and \
 	   (self.metadata['database_type'] != 'hospital') and \
 	   (self.metadata['database_type'] != 'library') and \
+           (self.metadata['database_type'] != 'fire_hall') and \
            (self.metadata['database_type'] != 'education'):
             raise ValueError("Unsupported database type '" + self.metadata['database_type'] + "'")
 
@@ -1094,6 +1102,10 @@ class Source(object):
         else:
             self.blankfillpath = './pddir/clean/bf-clean-' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + ".csv"
 
+        #self._SRC_LABELS = 
+        #if not self._mdr_key_check(self.metadata):
+        #    raise ValueError("Invalid keys are being used in source file.")
+        
         self.log = logging.getLogger(self.local_fname)
 
                 
@@ -1133,3 +1145,15 @@ class Source(object):
                 else:
                     zip_file.extract(archive_fname[1], './pddir/raw/')
                     os.rename('./pddir/raw/' + archive_fname[1], './pddir/raw/' + self.local_fname)
+
+    """
+    def _mdr_key_check(self, node, depth=0): # *M*eta*D*ata *R*ecursive key check
+        for element in node:
+            if element not in self._SRC_LABEL[depth]:
+                print("%s is not a valid key value at depth %d" % (element, depth))
+                return False
+            if isinstance(node[element], dict):
+                if not self._mdr_key_check(node[element], depth+1):
+                    return False
+        return True
+    """

@@ -168,6 +168,12 @@ These keys can be used for any `database_type`. Currently, all of them refer to 
 | `library_type` | string/list | Library type (depends on the provider, example values are branch or head, or municipal). | No | None. |
 | `library_board` | string/list | Name of governing library board. | No | None. |
 
+#### Fire station info tags
+
+| Key | JSON Type | Description | Required? | Dependencies |
+| --- | --------- | ----------- | --------- | ------------ |
+| `fire_stn_name` | string/list | Fire station name. | No | None. |
+
 
 #### Address info tag
 
