@@ -64,7 +64,7 @@ The following tags are generally for data file handling and naming. These tags m
 | `localarchive` | string | The (desired) name of the local archive (e.g. `zip`, `tar`) stored in `./pddir/raw/`. | No | Requires `compression`. |
 | `url` | string | A URL string giving the direct link to the data set. | No | Requires `localarchive` and `compression` if the URL refers to an archive download. |
 | `format` | string | Dataset file format. Currently supports `csv` and `xml`. | Yes | None. |
-| `database_type` | string | Dataset type to define which `info` tags to use. Currently supports `business`, `education`, `hospital`, and `library`. | Yes | None. |
+| `database_type` | string | Dataset type to define which `info` tags to use. Currently supports `business`, `education`, `hospital`, `library`, and `fire_station`. | Yes | None. |
 | `compression` | string | The compression algorithm for the archive containing your dataset. Currently supports `zip`. | No | None. | 
 | `encoding` | string | Dataset character encoding, which can be "utf-8", "cp1252", or "cp437". If not specified, the encoding is guessed from this list. | No | None. |
 | `pre` | string/list | A path or list of paths to run pre-processing scripts. | No | None. |

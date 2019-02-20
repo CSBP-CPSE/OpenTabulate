@@ -240,13 +240,13 @@ class Algorithm(object):
     """
 
     # general data labels (e.g. contact info, location)
-    _GENERAL_LABELS = ['full_addr', 'street_no', 'street_name', 'postcode', 'unit', 'city', 'prov/terr', 'country', \
+    _GENERAL_LABELS = ('full_addr', 'street_no', 'street_name', 'postcode', 'unit', 'city', 'prov/terr', 'country', \
                        'comdist', 'region', \
                        'longitude', 'latitude', \
-                       'phone', 'fax', 'email', 'website', 'tollfree','hours', 'county']
+                       'phone', 'fax', 'email', 'website', 'tollfree','hours', 'county')
 
     # business data labels
-    _BUSINESS_LABELS = ['bus_name', 'trade_name', 'bus_type', 'bus_no', 'bus_desc', \
+    _BUSINESS_LABELS = ('bus_name', 'trade_name', 'bus_type', 'bus_no', 'bus_desc', \
                         'lic_type', 'lic_no', 'bus_start_date', 'bus_cease_date', 'active', \
                         'no_employed', 'no_seasonal_emp', 'no_full_emp', 'no_part_emp', 'emp_range',\
                         'home_bus', 'munic_bus', 'nonres_bus', \
@@ -254,28 +254,28 @@ class Algorithm(object):
                         'naics_2', 'naics_3', 'naics_4', 'naics_5', 'naics_6', \
                         'naics_desc', \
                         'qc_cae_1', 'qc_cae_desc_1', 'qc_cae_2', 'qc_cae_desc_2', \
-                        'facebook', 'twitter', 'linkedin', 'youtube', 'instagram']
+                        'facebook', 'twitter', 'linkedin', 'youtube', 'instagram')
 
     # education data labels
-    _EDU_FACILITY_LABELS = ['ins_name', 'ins_type', 'ins_code', 'edu_level', 'board_name', \
+    _EDU_FACILITY_LABELS = ('ins_name', 'ins_type', 'ins_code', 'edu_level', 'board_name', \
                             'board_code', 'school_yr', 'range', 'ecs', 'kindergarten', 'elementary', \
-                            'middle', 'secondary', 'post-secondary']
+                            'middle', 'secondary', 'post-secondary')
 
     # hospital data labels
-    _HOSPITAL_LABELS = ['hospital_name','hospital_type','health_authority']
+    _HOSPITAL_LABELS = ('hospital_name','hospital_type','health_authority')
 
     # hospital data labels
-    _LIBRARY_LABELS = ['library_name','library_type','library_board']
+    _LIBRARY_LABELS = ('library_name','library_type','library_board')
 
     # fire station labels
-    _FIRE_HALL_LABELS = ['fire_stn_name']
+    _FIRE_STATION_LABELS = ('fire_stn_name')
 
     # supported address field labels
     # note that the labels are ordered to conform to the Canada Post mailing address standard
-    ADDR_FIELD_LABEL = ['unit', 'street_no', 'street_name', 'city', 'prov/terr', 'country', 'postcode']
+    ADDR_FIELD_LABEL = ('unit', 'street_no', 'street_name', 'city', 'prov/terr', 'country', 'postcode')
 
     # supported encodings (as defined in Python standard library)
-    ENCODING_LIST = ["utf-8", "cp1252", "cp437"]
+    ENCODING_LIST = ("utf-8", "cp1252", "cp437")
     
     # conversion table for address labels to libpostal tags
     _ADDR_LABEL_TO_POSTAL = {'street_no' : 'house_number', \
@@ -303,8 +303,8 @@ class Algorithm(object):
             self.FIELD_LABEL = self._HOSPITAL_LABELS + self._GENERAL_LABELS
         elif self.database_type == "library":
             self.FIELD_LABEL = self._LIBRARY_LABELS + self._GENERAL_LABELS
-        elif self.database_type == "fire_hall":
-            self.FIELD_LABEL = self._FIRE_HALL_LABELS + self._GENERAL_LABELS
+        elif self.database_type == "fire_station":
+            self.FIELD_LABEL = self._FIRE_STATION_LABELS + self._GENERAL_LABELS
         elif self.database_type == "business":
             self.FIELD_LABEL = self._BUSINESS_LABELS + self._GENERAL_LABELS
         else:
@@ -1003,7 +1003,7 @@ class Source(object):
         if (self.metadata['database_type'] != 'business') and \
 	   (self.metadata['database_type'] != 'hospital') and \
 	   (self.metadata['database_type'] != 'library') and \
-           (self.metadata['database_type'] != 'fire_hall') and \
+           (self.metadata['database_type'] != 'fire_station') and \
            (self.metadata['database_type'] != 'education'):
             raise ValueError("Unsupported database type '" + self.metadata['database_type'] + "'")
 
@@ -1102,10 +1102,59 @@ class Source(object):
         else:
             self.blankfillpath = './pddir/clean/bf-clean-' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + ".csv"
 
-        #self._SRC_LABELS = 
-        #if not self._mdr_key_check(self.metadata):
-        #    raise ValueError("Invalid keys are being used in source file.")
-        
+
+        # check entire source to make sure correct keys are being used
+        for i in self.metadata:
+            root_layer = ('localfile', 'localarchive', 'url', 'format', 'database_type', \
+                           'compression', 'encoding', 'pre', 'post', 'header', 'info')
+            if i not in root_layer:
+                raise ValueError("Invalid key '%s' in source file" % i)
+
+        for i in self.metadata['info']:
+            info_layer = ('full_addr', 'address', 'phone', 'fax', 'email', 'website', 'tollfree' \
+                          'comdist', 'region', 'longitude', 'latitude', 'hours', 'county')
+
+            if database_type == 'business':
+                bus_layer = ('bus_name', 'trade_name', 'bus_type', 'bus_no', 'bus_desc', \
+                             'lic_type', 'lic_no', 'bus_start_date', 'bus_cease_date', 'active', \
+                             'no_employed', 'no_seasonal_emp', 'no_full_emp', 'no_part_emp', 'emp_range',\
+                             'home_bus', 'munic_bus', 'nonres_bus', \
+                             'exports', 'exp_cn_1', 'exp_cn_2', 'exp_cn_3', \
+                             'naics_2', 'naics_3', 'naics_4', 'naics_5', 'naics_6', \
+                             'naics_desc', \
+                             'qc_cae_1', 'qc_cae_desc_1', 'qc_cae_2', 'qc_cae_desc_2', \
+                             'facebook', 'twitter', 'linkedin', 'youtube', 'instagram')
+                if not (i in info_layer or i in bus_layer):
+                    raise ValueError("Invalid key '%s' in source file" % i)
+
+            elif database_type == 'education':
+                edu_layer = ('ins_name', 'ins_type', 'ins_code', 'edu_level', 'board_name', \
+                            'board_code', 'school_yr', 'range', 'ecs', 'kindergarten', 'elementary', \
+                            'middle', 'secondary', 'post-secondary')
+                if not (i in info_layer or i in edu_layer):
+                    raise ValueError("Invalid key '%s' in source file" % i)
+
+            elif database_type == 'library':
+                lib_layer = ('library_name','library_type','library_board')
+                if not (i in info_layer or i in lib_layer):
+                    raise ValueError("Invalid key '%s' in source file" % i)
+
+            elif database_type == 'hospital':
+                hosp_layer = ('hospital_name','hospital_type','health_authority')
+                if not (i in info_layer or i in hosp_layer):
+                    raise ValueError("Invalid key '%s' in source file" % i)
+
+            elif database_type == 'fire_station':
+                fire_layer = ('fire_stn_name')
+                if not (i in info_layer or i in fire_layer):
+                    raise ValueError("Invalid key '%s' in source file" % i)
+
+        if 'address' in self.metadata['info']:
+            address_layer = ('street_no', 'street_name', 'unit', 'city', 'prov/terr', 'country', 'postcode')
+            for i in self.metadata['info']['address']:
+                if i not in address_layer:
+                    raise ValueError("Invalid key '%s' in source file" % i)
+            
         self.log = logging.getLogger(self.local_fname)
 
                 
@@ -1145,15 +1194,3 @@ class Source(object):
                 else:
                     zip_file.extract(archive_fname[1], './pddir/raw/')
                     os.rename('./pddir/raw/' + archive_fname[1], './pddir/raw/' + self.local_fname)
-
-    """
-    def _mdr_key_check(self, node, depth=0): # *M*eta*D*ata *R*ecursive key check
-        for element in node:
-            if element not in self._SRC_LABEL[depth]:
-                print("%s is not a valid key value at depth %d" % (element, depth))
-                return False
-            if isinstance(node[element], dict):
-                if not self._mdr_key_check(node[element], depth+1):
-                    return False
-        return True
-    """
