@@ -258,8 +258,8 @@ class Algorithm(object):
 
     # education data labels
     _EDU_FACILITY_LABELS = ('ins_name', 'ins_type', 'ins_code', 'edu_level', 'board_name', \
-                            'board_code', 'school_yr', 'range', 'ecs', 'kindergarten', 'elementary', \
-                            'middle', 'secondary', 'post-secondary')
+                            'board_code', 'school_yr', 'range', 'isced010', 'isced020', 'isced1', \
+                            'isced2', 'isced3', 'isced4+')
 
     # hospital data labels
     _HOSPITAL_LABELS = ('hospital_name','hospital_type','health_authority')
@@ -1129,8 +1129,8 @@ class Source(object):
 
             elif self.database_type == 'education':
                 edu_layer = ('ins_name', 'ins_type', 'ins_code', 'edu_level', 'board_name', \
-                            'board_code', 'school_yr', 'range', 'ecs', 'kindergarten', 'elementary', \
-                            'middle', 'secondary', 'post-secondary')
+                            'board_code', 'school_yr', 'range', 'isced010', 'isced020', 'isced1', \
+                            'isced2', 'isced3', 'isced4+')
                 if not (i in info_layer or i in edu_layer):
                     raise ValueError("Invalid key '%s' in source file" % i)
 

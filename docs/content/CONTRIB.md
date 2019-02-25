@@ -143,14 +143,14 @@ These keys can be used for any `database_type`. Currently, all of them refer to 
 | `board_code` | string/list | School board name or district code. (note: usually specific to the data provider) | No | None. |
 | `school_yr` | string/list | School year attributed to the data entry. | No | None. |
 | `range` | string/list | Education level range (e.g. K-12). | No | None. |
-| `ecs` | string/list | Early childhood services? (binary output)\* | No | None. |
-| `kindergarten` | string/list | Kindergarten? (binary output)\* | No | None. |
-| `elementary` | string/list | Elementary education? (binary output)\* | No | None. |
-| `middle` | string/list | Lower secondary education? (binary output)\* | No | None. |
-| `secondary` | string/list | Upper secondary education? (binary output)\* | No | None. |
-| `post-secondary` | string/list | Post-secondary education? (binary output)\* | No | None. |
+| `isced010` | string/list | Boolean value representing the ISCED\* level for early childhood education. | No | None. |
+| `isced020` | string/list | Boolean value representing the ISCED\* level for kindergarten. | No | None. |
+| `isced1` | string/list | Boolean value representing the ISCED\* level for elementary. | No | None. |
+| `isced2` | string/list | Boolean value representing the ISCED\* level for junior secondary. | No | None. |
+| `isced3` | string/list | Boolean value representing the ISCED\* level for senior secondary. | No | None. |
+| `isced4+` | string/list | Boolean value representing the ISCED\* level for post-secondary. | No | None. |
 
-\* These categories were chosen with respect to [ISCED](https://en.wikipedia.org/wiki/International_Standard_Classification_of_Education) (Internation Standard Classification of Education).
+\* [Internation Standard Classification of Education](https://en.wikipedia.org/wiki/International_Standard_Classification_of_Education).
 
 #### Hospital info tags 
 
