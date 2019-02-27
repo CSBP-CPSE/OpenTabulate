@@ -957,7 +957,6 @@ class Source(object):
         self.blankfillpath = None
         
         self.label_map = None
-        self.database_type = None
 
         self.log = None
 
@@ -1116,7 +1115,7 @@ class Source(object):
             info_layer = ('full_addr', 'address', 'phone', 'fax', 'email', 'website', 'tollfree' \
                           'comdist', 'region', 'longitude', 'latitude', 'hours', 'county')
 
-            if self.database_type == 'business':
+            if self.metadata['database_type'] == 'business':
                 bus_layer = ('bus_name', 'trade_name', 'bus_type', 'bus_no', 'bus_desc', \
                              'lic_type', 'lic_no', 'bus_start_date', 'bus_cease_date', 'active', \
                              'no_employed', 'no_seasonal_emp', 'no_full_emp', 'no_part_emp', 'emp_range',\
@@ -1129,24 +1128,24 @@ class Source(object):
                 if not (i in info_layer or i in bus_layer):
                     raise ValueError("Invalid key '%s' in source file" % i)
 
-            elif self.database_type == 'education':
+            elif self.metadata['database_type'] == 'education':
                 edu_layer = ('ins_name', 'ins_type', 'ins_code', 'edu_level', 'board_name', \
                             'board_code', 'school_yr', 'range', 'isced010', 'isced020', 'isced1', \
                             'isced2', 'isced3', 'isced4+')
                 if not (i in info_layer or i in edu_layer):
                     raise ValueError("Invalid key '%s' in source file" % i)
 
-            elif self.database_type == 'library':
+            elif self.metadata['database_type'] == 'library':
                 lib_layer = ('library_name','library_type','library_board')
                 if not (i in info_layer or i in lib_layer):
                     raise ValueError("Invalid key '%s' in source file" % i)
 
-            elif self.database_type == 'hospital':
+            elif self.metadata['database_type'] == 'hospital':
                 hosp_layer = ('hospital_name','hospital_type','health_authority')
                 if not (i in info_layer or i in hosp_layer):
                     raise ValueError("Invalid key '%s' in source file" % i)
 
-            elif self.database_type == 'fire_station':
+            elif self.metadata['database_type'] == 'fire_station':
                 fire_layer = ('fire_stn_name')
                 if not (i in info_layer or i in fire_layer):
                     raise ValueError("Invalid key '%s' in source file" % i)
