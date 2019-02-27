@@ -150,6 +150,8 @@ for so in src:
             exit(1)
         logging.info("Finished loading libpostal address parser")
         break
+    else:
+        parse_address = None
 
 print("Beginning data processing, please standby or grab a coffee. :-)")
 

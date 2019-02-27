@@ -78,6 +78,8 @@ class DataProcess(object):
 
         if address_parser != None:
             self.dp_address_parser = AddressParser(address_parser)
+        else:
+            self.dp_address_parser = None
 
         self.algorithm = algorithm
 
@@ -268,7 +270,7 @@ class Algorithm(object):
     _LIBRARY_LABELS = ('library_name','library_type','library_board')
 
     # fire station labels
-    _FIRE_STATION_LABELS = ('fire_stn_name')
+    _FIRE_STATION_LABELS = ('fire_stn_name',)
 
     # supported address field labels
     # note that the labels are ordered to conform to the Canada Post mailing address standard
