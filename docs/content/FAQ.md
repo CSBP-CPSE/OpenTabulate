@@ -6,7 +6,7 @@ OpenTabulate is a software-based solution to one of DEIL's open data exploratory
 
 #### What type of data does OpenTabulate support?
 
-For now, just about any microdata in CSV and XML format that has contact and location information. 
+For now, just about any data in CSV and XML format that has contact and location information. 
 
 #### How do we use OpenTabulate?
 

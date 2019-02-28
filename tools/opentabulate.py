@@ -93,11 +93,11 @@ class DataProcess(object):
         """
         (EXPERIMENTAL) Execute external scripts before processing. 
 
-        This is a "dangerous" method, in that it permits arbitrary execution
-        of a script which is sent a single command line argument, which is
-        self.source.rawpath. The file name MUST NOT be altered! The script
-        must adjust the file inline or create a temporary copy that will
-        overwrite the original. 
+        This is a DANGEROUS method, in that it permits arbitrary execution
+        of a script (as your current user). The scripts are defined so that
+        they accept a single command line argument, which is self.source.rawpath. 
+        The filename MUST NOT be altered! For proper use, the script must adjust the 
+        file inline or create a temporary copy that will overwrite the original.
         """
 
         # check if a preprocessing script is provided
@@ -124,9 +124,10 @@ class DataProcess(object):
         """
         if self.source.metadata['format'] == 'csv':
             fmt_algorithm = CSV_Algorithm(self.dp_address_parser, self.source.metadata['database_type'])
-            fmt_algorithm.format_correction(self.source, fmt_algorithm.char_encode_check(self.source))
+            fmt_algorithm.csv_format_correction(self.source, fmt_algorithm.char_encode_check(self.source))
         elif self.source.metadata['format'] == 'xml':
             fmt_algorithm = XML_Algorithm(self.dp_address_parser, self.source.metadata['database_type'])
+            #fmt_algorithm.remove_xmlns(self.source)
         # need the following line so the Algorithm wrapper methods work
         self.algorithm = fmt_algorithm
         
@@ -152,13 +153,13 @@ class DataProcess(object):
 
     def postprocessData(self):
         """
-        (EXPERIMENTAL) Execute external scripts after processing and cleaning.
+        Execute external scripts after processing and cleaning.
 
-        This is a "dangerous" method, in that it permits arbitrary execution
-        of a script which is sent a single command line argument, which is
-        self.source.cleanpath. The file name MUST NOT be altered! The script
-        must adjust the file inline or create a temporary copy that will
-        overwrite the original. 
+        This is a DANGEROUS method, in that it permits arbitrary execution
+        of a script (as your current user). The scripts are defined so that
+        they accept a single command line argument, which is self.source.cleanpath. 
+        The filename MUST NOT be altered! For proper use, the script must adjust the 
+        file inline or create a temporary copy that will overwrite the original.
         """
 
         # check if a preprocessing script is provided
@@ -547,6 +548,11 @@ class Algorithm(object):
                 # library label cleaning
                 if self.database_type == "library":
                     pass
+
+                # fire station label cleaning
+                if self.database_type == "fire_station":
+                    pass
+                
                 csvwriter.writerow(row)
                     
         if error_flag == False:
@@ -594,6 +600,10 @@ class CSV_Algorithm(Algorithm):
 
         tags = source.label_map
         enc = self.char_encode_check(source)
+        FILTER_FLAG = False
+
+        if 'filter' in source.metadata:
+            FILTER_FLAG = True
 
         with open(source.dirtypath, 'r', encoding=enc) as csv_file_read, \
              open(source.dirtypath + '-temp', 'w', encoding="utf-8") as csv_file_write:
@@ -607,6 +617,26 @@ class CSV_Algorithm(Algorithm):
             try:
                 for entity in csvreader:
                     row = []
+                    # START FILTERING HERE
+                    BOOL_FILTER = []
+                    CONT_FLAG = False
+                    if FILTER_FLAG:
+                        for attr in source.metadata['filter']:
+                            VALID_FILTER = False
+                            for valid_item in source.metadata['filter'][attr]:
+                                if entity[attr] == valid_item:
+                                    VALID_FILTER = True
+                                    break
+                            BOOL_FILTER.append(VALID_FILTER)
+
+                    for b in BOOL_FILTER:
+                        if not b:
+                            CONT_FLAG = True
+                            break
+
+                    if CONT_FLAG:
+                        continue
+                    
                     for key in tags:
                         # # #
                         # decision: Check if tags[key] is of type JSON array (list).
@@ -676,7 +706,7 @@ class CSV_Algorithm(Algorithm):
         os.rename(source.dirtypath + '-temp', source.dirtypath)
 
         
-    def format_correction(self, source, data_encoding):
+    def csv_format_correction(self, source, data_encoding):
         """
         Deletes rows of CSV datasets that have a number of entries not
         agreeing with the total number of columns. Additionally removes a
@@ -726,6 +756,7 @@ class CSV_Algorithm(Algorithm):
 
         if error_flag == False:
             os.remove(source.dirtyerror)
+
 
 class XML_Algorithm(Algorithm):
     """
@@ -777,6 +808,11 @@ class XML_Algorithm(Algorithm):
         tags = source.label_map
         header = source.metadata['header']
         enc = self.char_encode_check(source)
+        FILTER_FLAG = False
+
+        if 'filter' in source.metadata:
+            FILTER_FLAG = True
+        
         xmlp = ElementTree.XMLParser(encoding=enc)
         tree = ElementTree.parse(source.rawpath, parser=xmlp)
         root = tree.getroot()
@@ -791,6 +827,28 @@ class XML_Algorithm(Algorithm):
 
             for element in root.iter(header):
                 row = []
+                # START FILTERING HERE
+                BOOL_FILTER = []
+                CONT_FLAG = False
+                if FILTER_FLAG:
+                    for attr in source.metadata['filter']:
+                        VALID_FILTER = False
+                        for valid_item in source.metadata['filter'][attr]:
+                            el = element.find(".//" + attr)
+                            el = self._xml_empty_element_handler(el)
+                            if el == valid_item:
+                                VALID_FILTER = True
+                                break
+                    BOOL_FILTER.append(VALID_FILTER)
+
+                for b in BOOL_FILTER:
+                    if not b:
+                        CONT_FLAG = True
+                        break
+
+                if CONT_FLAG:
+                    continue
+                    
                 for key in tags:
                     # # #
                     # decision: Check if tags[key] is of type JSON array (list).
@@ -920,9 +978,7 @@ class Source(object):
       label_map: a dict object that stores the mapping of OBRs standardized labels
         to the dataset's labels, as obtained by the source file.
 
-      database_type: string which indicates the type of database, intended to be
-        interpreted by the DataProcess class when determining standardized column 
-        names.
+      log: a Logger object defined as the logger with the variable name 'local_fname'. 
     """
     def __init__(self, path, pre_flag=False, post_flag=False, no_fetch_flag=True, \
                  no_extract_flag=True, blank_fill_flag=False):
@@ -1066,7 +1122,20 @@ class Source(object):
                     if not os.path.exists(script_path):
                         raise OSError('Postprocessing script "%s" does not exist.' % script_path)                    
 
+        # filter contents check
+        if 'filter' in self.metadata:
+            if not isinstance(self.metadata['filter'], dict):
+                raise TypeError("'filter' must be an object.")
+            else:
+                for attribute in self.metadata['filter']:
+                    if not isinstance(self.metadata['filter'][attribute], list):
+                        raise TypeError("Filter attribute '%s' must be a list." % attribute)
+                    else:
+                        for value in self.metadata['filter'][attribute]:
+                            if not isinstance(value, str):
+                                raise TypeError("List in filter attribute '%s' contains a non-string value." % attribute)
 
+        
         # check that both full_addr and address are not in the source file
         if ('address' in self.metadata['info']) and ('full_addr' in self.metadata['info']):
             raise ValueError("Cannot have both 'full_addr' and 'address' tags in source file.")
@@ -1107,7 +1176,7 @@ class Source(object):
         # check entire source to make sure correct keys are being used
         for i in self.metadata:
             root_layer = ('localfile', 'localarchive', 'url', 'format', 'database_type', \
-                           'compression', 'encoding', 'pre', 'post', 'header', 'info')
+                           'compression', 'encoding', 'pre', 'post', 'header', 'info', 'filter')
             if i not in root_layer:
                 raise ValueError("Invalid key '%s' in source file" % i)
 
@@ -1164,7 +1233,7 @@ class Source(object):
         Downloads a dataset by fetching its URL and writing to the raw directory.
         """
         if self.no_fetch_flag == True:
-            return None
+            return False
         
         # use requests library if protocol is HTTP
         if self.metadata['url'][0:4] == "http":
@@ -1183,9 +1252,11 @@ class Source(object):
             with open('./pddir/raw/' + self.metadata['localfile'], 'wb') as data:
                 data.write(content)
 
+        return True
+
     def archive_extraction(self):
         if self.no_extract_flag == True:
-            return None
+            return False
         
         if self.metadata['compression'] == "zip":
             with ZipFile('./pddir/raw/' + self.metadata['localarchive'], 'r') as zip_file:
@@ -1195,3 +1266,5 @@ class Source(object):
                 else:
                     zip_file.extract(archive_fname[1], './pddir/raw/')
                     os.rename('./pddir/raw/' + archive_fname[1], './pddir/raw/' + self.local_fname)
+
+        return True

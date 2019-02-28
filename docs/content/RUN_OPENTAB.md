@@ -50,8 +50,8 @@ tabctl.py [optional arguments] SOURCE ...
 | `-j N` | `--jobs N` | Run asynchronous data processing jobs, where at most *N* processes can simultaneously be running. *N* must be a positive integer. |
 |  | `--initialize` | Create the data processing directories used by `tabctl.py` and `opentabulate.py`. |
 |  | `--pre` | **(EXPERIMENTAL)** Allow execution of pre-processing scripts from `pre` keys. |
-|  | `--post` | **(EXPERIMENTAL)** Allow execution of post-processing scripts from `post` keys. |
-|  | `--log FILE` | *Not available.* |
+|  | `--post` | Allow execution of post-processing scripts from `post` keys. |
+|  | `--log FILE` | **(NOT AVAILABLE)** |
 
 #### Summary
 

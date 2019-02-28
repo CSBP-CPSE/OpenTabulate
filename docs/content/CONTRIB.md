@@ -71,6 +71,7 @@ The following tags are generally for data file handling and naming. These tags m
 | `post` | string/list | A path or list of paths to run post-processing scripts. | No | None. |
 | `header` | string | Identifier for an entity in XML. For example, a XML tag that identifies a business entity has metadata tags from `info` such as address, phone numbers, names, etc. The name of this tag is what should be entered for `header`. | Yes, except for CSV format. | None. |
 | `info` | object | Metadata of the data contents, such as addresses, names, etc. | Yes | None. |
+| `filter` | object | Filter rules for choosing which entries to process. `filter` contains key which are the attributes to filter by. The value of each key is a list of entries (strings) that are acceptable to process. | No | None. |
 
 ### info tags
 
@@ -231,6 +232,33 @@ Any string-valued tags or nested tags in `info` support what we call the `force`
 The general syntax is `"key": "force:content_to_inject"` for `info` keys that support string values.
 
 (\*) User-defined content under `force` applies *after* pre-processing and *before* OpenTabulate's regular processing.
+
+### Filtering - filter tag
+
+Source files now support a `filter` tag, which is defined in the first set of curly brace `{...}`.
+
+Each key in `filter` is the desired data attribute to filter by. The value of each key is a list strings, defining acceptable values for the attribute. For example, let us say that we have attribute named `SCHOOL_TYPE` in a given dataset. Moreover, we are interested in only religious or private schools, indicated by the entries `RELIGIOUS` and `PRIVATE`. To process only those entities satisfying the filter rules, we can define our filter as
+
+```
+"filter" : {
+	"SCHOOL_TYPE": ["RELIGIOUS", "PRIVATE"]
+}
+```
+
+It is important to know that the keys are operated under `AND` and the content of each key value is operated under `OR`. Hence, if a source file contains
+
+```
+"filter" : {
+	"attribute1" : ["value11", "value12"],
+	"attribute2" : ["value21", "value22"]
+}
+```
+
+then an entity of the data is checked to satisfy that it has
+
+```
+(attribute1 EQUALS value11 OR attribute1 EQUALS value12) AND (attribute2 EQUALS value21 OR attribute2 EQUALS value22)
+```
 
 ### Debugging syntax errors
 
