@@ -16,12 +16,21 @@ def process(source, parse_address, verbose):
     pool_worker_id = multiprocessing.current_process().name
     prodsys = opentabulate.DataProcess(source, parse_address)
     srclog = logging.getLogger(source.local_fname)
+
+    if not prodsys.source.pre_flag and 'pre' in source.metadata:
+        srclog.error("Source has 'pre' key but --pre flag not used as argument")
+        return 1
+    if not prodsys.source.post_flag and 'post' in source.metadata:
+        srclog.error("Source has 'post' key but --post flag not used as argument")
+        return 1
     
     srclog.debug("Starting tabulation for '%s'" % prodsys.source.local_fname)
+
     if prodsys.source.pre_flag and 'pre' in source.metadata:
         srclog.warning("Running 'preprocessData()' method due to --pre flag and 'pre' key")
         prodsys.preprocessData()
         srclog.warning("Completed 'preprocessData()'")
+    
     srclog.debug("Calling 'prepareData()'")
     prodsys.prepareData()
     srclog.debug("Done")
@@ -29,18 +38,22 @@ def process(source, parse_address, verbose):
     prodsys.extractLabels()
     srclog.debug("Done")
     srclog.debug("Initiating 'parse()' method...")
+
     try:
         prodsys.parse()
     except:
         return 1
+
     srclog.debug("Completed")
     srclog.debug("Initiating 'clean()' method...")
     prodsys.clean()
     srclog.debug("Completed")
+
     if prodsys.source.post_flag and 'post' in source.metadata:
         srclog.warning("Running 'postprocessData()' due to --post flag and 'post' key")
         prodsys.postprocessData()
         srclog.warning("Completed 'postprocessData()'")
+    
     if prodsys.source.blank_fill_flag:
         srclog.debug("Running 'blankFill()' due to blank-fill flag")
         prodsys.blankFill()
@@ -83,7 +96,7 @@ os.chdir(os.path.dirname(os.path.realpath(__file__)))
 os.chdir('..')
 
 if args.initialize == True:
-    PD_TREE = ['./pddir', './pddir/raw', './pddir/dirty', './pddir/clean']
+    PD_TREE = ['./pddir', './pddir/raw', './pddir/pre', './pddir/dirty', './pddir/clean']
     print("Creating data processing directory tree in current working directory...")
     for p in PD_TREE:
         if not os.path.isdir(p):
@@ -167,6 +180,7 @@ if __name__ == '__main__':
         results = []
         for pool_proc in jobs:
             results.append(pool_proc.get())
+
 end_time = time.perf_counter()            
 
 print("Completed pool work in", end_time - start_time, "seconds.")
@@ -179,9 +193,10 @@ for i in range(0,len(src)):
         break
 
 if errors_detected:
-    print("*!* Error occurred during processing of:") 
+    print("Error occurred during processing of:") 
     for i in range(0,len(src)):
-        print("*!", src[i].local_fname)
-    print("*!* Please refer to the [ERROR] tagged messages during output.")
+        if results[i] != 0:
+            print("  *!*", src[i].local_fname)
+    print("Please refer to the [ERROR] tagged messages during output.")
     
 print("Data processing complete.")

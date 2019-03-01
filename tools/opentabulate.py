@@ -108,12 +108,12 @@ class DataProcess(object):
 
         # string argument for script path
         if isinstance(scr, str):
-            rc = subprocess.call([scr, self.source.rawpath])
+            rc = subprocess.call([scr, self.source.rawpath, self.source.prepath])
             self.source.log.warning("'%s' return code: %d" % (scr, rc))
         # list of strings argument for script path
         elif isinstance(scr, list):
             for subscr in scr:
-                rc = subprocess.call([subscr, self.source.rawpath])
+                rc = subprocess.call([subscr, self.source.rawpath, self.source.prepath])
                 self.source.log.warning("'%s' return code: %d" % (subscr, rc))
 
                 
@@ -720,8 +720,14 @@ class CSV_Algorithm(Algorithm):
           data_encoding: The character encoding of the data.
         """
         error_flag = False
+
+        path = ''
+        if source.prepath == None:
+            path = source.rawpath
+        else:
+            path = source.prepath
         
-        with open(source.rawpath, 'r', encoding=data_encoding) as raw, \
+        with open(path, 'r', encoding=data_encoding) as raw, \
              open(source.dirtypath, 'w', encoding=data_encoding) as dirty, \
              open(source.dirtyerror, 'w', encoding=data_encoding) as error:
             reader = csv.reader(raw)
@@ -805,6 +811,12 @@ class XML_Algorithm(Algorithm):
         if not hasattr(source, 'label_map'):
             raise ValueError("Source object missing 'label_map', 'extract_labels' was not ran.")
 
+        path = ''
+        if source.prepath == None:
+            path = source.rawpath
+        else:
+            path = source.prepath
+
         tags = source.label_map
         header = source.metadata['header']
         enc = self.char_encode_check(source)
@@ -814,7 +826,7 @@ class XML_Algorithm(Algorithm):
             FILTER_FLAG = True
         
         xmlp = ElementTree.XMLParser(encoding=enc)
-        tree = ElementTree.parse(source.rawpath, parser=xmlp)
+        tree = ElementTree.parse(path, parser=xmlp)
         root = tree.getroot()
 
         with open(source.dirtypath, 'w', encoding="utf-8") as csvfile:
@@ -1005,7 +1017,7 @@ class Source(object):
         # determined during parsing
         self.local_fname = None
         self.rawpath = None
-        
+        self.prepath = None
         self.dirtypath = None
         self.cleanpath = None
         self.dirtyerror = None
@@ -1152,26 +1164,23 @@ class Source(object):
         
         # set local_fname, rawpath, dirtypath, and cleanpath values
         self.local_fname = self.metadata['localfile'].split(':')[0]
-        self.rawpath = './pddir/raw/' + self.local_fname
+        self.rawpath = './pddir/raw/' + self.local_fname        
+
         if len(self.local_fname.split('.')) == 1:
             self.dirtypath = './pddir/dirty/dirty-' + self.local_fname + ".csv"
             self.dirtyerror = './pddir/dirty/err-dirty-' + self.local_fname + ".csv"
+            self.cleanpath = './pddir/clean/clean-' + self.local_fname + ".csv"
+            self.cleanerror = './pddir/clean/err-clean-' + self.local_fname + ".csv"
+            self.blankfillpath = './pddir/clean/bf-clean-' + self.local_fname + ".csv"
         else:
             self.dirtypath = './pddir/dirty/dirty-' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + ".csv"
             self.dirtyerror = './pddir/dirty/err-dirty-' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + ".csv"
-
-        if len(self.local_fname.split('.')) == 1:
-            self.cleanpath = './pddir/clean/clean-' + self.local_fname + ".csv"
-            self.cleanerror = './pddir/clean/err-clean-' + self.local_fname + ".csv"
-        else:
             self.cleanpath = './pddir/clean/clean-' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + ".csv"
             self.cleanerror = './pddir/clean/err-clean-' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + ".csv"
-
-        if len(self.local_fname.split('.')) == 1:
-            self.blankfillpath = './pddir/clean/bf-clean-' + self.local_fname + ".csv"
-        else:
             self.blankfillpath = './pddir/clean/bf-clean-' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + ".csv"
 
+        if 'pre' in self.metadata: # note: preprocessing script existence is checked before this step
+            self.prepath = './pddir/pre/pre-' + self.local_fname
 
         # check entire source to make sure correct keys are being used
         for i in self.metadata:
