@@ -91,13 +91,14 @@ class DataProcess(object):
 
     def preprocessData(self):
         """
-        (EXPERIMENTAL) Execute external scripts before processing. 
+        Execute external scripts before processing. 
 
         This is a DANGEROUS method, in that it permits arbitrary execution
-        of a script (as your current user). The scripts are defined so that
-        they accept a single command line argument, which is self.source.rawpath. 
-        The filename MUST NOT be altered! For proper use, the script must adjust the 
-        file inline or create a temporary copy that will overwrite the original.
+        of a script (as your current user). To use your script, it must be
+        written to accept TWO command line arguments, one being *self.source.rawpath*
+        and the other *self.source.prepath*. The filenames MUST NOT be altered! 
+        The first argument defines the file to read from, and the second argument
+        defines the file to write to.
         """
 
         # check if a preprocessing script is provided
