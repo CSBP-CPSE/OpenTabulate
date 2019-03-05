@@ -237,7 +237,7 @@ The general syntax is `"key": "force:content_to_inject"` for `info` keys that su
 
 Source files now support a `filter` tag, which is defined in the first set of curly brace `{...}`.
 
-Each key in `filter` is the desired data attribute to filter by. The value of each key is a list strings, defining acceptable values for the attribute. For example, let us say that we have attribute named `SCHOOL_TYPE` in a given dataset. Moreover, we are interested in only religious or private schools, indicated by the entries `RELIGIOUS` and `PRIVATE`. To process only those entities satisfying the filter rules, we can define our filter as
+Each key in `filter` is a desired data attribute to filter by. The value of each key is a list of strings, defining acceptable values for the attribute. For example, let us say that we have an attribute named `SCHOOL_TYPE` in a given dataset. Moreover, we are interested in only religious or private schools, indicated by the `SCHOOL_TYPE` entries `RELIGIOUS` and `PRIVATE`. To process only those entities satisfying the filter rules, we can define our filter as
 
 ```
 "filter" : {
@@ -245,7 +245,7 @@ Each key in `filter` is the desired data attribute to filter by. The value of ea
 }
 ```
 
-It is important to know that the keys are operated under `AND` and the content of each key value is operated under `OR`. Hence, if a source file contains
+It is important to know that the keys are operated under `AND` and the values of each key is operated under `OR`. For example, if a source file contains
 
 ```
 "filter" : {
@@ -254,11 +254,14 @@ It is important to know that the keys are operated under `AND` and the content o
 }
 ```
 
-then an entity of the data is checked to satisfy that it has
+then each entity of the data is checked to see if it satisfies
 
 ```
 (attribute1 EQUALS value11 OR attribute1 EQUALS value12) AND (attribute2 EQUALS value21 OR attribute2 EQUALS value22)
 ```
+
+and if the entity does, it is marked for processing, and otherwise it is discarded.
+
 
 ### Debugging syntax errors
 
