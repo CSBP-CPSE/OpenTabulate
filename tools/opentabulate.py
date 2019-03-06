@@ -624,8 +624,8 @@ class CSV_Algorithm(Algorithm):
                     if FILTER_FLAG:
                         for attr in source.metadata['filter']:
                             VALID_FILTER = False
-                            for valid_item in source.metadata['filter'][attr]:
-                                if entity[attr] == valid_item:
+                            for regex in source.metadata['filter'][attr]:
+                                if regex.search(entity[attr]):
                                     VALID_FILTER = True
                                     break
                             BOOL_FILTER.append(VALID_FILTER)
@@ -846,10 +846,10 @@ class XML_Algorithm(Algorithm):
                 if FILTER_FLAG:
                     for attr in source.metadata['filter']:
                         VALID_FILTER = False
-                        for valid_item in source.metadata['filter'][attr]:
+                        for regex in source.metadata['filter'][attr]:
                             el = element.find(".//" + attr)
                             el = self._xml_empty_element_handler(el)
-                            if el == valid_item:
+                            if regex.search(el):
                                 VALID_FILTER = True
                                 break
                     BOOL_FILTER.append(VALID_FILTER)
@@ -1144,9 +1144,12 @@ class Source(object):
                     if not isinstance(self.metadata['filter'][attribute], list):
                         raise TypeError("Filter attribute '%s' must be a list." % attribute)
                     else:
-                        for value in self.metadata['filter'][attribute]:
-                            if not isinstance(value, str):
+                        attr_filter = self.metadata['filter'][attribute]
+                        for i in range(len(attr_filter)):
+                            if not isinstance(attr_filter[i], str):
                                 raise TypeError("List in filter attribute '%s' contains a non-string value." % attribute)
+                            else:
+                                attr_filter = re.compile(attr_filter[i])
 
         
         # check that both full_addr and address are not in the source file

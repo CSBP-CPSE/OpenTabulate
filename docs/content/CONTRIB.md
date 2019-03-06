@@ -233,11 +233,11 @@ The general syntax is `"key": "force:content_to_inject"` for `info` keys that su
 
 (\*) User-defined content under `force` applies *after* pre-processing and *before* OpenTabulate's regular processing.
 
-### Filtering - filter tag
+### Filtering with regular expressions - filter tag
 
 Source files now support a `filter` tag, which is defined in the first set of curly brace `{...}`.
 
-Each key in `filter` is a desired data attribute to filter by. The value of each key is a list of strings, defining acceptable values for the attribute. For example, let us say that we have an attribute named `SCHOOL_TYPE` in a given dataset. Moreover, we are interested in only religious or private schools, indicated by the `SCHOOL_TYPE` entries `RELIGIOUS` and `PRIVATE`. To process only those entities satisfying the filter rules, we can define our filter as
+Each key in `filter` is a desired data attribute to filter by. The value of each key is a list of strings defining [Python regular expressions](https://docs.python.org/3/library/re.html), which specify acceptable values for the attribute. For example, let us say that we have an attribute named `SCHOOL_TYPE` in a given dataset. Moreover, we are interested in only religious or private schools, indicated by the `SCHOOL_TYPE` entries `RELIGIOUS` and `PRIVATE`. To process only those entities satisfying the filter rules, we can define our filter as
 
 ```
 "filter" : {
@@ -249,15 +249,15 @@ It is important to know that the keys are operated under `AND` and the values of
 
 ```
 "filter" : {
-	"attribute1" : ["value11", "value12"],
-	"attribute2" : ["value21", "value22"]
+	"attribute1" : ["regex11", "regex12"],
+	"attribute2" : ["regex21", "regex22"]
 }
 ```
 
 then each entity of the data is checked to see if it satisfies
 
 ```
-(attribute1 EQUALS value11 OR attribute1 EQUALS value12) AND (attribute2 EQUALS value21 OR attribute2 EQUALS value22)
+(attribute1 SATISFIES regex11 OR attribute1 SATISFIES regex12) AND (attribute2 SATISFIES regex21 OR attribute2 SATISFIES regex22)
 ```
 
 and if the entity does, it is marked for processing, and otherwise it is discarded.
