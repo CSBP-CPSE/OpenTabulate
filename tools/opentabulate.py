@@ -180,13 +180,6 @@ class DataProcess(object):
                 self.source.log.warning("'%s' return code: %d" % (subscr, rc))
 
 
-    def blankFill(self):
-        """
-        'Algorithm' wrapper method. Adds columns from the standard list by appending 
-        blanks.
-        """
-        self.algorithm.blank_fill(self.source)
-
 class AddressParser(object):
     """
     Wrapper class for an address parser.
@@ -395,36 +388,6 @@ class Algorithm(object):
         entry = entry.lower()
         return entry
 
-    def blank_fill(self, source):
-        """
-        Adds columns excluded by original data processing/metadata to a 
-        formatted dataset and fills entries with blanks.
-
-        Args:
-
-          source: A dataset and its associated metadata, defined as a Source 
-            object.
-        """
-        LABELS = [i for i in self.FIELD_LABEL if i != "full_addr"]
-
-        # open files for read and writing
-        # 'f' refers to the original file, 'bff' refers to the new blank filled file
-        with open(source.cleanpath, 'r') as f, open(source.blankfillpath, 'w') as bff:
-            # initialize csv reader/writer
-            rf = csv.DictReader(f)
-            wf = csv.writer(bff, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
-
-            wf.writerow(LABELS)
-
-            for old_row in rf:
-                row2write = []
-                for col in LABELS:
-                    if col not in old_row:
-                        row2write.append("")
-                    else:
-                        row2write.append(old_row[col])
-                wf.writerow(row2write)
-                
 
     def clean(self, source):
         """
@@ -449,10 +412,30 @@ class Algorithm(object):
             
             csvwriter.writeheader()
             csverror.writeheader()
+
+            # hard-coded variables used in cleaning
+            province_territory_shortlist = ["ab", "bc", "mb", "nb", "nl", "ns", "nt", "nu", "on", "pe", "qc", "sk", "yt"]
             
+            long_to_short_map = {"alberta": "ab", \
+                                 "british columbia": "bc", \
+                                 "manitoba": "mb", \
+                                 "new brunswick": "nb", \
+                                 "newfoundland": "nl", \
+                                 "newfoundland and labrador": "nl", \
+                                 "nova scotia": "ns", \
+                                 "northwest territories": "nt", \
+                                 "nunavut": "nu", \
+                                 "ontario": "on", \
+                                 "prince edward island": "pe", \
+                                 "québec": "qc", \
+                                 "quebec": "qc",
+                                 "saskatchewan": "sk", \
+                                 "yukon": "yt"}
+
+            # cleaning begins at this loop
             for row in csvreader:
                 # general field cleaning
-                # clean postal codes
+                # clean postal codes and filter errors
                 if 'postcode' in csvreader.fieldnames and row['postcode'] != '':
                     postal_code = row['postcode']
                     postal_code = re.sub(r"\s+", "", postal_code)
@@ -487,33 +470,14 @@ class Algorithm(object):
                         error_flag = True
                         continue
 
-                if 'phone' in csvreader.fieldnames and row['phone'] != '':
-                    phone_number = row['phone']
-                    phone_number = re.sub(r"[\s\(\)-]", "", phone_number)
-                    row['phone'] = phone_number
-
-                if 'fax' in csvreader.fieldnames and row['fax'] != '':
-                    fax_number = row['fax']
-                    fax_number = re.sub(r"[\s\(\)-]", "", fax_number)
-                    row['fax'] = fax_number
-
+                # clean city name
+                if 'city' in csvreader.fieldnames and row['city'] != '':
+                    city_name = row['city']
+                    city_name = re.sub(r'[.]', '', city_name)
+                    row['city'] = city_name
                 
+                # clean province name and filter errors
                 if 'prov/terr' in csvreader.fieldnames and row['prov/terr'] != '':
-                    province_territory_shortlist = ["ab", "bc", "mb", "nb", "nl", "ns", "nt", "nu", "on", "pe", "qc", "sk", "yt"]
-                    long_to_short_map = {"alberta": "ab", \
-                                         "british columbia": "bc", \
-                                         "manitoba": "mb", \
-                                         "new brunswick": "nb", \
-                                         "newfoundland": "nl", \
-                                         "nova scotia": "ns", \
-                                         "northwest territories": "nt", \
-                                         "nunavut": "nu", \
-                                         "ontario": "on", \
-                                         "prince edward island": "pe", \
-                                         "québec": "qc", \
-                                         "saskatchewan": "sk", \
-                                         "yukon": "yt"}
-
                     if row['prov/terr'] in province_territory_shortlist:
                         pass
                     elif row['prov/terr'] in long_to_short_map:
@@ -524,6 +488,7 @@ class Algorithm(object):
                         error_flag = True
                         continue
 
+                # clean country name and filter errors
                 if 'country' in csvreader.fieldnames and row['country'] != '':
                     if row['country'] in ["ca", "canada"]:
                         row['country'] = "ca"
@@ -533,6 +498,25 @@ class Algorithm(object):
                         error_flag = True
                         continue
 
+                # clean street name (specifically, the type and direction)
+                # by definition, no false positives are captured
+                if 'street_name' in csvreader.fieldnames and row['street_name'] != '':
+                    st_name = row['street_name']
+                    
+                    # remove punctuation
+                    st_name = re.sub(r'[.]', '', st_name)
+                    # remove number suffixes
+                    st_name = re.sub(r'(\d+)(st|nd|rd|th)', r'\1', st_name)
+
+                    direction_map = {"east": "e", "west": "w", "north": "n", "south": "s"}
+                    for i in ("east", "west", "north", "south"):
+                        if re.search(r'%s$' % i, st_name):
+                            st_name = re.sub(r'%s$' % i, direction_map[i], st_name)
+                            break
+                    
+                    row['street_name'] = st_name
+
+
                 # business label cleaning
                 if self.database_type == "business":
                     pass
@@ -540,7 +524,6 @@ class Algorithm(object):
                 # education label cleaning
                 if self.database_type == "education":
                     pass
-                    #if 'range' in csvreader.fieldnames and row['range'] != '':
                     
                 # hospital label cleaning
                 if self.database_type == "hospital":
@@ -984,17 +967,13 @@ class Source(object):
       cleanpath: path to the clean dataset relative to the OBR directory. This is
         assigned './pddir/clean'.
 
-      blankfillpath: path to a clean dataset with missing tabulation columns inserted
-        as blank filled entries, relative to the OBR directory. This appears in
-        './pddir/clean'.
-
       label_map: a dict object that stores the mapping of OBRs standardized labels
         to the dataset's labels, as obtained by the source file.
 
       log: a Logger object defined as the logger with the variable name 'local_fname'. 
     """
     def __init__(self, path, pre_flag=False, post_flag=False, no_fetch_flag=True, \
-                 no_extract_flag=True, blank_fill_flag=False):
+                 no_extract_flag=True):
         """
         Initializes a new source file object.
 
@@ -1013,7 +992,6 @@ class Source(object):
         self.post_flag = post_flag
         self.no_fetch_flag = no_fetch_flag
         self.no_extract_flag = no_extract_flag
-        self.blank_fill_flag = blank_fill_flag
         
         # determined during parsing
         self.local_fname = None
@@ -1023,7 +1001,6 @@ class Source(object):
         self.cleanpath = None
         self.dirtyerror = None
         self.cleanerror = None
-        self.blankfillpath = None
         
         self.label_map = None
 
@@ -1175,13 +1152,11 @@ class Source(object):
             self.dirtyerror = './pddir/dirty/err-dirty-' + self.local_fname + ".csv"
             self.cleanpath = './pddir/clean/clean-' + self.local_fname + ".csv"
             self.cleanerror = './pddir/clean/err-clean-' + self.local_fname + ".csv"
-            self.blankfillpath = './pddir/clean/bf-clean-' + self.local_fname + ".csv"
         else:
             self.dirtypath = './pddir/dirty/dirty-' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + ".csv"
             self.dirtyerror = './pddir/dirty/err-dirty-' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + ".csv"
             self.cleanpath = './pddir/clean/clean-' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + ".csv"
             self.cleanerror = './pddir/clean/err-clean-' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + ".csv"
-            self.blankfillpath = './pddir/clean/bf-clean-' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + ".csv"
 
         if 'pre' in self.metadata: # note: preprocessing script existence is checked before this step
             self.prepath = './pddir/pre/pre-' + self.local_fname

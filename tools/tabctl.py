@@ -54,17 +54,11 @@ def process(source, parse_address, verbose):
         prodsys.postprocessData()
         srclog.warning("Completed 'postprocessData()'")
     
-    if prodsys.source.blank_fill_flag:
-        srclog.debug("Running 'blankFill()' due to blank-fill flag")
-        prodsys.blankFill()
-        srclog.debug("Completed")
     srclog.debug("Tabulating '%s' complete." % prodsys.source.local_fname)
     return 0
 
 # Command line interaction
 cmd_args = argparse.ArgumentParser(description='OpenTabulate: a command-line data tabulation tool.')
-cmd_args.add_argument('-b', '--blank-fill', action='store_true', default=False, \
-                      help='append blank entries for missing source file columns')
 cmd_args.add_argument('-p', '--ignore-proc', action='store_true', default=False, \
                       help='check source files without processing data')
 cmd_args.add_argument('-u', '--ignore-url', action='store_true', default=False, \
@@ -133,7 +127,7 @@ srclog = logging.getLogger('source')
 for source in args.SOURCE:
     srclog.debug("Creating source object: %s" % source)
     srcfile = opentabulate.Source(source, args.pre, args.post, args.ignore_url, \
-                         args.no_decompress, args.blank_fill)
+                         args.no_decompress)
     srclog.debug("Parsing contents...")
     srcfile.parse()
     srclog.debug("Passed")

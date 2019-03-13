@@ -43,7 +43,6 @@ tabctl.py [optional arguments] SOURCE ...
 | Short flag | Long flag | Description |
 | ---------- | --------- | ----------- |
 | `-h` | `--help` | Print the command-line tool help prompt to standard output. |
-| `-b` | `--blank-fill` | For any keys that were excluded in the source file, create an additional copy of the clean dataset which includes the excluded keys. Since the keys were not included initially, the new columns in the tabulation will be blank entries. |
 | `-p` | `--ignore-proc` | Do not process the datasets corresponding the source file. Useful for quickly checking source file syntax. |
 | `-u` | `--ignore-url` | Do not download any data provided in all `url` keys. Useful to save bandwidth. |
 | `-z` | `--no-decompress` | Do not decompress data that was downloaded as a compressed archive. Useful if you already decompressed the data. |
@@ -69,7 +68,6 @@ positional arguments:
 
 optional arguments:
   -h, --help           show this help message and exit
-  -b, --blank-fill     append blank entries for excluded source file columns
   -p, --ignore-proc    check source files without processing data
   -u, --ignore-url     ignore "url" entries from source files
   -z, --no-decompress  do not decompress files from compressed archives
