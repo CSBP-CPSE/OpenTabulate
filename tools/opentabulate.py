@@ -473,7 +473,7 @@ class Algorithm(object):
                 # clean city name
                 if 'city' in csvreader.fieldnames and row['city'] != '':
                     city_name = row['city']
-                    city_name = re.sub(r'[.]', '', city_name)
+                    city_name = re.sub(r"[.,']", '', city_name)
                     row['city'] = city_name
                 
                 # clean province name and filter errors
@@ -504,7 +504,7 @@ class Algorithm(object):
                     st_name = row['street_name']
                     
                     # remove punctuation
-                    st_name = re.sub(r'[.]', '', st_name)
+                    st_name = re.sub(r"[.,']", '', st_name)
                     # remove number suffixes
                     st_name = re.sub(r'(\d+)(st|nd|rd|th)', r'\1', st_name)
 
@@ -593,22 +593,21 @@ class CSV_Algorithm(Algorithm):
              open(source.dirtypath + '-temp', 'w', encoding="utf-8") as csv_file_write:
             csvreader = csv.DictReader(csv_file_read)
             csvwriter = csv.writer(csv_file_write, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
-
             # write the initial row which identifies each column
             col_labels = self._generateFirstRow(tags)
             csvwriter.writerow(col_labels)
-
             try:
                 for entity in csvreader:
                     row = []
                     # START FILTERING HERE
                     BOOL_FILTER = []
                     CONT_FLAG = False
+
                     if FILTER_FLAG:
                         for attr in source.metadata['filter']:
                             VALID_FILTER = False
-                            for regex in source.metadata['filter'][attr]:
-                                if regex.search(entity[attr]):
+                            for reg_ex in source.metadata['filter'][attr]:
+                                if reg_ex.search(entity[attr]):
                                     VALID_FILTER = True
                                     break
                             BOOL_FILTER.append(VALID_FILTER)
@@ -829,10 +828,10 @@ class XML_Algorithm(Algorithm):
                 if FILTER_FLAG:
                     for attr in source.metadata['filter']:
                         VALID_FILTER = False
-                        for regex in source.metadata['filter'][attr]:
+                        for reg_ex in source.metadata['filter'][attr]:
                             el = element.find(".//" + attr)
                             el = self._xml_empty_element_handler(el)
-                            if regex.search(el):
+                            if reg_ex.search(el):
                                 VALID_FILTER = True
                                 break
                     BOOL_FILTER.append(VALID_FILTER)
@@ -1127,6 +1126,7 @@ class Source(object):
                                 raise TypeError("List in filter attribute '%s' contains a non-string value." % attribute)
                             else:
                                 attr_filter = re.compile(attr_filter[i])
+                                self.metadata['filter'][attribute] = [attr_filter]
 
         
         # check that both full_addr and address are not in the source file
@@ -1166,10 +1166,10 @@ class Source(object):
             root_layer = ('localfile', 'localarchive', 'url', 'format', 'database_type', \
                            'compression', 'encoding', 'pre', 'post', 'header', 'info', 'filter')
             if i not in root_layer:
-                raise ValueError("Invalid key '%s' in source file" % i)
+                raise ValueError("Invalid key in root_layer '%s' in source file" % i)
 
         for i in self.metadata['info']:
-            info_layer = ('full_addr', 'address', 'phone', 'fax', 'email', 'website', 'tollfree' \
+            info_layer = ('full_addr', 'address', 'phone', 'fax', 'email', 'website', 'tollfree', \
                           'comdist', 'region', 'longitude', 'latitude', 'hours', 'county')
 
             if self.metadata['database_type'] == 'business':
@@ -1183,35 +1183,35 @@ class Source(object):
                              'qc_cae_1', 'qc_cae_desc_1', 'qc_cae_2', 'qc_cae_desc_2', \
                              'facebook', 'twitter', 'linkedin', 'youtube', 'instagram')
                 if not (i in info_layer or i in bus_layer):
-                    raise ValueError("Invalid key '%s' in source file" % i)
+                    raise ValueError("Invalid key in bus_layer '%s' in source file" % i)
 
             elif self.metadata['database_type'] == 'education':
                 edu_layer = ('ins_name', 'ins_type', 'ins_code', 'edu_level', 'board_name', \
                             'board_code', 'school_yr', 'range', 'isced010', 'isced020', 'isced1', \
                             'isced2', 'isced3', 'isced4+')
                 if not (i in info_layer or i in edu_layer):
-                    raise ValueError("Invalid key '%s' in source file" % i)
+                    raise ValueError("Invalid key in edu_layer '%s' in source file" % i)
 
             elif self.metadata['database_type'] == 'library':
                 lib_layer = ('library_name','library_type','library_board')
                 if not (i in info_layer or i in lib_layer):
-                    raise ValueError("Invalid key '%s' in source file" % i)
+                    raise ValueError("Invalid key in lib_layer '%s' in source file" % i)
 
             elif self.metadata['database_type'] == 'hospital':
                 hosp_layer = ('hospital_name','hospital_type','health_authority')
                 if not (i in info_layer or i in hosp_layer):
-                    raise ValueError("Invalid key '%s' in source file" % i)
+                    raise ValueError("Invalid key in hosp_layer '%s' in source file" % i)
 
             elif self.metadata['database_type'] == 'fire_station':
                 fire_layer = ('fire_stn_name')
                 if not (i in info_layer or i in fire_layer):
-                    raise ValueError("Invalid key '%s' in source file" % i)
+                    raise ValueError("Invalid key in fire_layer '%s' in source file" % i)
 
         if 'address' in self.metadata['info']:
             address_layer = ('street_no', 'street_name', 'unit', 'city', 'prov/terr', 'country', 'postcode')
             for i in self.metadata['info']['address']:
                 if i not in address_layer:
-                    raise ValueError("Invalid key '%s' in source file" % i)
+                    raise ValueError("Invalid key in address_layer '%s' in source file" % i)
             
         self.log = logging.getLogger(self.local_fname)
 
