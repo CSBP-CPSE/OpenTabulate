@@ -14,6 +14,7 @@ where you may substitute `python` for the name of your Python 3 binary. The `--i
 OpenTabulate/
 └──pddir/
    ├── raw/
+   ├── pre/
    ├── dirty/
    └── clean/
 ```
@@ -23,7 +24,8 @@ which are data processing directories:
 | Directory | Description |
 | ---- | ----------- |
 | `raw` | Source datasets should be stored here, noting that if your dataset is specified by `url` in a source file, it will be downloaded to this directory. |
-| `dirty` | Datasets from `raw` are sent here during processing. They represent datasets converted to CSV format that have not been cleaned yet. |
+| `pre` | Datasets flagged for pre-processing are sent here from `raw`. |
+| `dirty` | Datasets from `raw` or `pre` are sent here during processing. They represent datasets converted to CSV format that have not been cleaned yet. |
 | `clean` | Datasets are sent here after cleaning. |
 
 ## Command-line usage

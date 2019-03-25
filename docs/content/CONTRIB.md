@@ -67,8 +67,8 @@ The following tags are generally for data file handling and naming. These tags m
 | `database_type` | string | Dataset type to define which `info` tags to use. Currently supports `business`, `education`, `hospital`, `library`, and `fire_station`. | Yes | None. |
 | `compression` | string | The compression algorithm for the archive containing your dataset. Currently supports `zip`. | No | None. | 
 | `encoding` | string | Dataset character encoding, which can be "utf-8", "cp1252", or "cp437". If not specified, the encoding is guessed from this list. | No | None. |
-| `pre` | string/list | A path or list of paths to run pre-processing scripts. | No | None. |
-| `post` | string/list | A path or list of paths to run post-processing scripts. | No | None. |
+| `pre` | string/list | A path or list of paths to run pre-processing scripts. The relative path starts in the cloned directory of OpenTabulate. | No | None. |
+| `post` | string/list | A path or list of paths to run post-processing scripts. The relative path starts in the cloned directory of OpenTabulate. | No | None. |
 | `header` | string | Identifier for an entity in XML. For example, a XML tag that identifies a business entity has metadata tags from `info` such as address, phone numbers, names, etc. The name of this tag is what should be entered for `header`. | Yes, except for CSV format. | None. |
 | `info` | object | Metadata of the data contents, such as addresses, names, etc. | Yes | None. |
 | `filter` | object | Filter rules for choosing which entries to process. `filter` contains key which are the attributes to filter by. The value of each key is a list of entries (strings) that are acceptable to process. | No | None. |
@@ -190,7 +190,9 @@ The `address` tag is a JSON object defined inside `info`. Note that this cannot 
 | `country` | string | Country name.  | No | Contained in `address` object. |
 | `postcode` | string/list | Postal code.  | No | Contained in `address` object. |
 
-## Source file syntax features and nuances
+---
+
+# Source file syntax features and nuances
 
 ### List concatenation
 
@@ -261,6 +263,21 @@ then each entity of the data is checked to see if it satisfies
 ```
 
 and if the entity does, it is marked for processing, and otherwise it is discarded.
+
+### Writing pre-processing and post-processing scripts
+
+**WARNING! NO INTEGRITY CHECKING OF THE SCRIPTS IS DONE BY OPENTABULATE. Always check the code before running scripts from unknown sources!**
+
+The purpose of pre-processing and post-processing scripts is to both automate and organize external data formatting, which is handy to format the data in a way that cannot be achieved or handled using OpenTabulate's API. Pre-processing occurs strictly before tabulation in OpenTabulate and post-processing occurs strictly after cleaning in OpenTabulate. 
+
+For example, a dataset may only be provided as a Microsoft Excel spreadsheet, which is an unsupported data format in OpenTabulate. In this situtation, writing a pre-processing script that converts the spreadsheet to CSV format is a potential solution to have it be processed by OpenTabulate. 
+
+Writing a custom pre-processing or post-processing script is straightforward. Note that the scripts do not necessarily have to be *scripts*, they just have to be executable programs that accept command line arguments. The number of arguments and what they represent specifically depend on if you are writing a pre-processing or post-processing script. 
+
+- For a *pre-processing script*, you need to allow for two command line arguments (e.g. `sys.argv[1]` and `sys.argv[2]` in Python). OpenTabulate enters the path of the raw dataset stored locally into the first argument, and enters the path of the pre-processed output into the second argument.
+- For a *post-processing script*, you need to allow for one command line argument (e.g. `sys.argv[1]` in Python). OpenTabulate enters the path of the clean dataset into the single argument.
+
+To include the scripts in a source file, use the `pre` and `post` keys in [file handling tags](#File-handling-tags).
 
 
 ### Debugging syntax errors
