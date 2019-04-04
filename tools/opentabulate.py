@@ -95,10 +95,9 @@ class DataProcess(object):
 
         This is a DANGEROUS method, in that it permits arbitrary execution
         of a script (as your current user). To use your script, it must be
-        written to accept TWO command line arguments, one being *self.source.rawpath*
-        and the other *self.source.prepath*. The filenames MUST NOT be altered! 
-        The first argument defines the file to read from, and the second argument
-        defines the file to write to.
+        written to accept TWO command line arguments, one which is a path to
+        the file to preprocess and the other being a path of the output. The 
+        paths MUST NOT be altered!
         """
 
         # check if a preprocessing script is provided
@@ -113,9 +112,15 @@ class DataProcess(object):
             self.source.log.warning("'%s' return code: %d" % (scr, rc))
         # list of strings argument for script path
         elif isinstance(scr, list):
-            for subscr in scr:
-                rc = subprocess.call([subscr, self.source.rawpath, self.source.prepath])
-                self.source.log.warning("'%s' return code: %d" % (subscr, rc))
+            num = len(scr)
+            for i in range(num):
+                if i != 0:
+                    rc = subprocess.call([scr[i], self.source.prepath, self.source.prepath_temp])
+                    self.source.log.warning("'%s' return code: %d" % (scr[i], rc))
+                    os.rename(self.source.prepath_temp, self.source.prepath)
+                else:
+                    rc = subprocess.call([scr[i], self.source.rawpath, self.source.prepath])
+                    self.source.log.warning("'%s' return code: %d" % (scr[i], rc))
 
                 
     def prepareData(self):
@@ -125,7 +130,9 @@ class DataProcess(object):
         """
         if self.source.metadata['format'] == 'csv':
             fmt_algorithm = CSV_Algorithm(self.dp_address_parser, self.source.metadata['database_type'])
-            fmt_algorithm.csv_format_correction(self.source, fmt_algorithm.char_encode_check(self.source))
+            csv_encoding = fmt_algorithm.char_encode_check(self.source)
+            self.source.metadata['encoding'] = csv_encoding # to prevent redundant brute force encoding checks
+            fmt_algorithm.csv_format_correction(self.source, csv_encoding)
         elif self.source.metadata['format'] == 'xml':
             fmt_algorithm = XML_Algorithm(self.dp_address_parser, self.source.metadata['database_type'])
             #fmt_algorithm.remove_xmlns(self.source)
@@ -158,9 +165,8 @@ class DataProcess(object):
 
         This is a DANGEROUS method, in that it permits arbitrary execution
         of a script (as your current user). The scripts are defined so that
-        they accept a single command line argument, which is self.source.cleanpath. 
-        The filename MUST NOT be altered! For proper use, the script must adjust the 
-        file inline or create a temporary copy that will overwrite the original.
+        they accept a single command line argument, which is a path to the
+        data to postprocess. The path MUST NOT be altered!
         """
 
         # check if a preprocessing script is provided
@@ -237,25 +243,25 @@ class Algorithm(object):
     """
 
     # general data labels (e.g. contact info, location)
-    _GENERAL_LABELS = ('full_addr', 'street_no', 'street_name', 'postcode', 'unit', 'city', 'prov/terr', 'country', \
-                       'comdist', 'region', \
-                       'longitude', 'latitude', \
+    _GENERAL_LABELS = ('full_addr', 'street_no', 'street_name', 'postcode', 'unit', 'city', 'prov/terr', 'country',
+                       'comdist', 'region',
+                       'longitude', 'latitude',
                        'phone', 'fax', 'email', 'website', 'tollfree','hours', 'county')
 
     # business data labels
-    _BUSINESS_LABELS = ('bus_name', 'trade_name', 'bus_type', 'bus_no', 'bus_desc', \
-                        'lic_type', 'lic_no', 'bus_start_date', 'bus_cease_date', 'active', \
-                        'no_employed', 'no_seasonal_emp', 'no_full_emp', 'no_part_emp', 'emp_range',\
-                        'home_bus', 'munic_bus', 'nonres_bus', \
-                        'exports', 'exp_cn_1', 'exp_cn_2', 'exp_cn_3', \
-                        'naics_2', 'naics_3', 'naics_4', 'naics_5', 'naics_6', \
-                        'naics_desc', \
-                        'qc_cae_1', 'qc_cae_desc_1', 'qc_cae_2', 'qc_cae_desc_2', \
+    _BUSINESS_LABELS = ('bus_name', 'trade_name', 'bus_type', 'bus_no', 'bus_desc',
+                        'lic_type', 'lic_no', 'bus_start_date', 'bus_cease_date', 'active',
+                        'no_employed', 'no_seasonal_emp', 'no_full_emp', 'no_part_emp', 'emp_range',
+                        'home_bus', 'munic_bus', 'nonres_bus',
+                        'exports', 'exp_cn_1', 'exp_cn_2', 'exp_cn_3',
+                        'naics_2', 'naics_3', 'naics_4', 'naics_5', 'naics_6',
+                        'naics_desc',
+                        'qc_cae_1', 'qc_cae_desc_1', 'qc_cae_2', 'qc_cae_desc_2',
                         'facebook', 'twitter', 'linkedin', 'youtube', 'instagram')
 
     # education data labels
-    _EDU_FACILITY_LABELS = ('ins_name', 'ins_type', 'ins_code', 'edu_level', 'board_name', \
-                            'board_code', 'school_yr', 'range', 'isced010', 'isced020', 'isced1', \
+    _EDU_FACILITY_LABELS = ('ins_name', 'ins_type', 'ins_code', 'edu_level', 'board_name',
+                            'board_code', 'school_yr', 'range', 'isced010', 'isced020', 'isced1',
                             'isced2', 'isced3', 'isced4+')
 
     # hospital data labels
@@ -275,12 +281,12 @@ class Algorithm(object):
     ENCODING_LIST = ("utf-8", "cp1252", "cp437")
     
     # conversion table for address labels to libpostal tags
-    _ADDR_LABEL_TO_POSTAL = {'street_no' : 'house_number', \
-                            'street_name' : 'road', \
-                            'unit' : 'unit', \
-                            'city' : 'city', \
-                            'prov/terr' : 'state', \
-                            'country' : 'country', \
+    _ADDR_LABEL_TO_POSTAL = {'street_no' : 'house_number',
+                            'street_name' : 'road',
+                            'unit' : 'unit',
+                            'city' : 'city',
+                            'prov/terr' : 'state',
+                            'country' : 'country',
                             'postcode' : 'postcode' }
 
     def __init__(self, address_parser=None, database_type=None):
@@ -416,20 +422,20 @@ class Algorithm(object):
             # hard-coded variables used in cleaning
             province_territory_shortlist = ["ab", "bc", "mb", "nb", "nl", "ns", "nt", "nu", "on", "pe", "qc", "sk", "yt"]
             
-            long_to_short_map = {"alberta": "ab", \
-                                 "british columbia": "bc", \
-                                 "manitoba": "mb", \
-                                 "new brunswick": "nb", \
-                                 "newfoundland": "nl", \
-                                 "newfoundland and labrador": "nl", \
-                                 "nova scotia": "ns", \
-                                 "northwest territories": "nt", \
-                                 "nunavut": "nu", \
-                                 "ontario": "on", \
-                                 "prince edward island": "pe", \
-                                 "québec": "qc", \
+            long_to_short_map = {"alberta": "ab",
+                                 "british columbia": "bc",
+                                 "manitoba": "mb",
+                                 "new brunswick": "nb",
+                                 "newfoundland": "nl",
+                                 "newfoundland and labrador": "nl",
+                                 "nova scotia": "ns",
+                                 "northwest territories": "nt",
+                                 "nunavut": "nu",
+                                 "ontario": "on",
+                                 "prince edward island": "pe",
+                                 "québec": "qc",
                                  "quebec": "qc",
-                                 "saskatchewan": "sk", \
+                                 "saskatchewan": "sk",
                                  "yukon": "yt"}
 
             # cleaning begins at this loop
@@ -606,10 +612,9 @@ class CSV_Algorithm(Algorithm):
                     if FILTER_FLAG:
                         for attr in source.metadata['filter']:
                             VALID_FILTER = False
-                            for reg_ex in source.metadata['filter'][attr]:
-                                if reg_ex.search(entity[attr]):
-                                    VALID_FILTER = True
-                                    break
+                            reg_ex = source.metadata['filter'][attr]
+                            if reg_ex.search(entity[attr]):
+                                VALID_FILTER = True
                             BOOL_FILTER.append(VALID_FILTER)
 
                     for b in BOOL_FILTER:
@@ -682,8 +687,7 @@ class CSV_Algorithm(Algorithm):
                         row.append(entry)
                     if not self._isRowEmpty(row):
                         csvwriter.writerow(row)
-            except KeyError:
-                source.log.error("'%s' is not a field name, terminating processing early" % tags[key])
+            except:
                 raise
 
         os.rename(source.dirtypath + '-temp', source.dirtypath)
@@ -828,13 +832,12 @@ class XML_Algorithm(Algorithm):
                 if FILTER_FLAG:
                     for attr in source.metadata['filter']:
                         VALID_FILTER = False
-                        for reg_ex in source.metadata['filter'][attr]:
-                            el = element.find(".//" + attr)
-                            el = self._xml_empty_element_handler(el)
-                            if reg_ex.search(el):
-                                VALID_FILTER = True
-                                break
-                    BOOL_FILTER.append(VALID_FILTER)
+                        reg_ex = source.metadata['filter'][attr]
+                        el = element.find(".//" + attr)
+                        el = self._xml_empty_element_handler(el)
+                        if reg_ex.search(el):
+                            VALID_FILTER = True
+                        BOOL_FILTER.append(VALID_FILTER)
 
                 for b in BOOL_FILTER:
                     if not b:
@@ -996,6 +999,7 @@ class Source(object):
         self.local_fname = None
         self.rawpath = None
         self.prepath = None
+        self.prepath_temp = None
         self.dirtypath = None
         self.cleanpath = None
         self.dirtyerror = None
@@ -1117,18 +1121,13 @@ class Source(object):
                 raise TypeError("'filter' must be an object.")
             else:
                 for attribute in self.metadata['filter']:
-                    if not isinstance(self.metadata['filter'][attribute], list):
-                        raise TypeError("Filter attribute '%s' must be a list." % attribute)
+                    if not isinstance(self.metadata['filter'][attribute], str):
+                        raise TypeError("Filter attribute '%s' must be a string (regex)." % attribute)
                     else:
                         attr_filter = self.metadata['filter'][attribute]
-                        for i in range(len(attr_filter)):
-                            if not isinstance(attr_filter[i], str):
-                                raise TypeError("List in filter attribute '%s' contains a non-string value." % attribute)
-                            else:
-                                attr_filter = re.compile(attr_filter[i])
-                                self.metadata['filter'][attribute] = [attr_filter]
+                        reg_ex = re.compile(attr_filter)
+                        self.metadata['filter'][attribute] = reg_ex
 
-        
         # check that both full_addr and address are not in the source file
         if ('address' in self.metadata['info']) and ('full_addr' in self.metadata['info']):
             raise ValueError("Cannot have both 'full_addr' and 'address' tags in source file.")
@@ -1160,34 +1159,35 @@ class Source(object):
 
         if 'pre' in self.metadata: # note: preprocessing script existence is checked before this step
             self.prepath = './pddir/pre/pre-' + self.local_fname
+            self.prepath_temp = './pddir/pre/pre-temp-' + self.local_fname
 
         # check entire source to make sure correct keys are being used
         for i in self.metadata:
-            root_layer = ('localfile', 'localarchive', 'url', 'format', 'database_type', \
+            root_layer = ('localfile', 'localarchive', 'url', 'format', 'database_type',
                            'compression', 'encoding', 'pre', 'post', 'header', 'info', 'filter')
             if i not in root_layer:
                 raise ValueError("Invalid key in root_layer '%s' in source file" % i)
 
         for i in self.metadata['info']:
-            info_layer = ('full_addr', 'address', 'phone', 'fax', 'email', 'website', 'tollfree', \
+            info_layer = ('full_addr', 'address', 'phone', 'fax', 'email', 'website', 'tollfree',
                           'comdist', 'region', 'longitude', 'latitude', 'hours', 'county')
 
             if self.metadata['database_type'] == 'business':
-                bus_layer = ('bus_name', 'trade_name', 'bus_type', 'bus_no', 'bus_desc', \
-                             'lic_type', 'lic_no', 'bus_start_date', 'bus_cease_date', 'active', \
-                             'no_employed', 'no_seasonal_emp', 'no_full_emp', 'no_part_emp', 'emp_range',\
-                             'home_bus', 'munic_bus', 'nonres_bus', \
-                             'exports', 'exp_cn_1', 'exp_cn_2', 'exp_cn_3', \
-                             'naics_2', 'naics_3', 'naics_4', 'naics_5', 'naics_6', \
-                             'naics_desc', \
-                             'qc_cae_1', 'qc_cae_desc_1', 'qc_cae_2', 'qc_cae_desc_2', \
+                bus_layer = ('bus_name', 'trade_name', 'bus_type', 'bus_no', 'bus_desc',
+                             'lic_type', 'lic_no', 'bus_start_date', 'bus_cease_date', 'active',
+                             'no_employed', 'no_seasonal_emp', 'no_full_emp', 'no_part_emp', 'emp_range',
+                             'home_bus', 'munic_bus', 'nonres_bus',
+                             'exports', 'exp_cn_1', 'exp_cn_2', 'exp_cn_3',
+                             'naics_2', 'naics_3', 'naics_4', 'naics_5', 'naics_6',
+                             'naics_desc',
+                             'qc_cae_1', 'qc_cae_desc_1', 'qc_cae_2', 'qc_cae_desc_2',
                              'facebook', 'twitter', 'linkedin', 'youtube', 'instagram')
                 if not (i in info_layer or i in bus_layer):
                     raise ValueError("Invalid key in bus_layer '%s' in source file" % i)
 
             elif self.metadata['database_type'] == 'education':
-                edu_layer = ('ins_name', 'ins_type', 'ins_code', 'edu_level', 'board_name', \
-                            'board_code', 'school_yr', 'range', 'isced010', 'isced020', 'isced1', \
+                edu_layer = ('ins_name', 'ins_type', 'ins_code', 'edu_level', 'board_name',
+                            'board_code', 'school_yr', 'range', 'isced010', 'isced020', 'isced1',
                             'isced2', 'isced3', 'isced4+')
                 if not (i in info_layer or i in edu_layer):
                     raise ValueError("Invalid key in edu_layer '%s' in source file" % i)

@@ -41,7 +41,8 @@ def process(source, parse_address, verbose):
 
     try:
         prodsys.parse()
-    except:
+    except Exception as e:
+        print(e, file=sys.stderr)
         return 1
 
     srclog.debug("Completed")
