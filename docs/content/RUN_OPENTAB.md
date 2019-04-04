@@ -59,7 +59,7 @@ tabctl.py [optional arguments] SOURCE ...
 A summary of the usage is given by the `argparse` help prompt 
 
 ```
-usage: tabctl.py [-h] [-b] [-p] [-u] [-z] [--pre] [--post] [-j N] [--log FILE]
+usage: tabctl.py [-h] [-p] [-u] [-z] [--pre] [--post] [-j N] [--log FILE]
                  [--initialize]
                  [SOURCE [SOURCE ...]]
 

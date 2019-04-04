@@ -239,34 +239,29 @@ The general syntax is `"key": "force:content_to_inject"` for `info` keys that su
 
 Source files now support a `filter` tag, which is defined in the first set of curly brace `{...}`.
 
-Each key in `filter` is a desired data attribute to filter by. The value of each key is a list of strings defining [Python regular expressions](https://docs.python.org/3/library/re.html), which specify acceptable values for the attribute. For example, let us say that we have an attribute named `SCHOOL_TYPE` in a given dataset. Moreover, we are interested in only religious or private schools, indicated by the `SCHOOL_TYPE` entries `RELIGIOUS` and `PRIVATE`. To process only those entities satisfying the filter rules, we can define our filter as
+Each key in `filter` is a desired data attribute to filter by. The value of each key is a [Python regular expression](https://docs.python.org/3/library/re.html), which specify acceptable values for the attribute. For example, let us say that we have an attribute named `SCHOOL_TYPE` in a given dataset. Moreover, we are interested in only religious or private schools, indicated by the `SCHOOL_TYPE` entries `RELIGIOUS` and `PRIVATE`. To process only those entities satisfying the filter rules, we can define our filter as
 
 ```
 "filter" : {
-	"SCHOOL_TYPE": ["RELIGIOUS", "PRIVATE"]
+	"SCHOOL_TYPE": "RELIGIOUS|PRIVATE"
 }
 ```
 
-It is important to know that the keys are operated under `AND` and the values of each key is operated under `OR`. For example, if a source file contains
+It is important to know that the filter keys are grouped by a logical `AND`. For example, if a source file contains
 
 ```
 "filter" : {
-	"attribute1" : ["regex11", "regex12"],
-	"attribute2" : ["regex21", "regex22"]
+	"attribute1" : "regex1",
+	"attribute2" : "regex2",
+	"attribute3" : "regex3"
 }
 ```
 
-then each entity of the data is checked to see if it satisfies
-
-```
-(attribute1 SATISFIES regex11 OR attribute1 SATISFIES regex12) AND (attribute2 SATISFIES regex21 OR attribute2 SATISFIES regex22)
-```
-
-and if the entity does, it is marked for processing, and otherwise it is discarded.
+then each entity of the data is checked to see if each regular expression returns a match in each respective attribute. Provided all regular expressions return a match, the entity will be marked for processing. Otherwise, the entity is discarded.
 
 ### Writing pre-processing and post-processing scripts
 
-**WARNING! NO INTEGRITY CHECKING OF THE SCRIPTS IS DONE BY OPENTABULATE. Always check the code before running scripts from unknown sources!**
+**WARNING! NO INTEGRITY CHECKING OF THE SCRIPTS IS DONE BY OPENTABULATE. ALWAYS CHECK THE CODE BEFORE RUNNING SCRIPTS FROM UNKNOWN SOURCES!**
 
 The purpose of pre-processing and post-processing scripts is to both automate and organize external data formatting, which is handy to format the data in a way that cannot be achieved or handled using OpenTabulate's API. Pre-processing occurs strictly before tabulation in OpenTabulate and post-processing occurs strictly after cleaning in OpenTabulate. 
 

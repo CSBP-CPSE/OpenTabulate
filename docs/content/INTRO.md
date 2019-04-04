@@ -7,8 +7,8 @@ OpenTabulate is open-source software designed to centralize, process, and clean 
 + **Downloading Data.** The data can be referenced by a URL to be retrieved. The data can also be compressed or archived.
 + **Tabulation.** Convert data into CSV format with a common set of column names for easy merging.
 + **Pre/post processing scripts.** If OpenTabulate is missing a feature, you can fill in the gap by customizing and automating processing before and after OpenTabulate's tabulation and cleaning.
-+ **Entry Filtering.** You can tabulate a subset of the data by exact-match filtering. Currently, filtering is non-customizable and defaults by ORing the contents of an attribute filter and ANDing over all attribute filters.
-+ **Regex Cleaning and Error Filtering.** Easy to handle residual characters or dirty entries, such as whitespace, is cleaned using regular expressions. Structured information such as province names, postal codes and phone numbers are reformatted if it matches the standard definition, and is otherwise filtered into an "error" file.
++ **Entry Filtering.** You can tabulate a subset of the data by regular expression filtering. All regular expressions must find a match in their corresponding attributes in order to mark the data entity for processing.
++ **Regex Cleaning and Error Filtering.** Easy to handle residual characters or dirty entries, such as whitespace and unneeded punctuation, is cleaned using regular expressions. Structured information such as province names, postal codes and phone numbers are reformatted if it matches the standard definition, and is otherwise filtered into an "error" file.
 + **Optional Address Parsing Support.** If the `full_addr` tag is used, `libpostal` will be used to parse and split the address into `road`, `house_number`, and so on.
 
 ### Technical nuances
