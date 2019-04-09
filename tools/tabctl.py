@@ -3,6 +3,7 @@
 # Modules
 import argparse
 import logging
+import traceback
 import multiprocessing
 import opentabulate
 import os
@@ -41,8 +42,9 @@ def process(source, parse_address, verbose):
 
     try:
         prodsys.parse()
-    except Exception as e:
-        print(e, file=sys.stderr)
+    except Exception:
+        srclog.error("An exception in parse() has occurred.")
+        traceback.print_exc()
         return 1
 
     srclog.debug("Completed")

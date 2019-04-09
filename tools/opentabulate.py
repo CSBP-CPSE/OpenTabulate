@@ -496,7 +496,7 @@ class Algorithm(object):
 
                 # clean country name and filter errors
                 if 'country' in csvreader.fieldnames and row['country'] != '':
-                    if row['country'] in ["ca", "canada"]:
+                    if row['country'] in ["ca", "can", "canada"]:
                         row['country'] = "ca"
                     else:
                         row['ERROR'] = "country"
