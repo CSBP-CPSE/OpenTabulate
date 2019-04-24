@@ -1,0 +1,14 @@
+digraph obr {
+    rankdir="LR";
+    subgraph cluster_0 {
+	label="Pre-processing";
+	node [shape=box, color=darkolivegreen1, style=filled];
+	{
+	    pp1 [label="Load address\nparser", shape=ellipse];
+	    pp2 [label="Create 'DataProcess' object\nin multiprocessing pool"];
+	    pp3 [label="Run pre-process\nscripts on raw\ndata", shape=ellipse];
+	    pp4 [label="Extract labels from\nSource object"];
+	}
+	pp1->pp2->pp3->pp4;
+    }
+}

@@ -1,0 +1,14 @@
+digraph obr {
+    rankdir="LR";
+    subgraph cluster_0 {
+	label="Source file parsing";
+	node [shape=box, color=lightblue2, style=filled];
+	{
+	    s1 [label="Create 'Source'\nobject from\nSOURCE"];
+	    s2 [label="Parse SOURCE to\ncheck syntax"];
+	    s3 [label="Download source\ndata from\nSOURCE url", shape=ellipse];
+	    s4 [label="Decompress\narchived\ndata", shape=ellipse];
+	}
+	s1->s2->s3->s4;
+    }
+}

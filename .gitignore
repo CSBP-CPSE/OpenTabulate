@@ -1,8 +1,10 @@
+build
+dist
+opentabulate.egg-info
+opentabulate/__pycache__
 pddir
-pdlog.txt
 statistics
 sources
 scripts
 testing
-tools/__pycache__
 misc

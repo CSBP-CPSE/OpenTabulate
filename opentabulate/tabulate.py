@@ -1,28 +1,28 @@
+# -*- coding: utf-8 -*-
 """
-This module defines the OpenTabulate API, which contains classes and methods 
-for a data processing production system. In abstraction, Source objects are 
-created to represent everything about a dataset, such as its metadata and 
-references to its location. The modification of Source objects by DataProcess 
-objects represents this idea of the data being processed, cleaned, and formatted. 
-A DataProcess object uses the Algorithm class methods and its child classes to 
-perform the necessary data processing.
+Tabulation and processing API.
+
+This module defines the core OpenTabulate API, which contains classes and methods 
+for parsing, processing, and reformatting microdata into CSV format. Source objects 
+are abstractions of datasets, which reads and stores important metadata upon use of 
+the Source constructor. The dynamic modification of Source objects by DataProcess 
+objects abstracts the data processing. A DataProcess object uses the Algorithm 
+class methods and its child classes to process specific data formats, such as
+CSV and XML format.
+
 
 Created and written by Maksym Neyra-Nesterenko.
 
-------------------------------------
-Data Exploration and Integration Lab
-Center for Special Business Projects
-Statistics Canada
-------------------------------------
+* Data Exploration and Integration Lab (DEIL)
+* Center for Special Business Projects (CSBP)
+* Statistics Canada
 """
 
+# - Additional notes -
 #
-# Comments prefixes:
-# 
-# IMPORTANT - self explanatory
-# SUGGESTION - self explanatory
-# DEBUG - inserted code for the purpose of testing
-#
+# Code comment prefixes: 
+# IMPORTANT, SUGGESTION, DEBUG
+# ---
 
 ###########
 # MODULES #
@@ -49,30 +49,23 @@ from zipfile import ZipFile
 
 class DataProcess(object):
     """
-    A data processing interface for a source file. If no arguments for the
-    __init__ method are provided, they default to 'None'.
+    A data processing interface for a source file. 
 
+    If no arguments for the __init__ method are provided, arguments are set to None.
+    
     Attributes:
-
-      source: A dataset and its associated metadata, defined as a Source 
-        object.
-
-      dp_address_parser: An object containing an address parser method,
-        defined by an AddressParser object.
+        source (Source): Dataset abstraction.
+        dp_address_parser (AddressParser): Address parser wrapper.
     """
     def __init__(self, source=None, address_parser=None, algorithm=None):
         """
         Initialize a DataProcess object.
 
         Args:
-        
-          source: A dataset and its associated metadata, defined
-            as a Source object.
-
-          address_parser: An address parsing function which accepts a
-            string as an argument.
-
-          algorithm: An object that is a child class of Algorithm.
+            source (Source): Dataset abstraction.
+            address_parser (function): Address parsing function, accepts a 
+                string as an argument.
+            algorithm (obj(Algorithm)): Any child class of Algorithm.
         """
         self.source = source
 
@@ -84,22 +77,17 @@ class DataProcess(object):
         self.algorithm = algorithm
 
     def setAddressParser(self, address_parser):
-        """
-        Set the current address parser.
-        """
+        '''Set the current address parser.'''
         self.dp_address_parser = AddressParser(address_parser)
 
     def preprocessData(self):
         """
-        Execute external scripts before processing. 
+        Execute external scripts before processing.
 
-        This is a DANGEROUS method, in that it permits arbitrary execution
-        of a script (as your current user). To use your script, it must be
-        written to accept TWO command line arguments, one which is a path to
-        the file to preprocess and the other being a path of the output. The 
-        paths MUST NOT be altered!
+        To use your script, it must be written to accept TWO command line arguments, 
+        one which is a path to the file to preprocess and the other being a path of 
+        the output. The paths MUST NOT be altered!
         """
-
         # check if a preprocessing script is provided
         if 'pre' in self.source.metadata:
             scr = self.source.metadata['pre']
@@ -125,8 +113,10 @@ class DataProcess(object):
                 
     def prepareData(self):
         """
-        'Algorithm' wrapper method. Selects a child class of 'Algorithm' to prepare formatting
-        of data into a standardized CSV format.
+        Algorithm wrapper method. 
+
+        Selects a child class of 'Algorithm' to prepare formatting of data into a 
+        standardized CSV format.
         """
         if self.source.metadata['format'] == 'csv':
             fmt_algorithm = CSV_Algorithm(self.dp_address_parser, self.source.metadata['database_type'])
@@ -141,21 +131,25 @@ class DataProcess(object):
         
     def extractLabels(self):
         """
-        'Algorithm' wrapper method. Extracts data labels as indicated by a source file.
+        Algorithm wrapper method. 
+
+        Extracts data labels as indicated by a source file.
         """
         self.algorithm.extract_labels(self.source)
 
     def parse(self):
         """
-        'Algorithm' wrapper method. Parses the source dataset based on label extraction,
-        and reformats the data into a dirty CSV file.
+        Algorithm wrapper method. 
+
+        Parses and tabulates the source dataset based on label extraction.
         """
         self.algorithm.parse(self.source)
 
     def clean(self):
         """
-        'Algorithm' wrapper method. Applies basic data cleaning to a recently parsed
-        and reformatted dataset.
+        Algorithm wrapper method. 
+
+        Applies basic data cleaning to a tabulated dataset.
         """
         self.algorithm.clean(self.source)
 
@@ -163,12 +157,9 @@ class DataProcess(object):
         """
         Execute external scripts after processing and cleaning.
 
-        This is a DANGEROUS method, in that it permits arbitrary execution
-        of a script (as your current user). The scripts are defined so that
-        they accept a single command line argument, which is a path to the
-        data to postprocess. The path MUST NOT be altered!
+        The scripts are defined so that they accept a single command line argument, 
+        which is a path to the data to postprocess. The path MUST NOT be altered!
         """
-
         # check if a preprocessing script is provided
         if 'post' in self.source.metadata:
             scr = self.source.metadata['post']
@@ -190,35 +181,32 @@ class AddressParser(object):
     """
     Wrapper class for an address parser.
 
-    Currently supported parsers: libpostal
+    Currently supported parsers: 
+        * libpostal
 
     Attributes:
-
-      address_parser: Address parsing function.
+        address_parser (function): Address parsing function, accepts a string 
+            as an argument.
     """
     def __init__(self, address_parser=None):
         """
         Initialize an AddressParser object.
 
         Args:
-
-          address_parser: An address parsing function which accepts a string 
-            as an argument.
+            address_parser (function): Address parsing function, accepts a string 
+                as an argument.
         """
         self.address_parser = address_parser
 
     def parse(self, addr):
         """
-        Parses and address string and returns the tokens.
+        Parses an address string and returns the tokens.
 
         Args:
-
-          addr: A string containing the address to parse.
+            addr (str): A string containing the address to parse.
 
         Returns:
-
-          self.address_parser(addr): parsed address in libpostal 
-            format.
+            self.address_parser(addr) (?): Parsed address in libpostal format.
         """
         return self.address_parser(addr)
 
@@ -232,14 +220,11 @@ class Algorithm(object):
     Parent algorithm class for data processing.
 
     Attributes:
-
-      FIELD_LABEL: Standardized field names for the database type.
-
-      ADDR_FIELD_LABEL: Standardized address field names.
-
-      ENCODING_LIST: List of character encodings to test.
-
-      address_parser: Address parsing function to use.
+        FIELD_LABEL (tuple): Standardized field names for the database type.
+        ADDR_FIELD_LABEL (tuple): Standardized address field names.
+        ENCODING_LIST (tuple): List of character encodings to test.
+        address_parser (function): Address parsing function, accepts a 
+            string as an argument.
     """
 
     # general data labels (e.g. contact info, location)
@@ -294,8 +279,9 @@ class Algorithm(object):
         Initializes Algorithm object.
 
         Args:
-          address_parser: AddressParser object. This is designed for an
-            AddressParser object or 'None'.
+            address_parser (function): Address parsing function, accepts a string 
+                as an argument.
+            database_type (str): Content type string of database.
         """
         self.address_parser = address_parser
         self.database_type = database_type
@@ -320,19 +306,14 @@ class Algorithm(object):
         or by a heuristic test.
         
         Args:
-
-          source: A dataset and its associated metadata, defined as a Source 
-            object.
+            source (Source): Dataset abstraction.
 
         Returns:
-
-          e: the character encoding as described by Python as a string.
+            e (str): Python character encoding string.
 
         Raises:
-
-          ValueError: Invalid encoding specified in source file.
-
-          RunTimeError: Character encoding test failed.
+            ValueError: Invalid encoding from source.
+            RunTimeError: Character encoding test failed.
         """
         metadata = source.metadata
         if 'encoding' in metadata:
@@ -358,6 +339,7 @@ class Algorithm(object):
     ############################################
 
     def _generateFirstRow(self, tags):
+        '''Generates headers (column names) for the target tabulated data.'''
         row = [t for t in tags]
         if "full_addr" in row:
             ind = row.index("full_addr")
@@ -367,18 +349,14 @@ class Algorithm(object):
         return row
 
     def _isRowEmpty(self, row):
-        """
-        Checks if a list 'row' consists of only empty string entries.
-        """
+        '''Checks if a row has no non-empty entries.'''
         for element in row:
             if element != "":
                 return False
         return True
 
     def _quick_scrub(self, entry):
-        """
-        Cleans a string 'entry' using regular expressions and returns it.
-        """
+        '''Reformats a string using regex and returns it.'''
         if isinstance(entry, bytes):
             entry = entry.decode()
         # remove [:space:] char class
@@ -394,15 +372,16 @@ class Algorithm(object):
         entry = entry.lower()
         return entry
 
-
     def clean(self, source):
         """
         A general dataset cleaning method.
 
-        Args:
+        Note:
+            This function may be deprecated in the future for a more modular
+            approach to defining cleaning methods.
 
-          source: A dataset and its associated metadata, defined as a Source 
-            object.
+        Args:
+            source (Source): Dataset abstraction.
         """
         error_flag = False
         
@@ -548,21 +527,21 @@ class Algorithm(object):
         if error_flag == False:
             os.remove(source.cleanerror)
         os.remove(source.dirtypath)
-    
+
+        
 class CSV_Algorithm(Algorithm):
     """
-    A child class of Algorithm, accompanied with methods designed for
-    CSV-formatted datasets.
+    Algorithm child class, accompanied with methods designed for data in CSV format.
     """
     def extract_labels(self, source):
         """
-        Constructs a dictionary that stores only tags that were exclusively used in 
-        a source file.
+        Constructs a dictionary that stores tags exclusively used in a source file.
 
         Args:
+            source (Source): Dataset abstraction.
 
-          source: A dataset and its associated metadata, defined as a Source 
-            object.
+        Raises:
+            Exception: Requires external handling if caught.
         """
         metadata = source.metadata
         label_map = dict()
@@ -580,9 +559,7 @@ class CSV_Algorithm(Algorithm):
         Parses a dataset in CSV format to transform into a standardized CSV format.
 
         Args:
-
-          source: A dataset and its associated metadata, defined as a Source 
-            object.
+            source (Source): Dataset abstraction.
         """
         if not hasattr(source, 'label_map'):
             source.log.error("Source object missing 'label_map', 'extract_labels' was not ran")
@@ -695,16 +672,13 @@ class CSV_Algorithm(Algorithm):
         
     def csv_format_correction(self, source, data_encoding):
         """
-        Deletes rows of CSV datasets that have a number of entries not
-        agreeing with the total number of columns. Additionally removes a
-        byte order mark if it exists.
+        Deletes rows of CSV datasets that have a number of entries not agreeing 
+        with the total number of columns. Additionally removes a byte order mark 
+        if it exists.
 
         Args:
-
-          source: A dataset and its associated metadata, defined as a Source 
-            object.
-
-          data_encoding: The character encoding of the data.
+            source (Source): Dataset abstraction.
+            data_encoding (str): Data character encoding.
         """
         error_flag = False
 
@@ -753,20 +727,17 @@ class CSV_Algorithm(Algorithm):
 
 class XML_Algorithm(Algorithm):
     """
-    A child class of Algorithm, accompanied with methods designed for
-    XML-formatted datasets.
+    Algorithm child class, accompanied with methods designed for data in XML format.
     """
 
     def extract_labels(self, source):
         """
-        Constructs a dictionary that stores only tags that were exclusively used in 
-        a source file. Since datasets in XML format will need a header tag in its
-        source file, the labels must be use XPath expressions.
+        Constructs a dictionary that stores tags exclusively used in a source file. 
+        Since datasets in XML format require a header tag in its source file, the 
+        labels must be reformatted to XPath expressions.
 
         Args:
-
-          source: A dataset and its associated metadata, defined as a Source 
-            object.
+            source (Source): Dataset abstraction.
         """
         metadata = source.metadata
         label_map = dict()
@@ -791,9 +762,7 @@ class XML_Algorithm(Algorithm):
         Parses a dataset in XML format to transform into a standardized CSV format.
 
         Args:
-
-          source: A dataset and its associated metadata, defined as a Source 
-            object.
+            source (Source): Dataset abstraction.
         """
         if not hasattr(source, 'label_map'):
             raise ValueError("Source object missing 'label_map', 'extract_labels' was not ran.")
@@ -916,23 +885,17 @@ class XML_Algorithm(Algorithm):
                     csvwriter.writerow(row)
 
 
-
-
     def _xml_empty_element_handler(self, element):
         """
-        The 'xml.etree' module returns 'None' for text of empty-element tags. Moreover, 
-        if the element cannot be found, the element is 'None'. This function is defined 
+        The xml.etree module returns 'None' for text of empty-element tags. Moreover, 
+        if the element cannot be found, the element is None. This function is defined 
         to handle these cases.
 
         Args:
-
-          element: A node in the XML tree.
+            element (?): A node in the XML tree.
 
         Returns:
-
-          '': missing or empty tag
-                  
-          element.text: tag text
+            str: Empty string if missing or empty tag, otherwise element.text.
         """
         if element is None:
             return ''
@@ -942,37 +905,27 @@ class XML_Algorithm(Algorithm):
             return ''
 
 
-
 ###############################
 # SOURCE DATASET / FILE CLASS #
 ###############################
 
 class Source(object):
     """
-    Source dataset class. Contains metadata and other information about the dataset
-    and its dirty and clean copies.
+    Source dataset class. Abstracts a dataset by storing metadata involving the data 
+    file (format, name, etc.) and structure (XML headers, CSV column names, etc.). 
+    Dynamic information is also included, such as the paths of the raw data, dirty
+    and clean tabulated data.
 
     Attributes:
-    
-      srcpath: path to source file relative to the OBR directory.
-
-      metadata: JSON dumps from source file
-
-      local_fname: 'root' name of the dataset file (without prefixes)
-
-      rawpath: path to the raw dataset relative to the OBR directory. This is
-        assigned './pddir/raw'.
-
-      dirtypath: path to the dirty dataset relative to the OBR directory. This is
-        assigned './pddir/dirty'.
-
-      cleanpath: path to the clean dataset relative to the OBR directory. This is
-        assigned './pddir/clean'.
-
-      label_map: a dict object that stores the mapping of OBRs standardized labels
-        to the dataset's labels, as obtained by the source file.
-
-      log: a Logger object defined as the logger with the variable name 'local_fname'. 
+        srcpath (str): Source file path.
+        metadata (dict): Source file JSON dumps.
+        local_fname (str): Data file name (not path!).
+        rawpath (str): Raw data path (in './pddir/raw/').
+        dirtypath (str): Dirty tabulated data path (in './pddir/dirty/').
+        cleanpath (str): Clean tabulated data path (in './pddir/clean/').
+        label_map (dict): Mapping of standardized labels (in Algorithm) to
+            the raw datasets labels, obtained from self.metadata.
+        log (Logger): Logger with self.local_fname as its name.
     """
     def __init__(self, path, pre_flag=False, post_flag=False, no_fetch_flag=True, \
                  no_extract_flag=True):
@@ -980,8 +933,7 @@ class Source(object):
         Initializes a new source file object.
 
         Raises:
-        
-          OSError: Path to source file does not exist.
+            OSError: Path (of source file) does not exist.
         """
         if not os.path.exists(path):
             raise OSError('Path "%s" does not exist.' % path)
@@ -1014,16 +966,12 @@ class Source(object):
         Parses the source file to check correction of syntax.
 
         Raises:
-
-          LookupError: Associated with a missing tag.
-
-          ValueError: Associated with an incorrect entry or combination or entries.
-            For example, having an 'address' and 'full_addr' tag will raise this
-            error since they cannot both be used in a source file.
-
-          TypeError: Associated with an incorrect JSON type for a tag.
-
-          OSError: A path for pre or post processing scripts was not found.
+            LookupError: Missing tag.
+            ValueError: Incorrect entry or combination or entries, such as having
+                an 'address' and 'full_addr' tag will raise this error since they 
+                cannot both be used in a source file.
+            TypeError: Incorrect JSON type for a tag.
+            OSError: Path for pre or post processing scripts not found.
         """
         # required tags
         if 'format' not in self.metadata:
@@ -1218,7 +1166,8 @@ class Source(object):
                 
     def fetch_url(self):
         """
-        Downloads a dataset by fetching its URL and writing to the raw directory.
+        Downloads a dataset by fetching its URL and writing to the raw directory 
+        (currently './pddir/raw').
         """
         if self.no_fetch_flag == True:
             return False
@@ -1243,6 +1192,10 @@ class Source(object):
         return True
 
     def archive_extraction(self):
+        """
+        Extracts data from an archive downloaded in the raw directory ('./pddir/raw'), 
+        renaming the file if indicated by the source file.
+        """
         if self.no_extract_flag == True:
             return False
         
@@ -1256,3 +1209,7 @@ class Source(object):
                     os.rename('./pddir/raw/' + archive_fname[1], './pddir/raw/' + self.local_fname)
 
         return True
+
+if __name__ == "__main__":
+    # reserved for debugging
+    pass

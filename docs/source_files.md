@@ -1,6 +1,6 @@
 # Writing source files
 
-A fundamental component of OpenTabulate and its use to tabulate your data is the *source file*. A source file is a short metadata file in JSON format that acts as a "configuration file", to give the necessary information for OpenTabulate to do data processing on a specific dataset. Such information includes the original dataset format, which attribute names in the original data get mapped to, the name of the dataset on the disk, and so on.
+A fundamental component of OpenTabulate and its use to tabulate your data is the *source file*. A source file is a file in JSON format that configures OpenTabulate to process data from a specific dataset. Such information includes the original dataset format, mapping attribute names in the original data to a standardized set of attributes, the name of the dataset stored on the disk, and so on.
 
 We refer to a JSON key-value pair as a *tag*. Some keys may contain a list of key-value pairs, such as `address` containing key-value pairs for `city`, `postcode` and so forth. 
 
@@ -8,7 +8,7 @@ We refer to a JSON key-value pair as a *tag*. Some keys may contain a list of ke
 
 #### Example 
 
-Source files follow a specific format for OpenTabulate to parse. Before presenting the proper use, nuances, and documentation, we present an example. Below is a source file for a business register dataset for Kitchener in Ontario, Canada.
+Source files follow a specific format for OpenTabulate to parse. Below is a source file for a business register dataset for Kitchener in Ontario, Canada.
 
 ```
 {
@@ -35,18 +35,18 @@ Source files follow a specific format for OpenTabulate to parse. Before presenti
 
 The keys within the first pair of curly braces are `localfile`, `url`, `format`, `database_type`, and `info`. Besides `info`, tags that occur in this layer are intended for file handling. 
 
-- `localfile`  represents the name of the file (to be) stored locally to the disk. 
-- `url` defines the download link for the dataset.
-- `format` tells OpenTabulate what the dataset's original format is, so as to choose the appropriate algorithms.
+- `localfile`  represents the name of the file (to be) stored locally to the disk.
+- `url` defines the download link for the dataset
+- `format` tells OpenTabulate what the dataset's original format is, so as to choose the appropriate algorithms
 - `database_type` describes which data attribute names will be considered under `info`
 
-The `info` tag contains "attribute mapping" information. OpenTabulate's job is to reformat your data into a tabular format, but you must specify where and which data (from the original dataset) appears in the tabulated data. Consider `on-kitchener.csv` which has a column with the attribute name `COMPANY_NAME`. From consultation with the data provider or by intuition, you determine that this column holds legal business names. This best aligns with the key `bus_name`, which is a column name for the eventually tabulated data. The remaining tags in `info` are determined by a similar methodology with reference to the different keys documented below. 
+The `info` tag contains attribute mapping information. OpenTabulate's job is to reformat your data into a tabular format, but you must specify where and which data attributes (from the original dataset) should appear in the tabulated data. Consider `on-kitchener.csv` which has a column with the attribute name `COMPANY_NAME`. From consultation with the data provider, you determine that this column holds legal business names. This best aligns with the key `bus_name`, which is a standardized column name defined in OpenTabulate. The remaining tags in `info` are determined by a similar methodology with reference to the different keys documented below. 
 
 ---
 
 # Tag documentation
 
-This section is ordered to match the format in the example above. The five attributes of each tag table are defined in the bullets below.
+The standard tags in OpenTabulate are organized to match the structure of the example above. The tag information is separated into five columns, which are defined in the bullets below.
 
 - **Key** : Key name and column name for the tabulated data.
 - **JSON Type** : The supported JSON type for the key's value.
@@ -54,7 +54,7 @@ This section is ordered to match the format in the example above. The five attri
 - **Required?** : Defines whether or not the given key and value *must* be included in a source file.
 - **Dependencies** : Defines what other keys *must* be included if you use the given key.
 
-### File handling tags
+### <a name="file-handling-tags"></a>File handling tags
 
 The following tags are generally for data file handling and naming. These tags must appear in the first set of curly braces `{...}` of the source file.
 
@@ -192,9 +192,22 @@ The `address` tag is a JSON object defined inside `info`. Note that this cannot 
 
 ---
 
-# Source file syntax features and nuances
+# Syntax features and nuances
 
-### List concatenation
+Extracting information from data to be tabulated sometimes requires methods beyond simply mapping data attributes, such as regular expression filtering and entry concatenation. To incorporate such methods into OpenTabulate, special keys have been added or specific syntax for key values is taken into account. Below is a complete list of the methods.
+
+- [Concatenating entries](#concatenating-entries)
+- [Manually inject or overwrite data](#manually-inject-or-overwrite-data)
+- [Filtering with regular expressions](#filtering-with-regular-expressions)
+- [Writing pre-processing and post-processing scripts](#writing-pre-processing-and-post-processing-scripts)
+
+#### Additional note: Debugging syntax errors
+
+OpenTabulate checks the syntax of your source file and will warn you if something is off, but this checking does not cover all situations. Moreover, it cannot make sense of logical errors until either during processing or when you inspect the tabulated data. 
+
+Before posting a question or issue, check this [GitHub issue](https://github.com/CSBP-CPSE/OpenTabulate/issues/12) for clues to erroneous output or functionality.
+
+### <a name="concatenating-entries"></a>Concatenating entries
 
 When writing tags, some keys above support having JSON lists as a value. For example
 
@@ -204,9 +217,9 @@ When writing tags, some keys above support having JSON lists as a value. For exa
 	...
 ```
 
-OpenTabulate interprets this as "for each entity in the data to process, concatenate (with separation by spaces) all of the data in the entity under the attributes `value1`, `value2`, and `value3` (in that order) to be processed and output to an entry under `key`. 
+OpenTabulate interprets this as "for each data point to process, concatenate (with space separation) the information under the attributes `value1`, `value2`, and `value3` (in that order) for the data point, and assign it to the standardized attribute `key` for further processing.
 
-A common use of this feature is for addresses. Since address lines are not supported keys and some datasets will only provide information in this manner for an address, we still want to tabulate the data. For example, if a dataset has the entry and columns
+A common use of this feature is for address parsing. Since address lines (address data that is concatenated into one string) are not supported keys and some datasets will only provide address information in this manner, we still want to tabulate the data. For example, if a dataset has the entry and columns
 
 ```
 Business Name, ..., Address Line 1, Address Line 2, Address Line 3, ...
@@ -215,7 +228,15 @@ Business Name, ..., Address Line 1, Address Line 2, Address Line 3, ...
 ...
 ```
 
-then the source file and data processing script will process the entry 
+and our source file contains
+
+```javascript
+	...
+	"full_addr": ["Address Line 1", "Address Line 2", "Address Line 3"],
+	...
+```
+
+then OpenTabulate will process the entry
 
 ```
 "2036 STEINS GATE CANADA T5T 5R5"
@@ -223,23 +244,23 @@ then the source file and data processing script will process the entry
 
 for `"JOHN TITOR TIME MACHINES"` in whatever way `full_addr` is handled. In this case, `full_addr` uses an address parser, and will parse the concatenated entry above.
 
-### force - manually inject or overwrite data
+### <a name="manually-inject-or-overwrite-data"></a>Manually inject or overwrite data
 
-Any string-valued tags or nested tags in `info` support what we call the `force` value. A `force` value defines or "forces" user-defined content for the associated key in the tabulated data\*. A few situations in which this may be helpful are:
+Any string-valued tags that appear anywhere under `info` support what we call the `force` value. A `force` value defines or "forces" user-defined content for the associated key in the tabulated data\*. A few situations in which this may be helpful are:
 
-- The dataset to process represents a particular city or province, say Winnipeg and Manitoba, but the data does not explicitly have the city and province for any entity in the data. If we want to include the city or province information in the tabulated data, we can let OpenTabulate do this automatically by writing `"city": "force:Winnipeg"` and `"prov/terr": "force:Manitoba"` in the source file. The resulting tabulated data will have columns `city` and `prov/terr` with the corresponding values in each row.
+- The dataset to process represents a particular city or province, say Winnipeg and Manitoba, but the data does not explicitly have the city and province for any data point. If we want to include the city or province information in the tabulated data, we can let OpenTabulate do this automatically by writing `"city": "force:Winnipeg"` and `"prov/terr": "force:Manitoba"` in the source file. The resulting tabulated data will have columns `city` and `prov/terr` with the corresponding values in each row.
 - A dataset on public schools does not describe its own institution type (namely, that the schools are public). Adding `"ins_type": "force:public"` to the source file means OpenTabulate will generate a tabulated dataset with an `ins_type` column with `public` in all of its entries.
-- The address parser you're using is more accurate with additional data that may not be explicitly in the dataset. For example, we may have a XML file with a `<CivicAddress>` XML tag that contains the street number, name, city, and province, a separate `<PostalCode>` XML tag, and no tags for the country. If you know your data resides in Canada, you can write `"full_addr": ["CivicAddress", "force:Canada", "PostalCode"]"` to inject "Canada" into the list-concatenated address before running it through the address parser.
+- The address parser you're using is more accurate with additional data that may not be explicitly in the dataset. For example, we may have a XML file with a `<CivicAddress>` XML tag that contains the street number, name, city, and province, a separate `<PostalCode>` XML tag, and no tags for the country. If you know your data resides in Canada, you can write `"full_addr": ["CivicAddress", "force:Canada", "PostalCode"]"` to inject "Canada" into the entry-concatenated address before running it through the address parser.
 
 The general syntax is `"key": "force:content_to_inject"` for `info` keys that support string values.
 
-(\*) User-defined content under `force` applies *after* pre-processing and *before* OpenTabulate's regular processing.
+(\*) User-defined content under `force` applies *after* [pre-processing](#writing pre-processing and post-processing scripts) and *before* OpenTabulate's regular processing.
 
-### Filtering with regular expressions - filter tag
+### <a name="filtering-with-regular-expressions"></a>Filtering with regular expressions
 
-Source files now support a `filter` tag, which is defined in the first set of curly brace `{...}`.
+Source files support a `filter` tag, which is defined in the first set of curly braces `{...}`.
 
-Each key in `filter` is a desired data attribute to filter by. The value of each key is a [Python regular expression](https://docs.python.org/3/library/re.html), which specify acceptable values for the attribute. For example, let us say that we have an attribute named `SCHOOL_TYPE` in a given dataset. Moreover, we are interested in only religious or private schools, indicated by the `SCHOOL_TYPE` entries `RELIGIOUS` and `PRIVATE`. To process only those entities satisfying the filter rules, we can define our filter as
+Each key in `filter` is a desired data attribute to filter by. The value of each key is a [Python regular expression](https://docs.python.org/3/library/re.html) which filters values under the attribute. For example, let us say that we have an attribute named `SCHOOL_TYPE` in a given dataset. Moreover, we are interested in only religious or private schools, indicated by the `SCHOOL_TYPE` entries `RELIGIOUS` and `PRIVATE`. To process only those entities satisfying the filter rules, we can define our filter as
 
 ```
 "filter" : {
@@ -247,7 +268,7 @@ Each key in `filter` is a desired data attribute to filter by. The value of each
 }
 ```
 
-It is important to know that the filter keys are grouped by a logical `AND`. For example, if a source file contains
+Note that the filter keys are grouped by a logical `AND`. For example, if a source file contains
 
 ```
 "filter" : {
@@ -257,26 +278,19 @@ It is important to know that the filter keys are grouped by a logical `AND`. For
 }
 ```
 
-then each entity of the data is checked to see if each regular expression returns a match in each respective attribute. Provided all regular expressions return a match, the entity will be marked for processing. Otherwise, the entity is discarded.
+then each data point is checked to see if each regular expression returns a match in each respective attribute. Provided all regular expressions return a match, the data point will be marked for processing. Otherwise, the data point is discarded.
 
-### Writing pre-processing and post-processing scripts
+### <a name="writing-pre-processing-and-post-processing-scripts"></a>Writing pre-processing and post-processing scripts
 
 **WARNING! NO INTEGRITY CHECKING OF THE SCRIPTS IS DONE BY OPENTABULATE. ALWAYS CHECK THE CODE BEFORE RUNNING SCRIPTS FROM UNKNOWN SOURCES!**
 
-The purpose of pre-processing and post-processing scripts is to both automate and organize external data formatting, which is handy to format the data in a way that cannot be achieved or handled using OpenTabulate's API. Pre-processing occurs strictly before tabulation in OpenTabulate and post-processing occurs strictly after cleaning in OpenTabulate. 
+The purpose of pre-processing and post-processing scripts is to both automate and organize external data formatting, which is handy to format the data in a way that cannot be achieved or handled using OpenTabulate. Pre-processing occurs strictly before processing in OpenTabulate and post-processing occurs strictly after processing in OpenTabulate. 
 
 For example, a dataset may only be provided as a Microsoft Excel spreadsheet, which is an unsupported data format in OpenTabulate. In this situtation, writing a pre-processing script that converts the spreadsheet to CSV format is a potential solution to have it be processed by OpenTabulate. 
 
-Writing a custom pre-processing or post-processing script is straightforward. Note that the scripts do not necessarily have to be *scripts*, they just have to be executable programs that accept command line arguments. The number of arguments and what they represent specifically depend on if you are writing a pre-processing or post-processing script. 
+Writing a custom pre-processing or post-processing script is straightforward. Note that the scripts do not necessarily have to be *scripts*, they just have to be executable programs that accept command line arguments. The number of arguments and what they represent depend on if you are writing a pre-processing or post-processing script. 
 
 - For a *pre-processing script*, you need to allow for two command line arguments (e.g. `sys.argv[1]` and `sys.argv[2]` in Python). OpenTabulate enters the path of the raw dataset stored locally into the first argument, and enters the path of the pre-processed output into the second argument.
 - For a *post-processing script*, you need to allow for one command line argument (e.g. `sys.argv[1]` in Python). OpenTabulate enters the path of the clean dataset into the single argument.
 
-To include the scripts in a source file, use the `pre` and `post` keys in [file handling tags](#File-handling-tags).
-
-
-### Debugging syntax errors
-
-OpenTabulate checks the syntax of your source file and will warn you if something is off, but this checking does not cover all situations. Moreover, it cannot make sense of logical errors until either during processing or when you inspect the tabulated data. 
-
-Before posting a question or issue, check this [GitHub issue](https://github.com/CSBP-CPSE/OpenTabulate/issues/12) for clues to erroneous output or functionality.
+To include the scripts in a source file, use the `pre` and `post` keys in [file handling tags](#file-handling-tags).
