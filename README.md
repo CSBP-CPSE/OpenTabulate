@@ -1,6 +1,6 @@
 # OpenTabulate
 
-OpenTabulate is a Python package designed to organize, tabulate, and process structured data. It currently aims to be a data processing framework for the [Linkable Open Data Environment](https://github.com/CSBP-CPSE/LODE-ECDO), an exploratory project by the Data Exploration and Integration Lab (DEIL) at Statistics Canada. OpenTabulate offers
+OpenTabulate is a Python package designed to organize, tabulate, and process structured data. It currently aims to be a data processing framework for the [Linkable Open Data Environment](https://github.com/CSBP-CPSE/LODE-ECDO), an exploratory project by the Data Exploration and Integration Lab (DEIL) within the Center for Special Business Projects (CSBP) at Statistics Canada. OpenTabulate offers
 
 - automated data retrieval
 - a systematic way of organizing and retrieving data using *sources files* (inspired by [OpenAddresses](https://openaddresses.io/)),
@@ -40,11 +40,7 @@ which creates `~/.opentabulate` and other subdirectories.
 
 ## Documentation
 
-1. [Introduction](docs/introduction.md)
-2. [Writing source files](docs/source_files.md)
-3. [Running OpenTabulate](docs/running_opentab.md)
-4. Module documentation (run `help('opentab')` in a Python shell)
-5. [Frequently asked question (FAQ)](docs/faq.md)
+Please see our [GitHub wiki](https://github.com/CSBP-CPSE/OpenTabulate/wiki).
 
 ## Issues
 

@@ -31,9 +31,10 @@ setup(
         'Programming Language :: Python :: 3.7'
     ],
     project_urls={
-        'Documentation': 'https://github.com/CSBP-CPSE/OpenTabulate/tree/master/docs',
-        'Source code': 'https://github.com/CSBP-CPSE/OpenTabulate',
-        'Bug tracker': 'https://github.com/CSBP-CPSE/OpenTabulate/issues'
+        'Documentation': 'https://github.com/CSBP-CPSE/OpenTabulate/wiki',
+        'Source code': 'https://github.com/CSBP-CPSE/OpenTabulate/tree/master/opentabulate',
+        'Bug tracker': 'https://github.com/CSBP-CPSE/OpenTabulate/issues',
+        'License': 'https://github.com/CSBP-CPSE/OpenTabulate/tree/master/LICENSE.md'
     },
     packages=find_packages(),
     install_requires=['requests'],
