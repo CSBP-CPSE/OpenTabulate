@@ -14,7 +14,7 @@ with open("README.md", 'r') as readme:
 
 setup(
     name='opentabulate',
-    version='1.0.0b1',
+    version='1.0.1b1',
     description='Tabulates structured data into a mergeable CSV format',
     long_description=long_desc,
     long_description_content_type='text/markdown',

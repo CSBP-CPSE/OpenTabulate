@@ -338,9 +338,9 @@ class Algorithm(object):
     # Support functions for the 'parse' method #
     ############################################
 
-    def _generateFirstRow(self, tags):
+    def _generateFieldNames(self, keys):
         '''Generates headers (column names) for the target tabulated data.'''
-        row = [t for t in tags]
+        row = [k for k in keys]
         if "full_addr" in row:
             ind = row.index("full_addr")
             row.pop(ind)
@@ -349,9 +349,9 @@ class Algorithm(object):
         return row
 
     def _isRowEmpty(self, row):
-        '''Checks if a row has no non-empty entries.'''
-        for element in row:
-            if element != "":
+        '''Checks if a row (dict) has no non-empty entries.'''
+        for key in row:
+            if row[key] != "":
                 return False
         return True
 
@@ -539,9 +539,6 @@ class CSV_Algorithm(Algorithm):
 
         Args:
             source (Source): Dataset abstraction.
-
-        Raises:
-            Exception: Requires external handling if caught.
         """
         metadata = source.metadata
         label_map = dict()
@@ -551,6 +548,7 @@ class CSV_Algorithm(Algorithm):
             # short circuit evaluation
             elif ('address' in metadata['info']) and (i in metadata['info']['address']):
                 label_map[i] = metadata['info']['address'][i] 
+
         source.label_map = label_map
 
 
@@ -560,6 +558,9 @@ class CSV_Algorithm(Algorithm):
 
         Args:
             source (Source): Dataset abstraction.
+
+        Raises:
+            Exception: Requires external handling if caught.
         """
         if not hasattr(source, 'label_map'):
             source.log.error("Source object missing 'label_map', 'extract_labels' was not ran")
@@ -568,20 +569,29 @@ class CSV_Algorithm(Algorithm):
         tags = source.label_map
         enc = self.char_encode_check(source)
         FILTER_FLAG = False
+        PROVIDER_FLAG = False
 
         if 'filter' in source.metadata:
             FILTER_FLAG = True
 
         with open(source.dirtypath, 'r', encoding=enc) as csv_file_read, \
              open(source.dirtypath + '-temp', 'w', encoding="utf-8") as csv_file_write:
+            # define column labels
+            col_names = [t for t in tags]
+            if 'provider' in source.metadata:
+                col_names.append('provider')
+                PROVIDER_FLAG = True
+            col_labels = self._generateFieldNames(col_names)
+
+            # define reader/writer
             csvreader = csv.DictReader(csv_file_read)
-            csvwriter = csv.writer(csv_file_write, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
-            # write the initial row which identifies each column
-            col_labels = self._generateFirstRow(tags)
-            csvwriter.writerow(col_labels)
+            csvwriter = csv.DictWriter(csv_file_write, col_labels, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+            
+            csvwriter.writeheader()
+            
             try:
                 for entity in csvreader:
-                    row = []
+                    row = dict()
                     # START FILTERING HERE
                     BOOL_FILTER = []
                     CONT_FLAG = False
@@ -623,7 +633,7 @@ class CSV_Algorithm(Algorithm):
                             # depth: 2
                             # # #
                             if key != "full_addr":
-                                row.append(entry)
+                                row[key] = entry
                             else:
                                 ap_entry = self.address_parser.parse(entry)
                                 # SUGGESTION: This for loop is exclusively for libpostal output.
@@ -631,9 +641,9 @@ class CSV_Algorithm(Algorithm):
                                 for afl in self.ADDR_FIELD_LABEL:
                                     if self._ADDR_LABEL_TO_POSTAL[afl] in [x[1] for x in ap_entry]:
                                         ind = list(map(operator.itemgetter(1), ap_entry)).index(self._ADDR_LABEL_TO_POSTAL[afl])
-                                        row.append(ap_entry[ind][0])
+                                        row[afl] = ap_entry[ind][0]
                                     else:
-                                        row.append("")
+                                        row[afl] = ""
                             continue
                         # # #
                         # decision: check if key is "full_addr"
@@ -648,9 +658,9 @@ class CSV_Algorithm(Algorithm):
                             for afl in self.ADDR_FIELD_LABEL:
                                 if self._ADDR_LABEL_TO_POSTAL[afl] in [x[1] for x in ap_entry]:
                                     ind = list(map(operator.itemgetter(1), ap_entry)).index(self._ADDR_LABEL_TO_POSTAL[afl])
-                                    row.append(ap_entry[ind][0])
+                                    row[afl] = ap_entry[ind][0]
                                 else:
-                                    row.append("")
+                                    row[afl] = ""
                             continue
                         # # #
                         # All other cases get handled here.
@@ -661,8 +671,13 @@ class CSV_Algorithm(Algorithm):
                             entry = self._quick_scrub(entity[ee[0]])
                         elif len(ee) == 2:
                             entry = self._quick_scrub(ee[1])
-                        row.append(entry)
+                        row[key] = entry
+
                     if not self._isRowEmpty(row):
+                        # add customized entries here (e.g. provider)
+                        if PROVIDER_FLAG:
+                            row['provider'] = source.metadata['provider']
+                            
                         csvwriter.writerow(row)
             except:
                 raise
@@ -754,6 +769,7 @@ class XML_Algorithm(Algorithm):
             elif ('address' in metadata['info']) and (i in metadata['info']['address']):
                 # note that the labels have to map to XPath expressions
                 label_map[i] = ".//" + metadata['info']['address'][i]
+
         source.label_map = label_map
 
 
@@ -777,6 +793,7 @@ class XML_Algorithm(Algorithm):
         header = source.metadata['header']
         enc = self.char_encode_check(source)
         FILTER_FLAG = False
+        PROVIDER_FLAG = False
 
         if 'filter' in source.metadata:
             FILTER_FLAG = True
@@ -786,15 +803,19 @@ class XML_Algorithm(Algorithm):
         root = tree.getroot()
 
         with open(source.dirtypath, 'w', encoding="utf-8") as csvfile:
-            
-            csvwriter = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
-
             # write the initial row which identifies each column
-            col_labels = self._generateFirstRow(tags)
-            csvwriter.writerow(col_labels)
+            col_names = [t for t in tags]
+            if 'provider' in source.metadata:
+                col_names.append('provider')
+                PROVIDER_FLAG = True
+            col_labels = self._generateFieldNames(col_names)
+
+            csvwriter = csv.writer(csvfile, col_labels, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+
+            csvwriter.writeheader()
 
             for element in root.iter(header):
-                row = []
+                row = dict()
                 # START FILTERING HERE
                 BOOL_FILTER = []
                 CONT_FLAG = False
@@ -840,7 +861,7 @@ class XML_Algorithm(Algorithm):
                         # depth: 2
                         # # #
                         if key != "full_addr":
-                            row.append(entry)
+                            row[key] = entry
                         else:
                             ap_entry = self.address_parser.parse(entry)
                             # SUGGESTION: This for loop is exclusively for libpostal output.
@@ -848,9 +869,9 @@ class XML_Algorithm(Algorithm):
                             for afl in self.ADDR_FIELD_LABEL:
                                 if self._ADDR_LABEL_TO_POSTAL[afl] in [x[1] for x in ap_entry]:
                                     ind = list(map(operator.itemgetter(1), ap_entry)).index(self._ADDR_LABEL_TO_POSTAL[afl])
-                                    row.append(ap_entry[ind][0])
+                                    row[afl] = ap_entry[ind][0]
                                 else:
-                                    row.append("")
+                                    row[afl] = ""
                         continue
                     # # #
                     # decision: check if key is "full_addr"
@@ -866,9 +887,9 @@ class XML_Algorithm(Algorithm):
                         for afl in self.ADDR_FIELD_LABEL:
                             if self._ADDR_LABEL_TO_POSTAL[afl] in [x[1] for x in ap_entry]:
                                 ind = list(map(operator.itemgetter(1), ap_entry)).index(self._ADDR_LABEL_TO_POSTAL[afl])
-                                row.append(ap_entry[ind][0])
+                                row[afl] = ap_entry[ind][0]
                             else:
-                                row.append("")
+                                row[afl] = ""
                         continue
                     # # #
                     # All other cases get handled here.
@@ -880,8 +901,13 @@ class XML_Algorithm(Algorithm):
                         subel_content = self._xml_empty_element_handler(subelement)
                     elif len(ee) == 2:
                         subel_content = ee[1]
-                    row.append(self._quick_scrub(subel_content))
+                    row[key] = self._quick_scrub(subel_content)
+                    
                 if not self._isRowEmpty(row):
+                    # add customized entries here (e.g. provider)
+                    if PROVIDER_FLAG:
+                        row['provider'] = source.metadata['provider']
+                        
                     csvwriter.writerow(row)
 
 
@@ -1014,6 +1040,9 @@ class Source(object):
         if (self.metadata['format'] != 'csv') and ('header' in self.metadata) and (not isinstance(self.metadata['header'], str)):
             raise TypeError("'header' must be a string.")
 
+        if 'provider' in self.metadata and (not isinstance(self.metadata['provider'], str)):
+            raise TypeError("'provider' must be a string.")
+
         # url
         if 'url' in self.metadata and (not isinstance(self.metadata['url'], str)):
             raise TypeError("'url' must be a string.")
@@ -1112,7 +1141,8 @@ class Source(object):
         # check entire source to make sure correct keys are being used
         for i in self.metadata:
             root_layer = ('localfile', 'localarchive', 'url', 'format', 'database_type',
-                           'compression', 'encoding', 'pre', 'post', 'header', 'info', 'filter')
+                          'compression', 'encoding', 'pre', 'post', 'header', 'info',
+                          'filter', 'provider')
             if i not in root_layer:
                 raise ValueError("Invalid key in root_layer '%s' in source file" % i)
 
