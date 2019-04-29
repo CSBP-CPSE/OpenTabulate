@@ -810,7 +810,7 @@ class XML_Algorithm(Algorithm):
                 PROVIDER_FLAG = True
             col_labels = self._generateFieldNames(col_names)
 
-            csvwriter = csv.writer(csvfile, col_labels, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+            csvwriter = csv.DictWriter(csvfile, col_labels, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
 
             csvwriter.writeheader()
 
