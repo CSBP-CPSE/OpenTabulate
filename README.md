@@ -33,10 +33,10 @@ $ pip install opentabulate
 After installing the package, initialize the OpenTabulate environment by running
 
 ```
-$ opentab --initialize
+$ opentab --initialize DATA_DIR
 ```
 
-which creates `~/.opentabulate` and other subdirectories.
+where `DATA_DIR` is a path to a (preferably empty) directory. This configures OpenTabulate to read, write and organize data in `DATA_DIR`.
 
 ## Documentation
 

@@ -14,6 +14,7 @@ Created and written by Maksym Neyra-Nesterenko.
 """
 
 import argparse
+import configparser
 import logging
 import multiprocessing
 import os
@@ -50,7 +51,7 @@ def _parse_cmd_args():
                           help='run at most N jobs asynchronously')
     cmd_args.add_argument('-v', '--verbose', action='store_true',
                           help='enable debug mode printing')
-    cmd_args.add_argument('--initialize', action='store_true', default=False, \
+    cmd_args.add_argument('--initialize', action='store', default=None, type=str, metavar='DIR', \
                           help='create processing directories')
     cmd_args.add_argument('SOURCE', nargs='*', default=None, help='path to source file')
     return cmd_args.parse_args()
@@ -66,38 +67,65 @@ def _args_handler(p_args):
     Args:
         p_args (argparse.Namespace): Parsed arguments.
     """
-    # get absolute paths
-    for i in range(0,len(p_args.SOURCE)):
-        p_args.SOURCE[i] = os.path.abspath(p_args.SOURCE[i])
+    CONF_DIR = os.path.expanduser('~') + '/.config'
+    CONF_PATH = CONF_DIR + '/opentabulate.conf'
+    ROOT_DIR = None
+    config = configparser.ConfigParser()
 
-    root_path = os.path.expanduser('~') + '/.opentabulate'
-
-    if p_args.initialize == True:
-        if not os.path.exists(root_path):
-            os.makedirs(root_path)
-            os.chdir(root_path)
+    DATA_TREE = ['./data', './data/raw', './data/pre', './data/dirty',
+                 './data/clean', './sources', './scripts']
+    
+    # check if --initialize flag is used
+    if bool(p_args.initialize) == True:
+        if not os.path.exists(CONF_PATH):
+            # if the configuration file does not exist
+            config['general'] = {'root_dir' : p_args.initialize}
+            ROOT_DIR = p_args.initialize
+            os.makedirs(CONF_DIR, exist_ok=True)
+            with open(CONF_PATH, 'w') as configfile:
+                config.write(configfile)
         else:
-            print("OpenTabulate root directory already exists.", file=sys.stderr)
+            # otherwise try to read the existing configuration file
+            print("Will instead read existing configuration file: %s" % CONF_PATH, file=sys.stderr)
+            config.read(CONF_PATH)
+            ROOT_DIR = config['general']['root_dir']
+
+        try:
+            os.makedirs(ROOT_DIR, exist_ok=True)
+        except FileExistsError:
+            print(ROOT_DIR, "is a file.", file=sys.stderr)
             exit(1)
+            
+        os.chdir(ROOT_DIR)
 
-        PD_TREE = ['./pddir', './pddir/raw', './pddir/pre', './pddir/dirty',
-                       './pddir/clean', './sources', './scripts']
-
-        print("Creating data processing directory tree in current working directory...")
-        for p in PD_TREE:
-            if not os.path.isdir(p):
-                os.makedirs(p)
-        print("Finished creating directories")
+        print("Creating OpenTabulate data directory tree.")
+        print("If the necessary directories already exist, they will NOT be overwritten.")
+        for directory in DATA_TREE:
+            os.makedirs(directory, exist_ok=True)
+        print("Finished creating directories at: %s" % os.getcwd())
         exit(0)
 
-    # check that opentabulate directory exists
+    if not os.path.exists(CONF_PATH):
+        print("No configuration file found. Use --initialize flag?", file=sys.stderr)
+        exit(1)
+
+    # read configuration file
+    config.read(CONF_PATH)
+    ROOT_DIR = config['general']['root_dir']
+        
+    # check that OpenTabulate's root directory exists
     try:
-        os.chdir(root_path)
-    except FileNotFoundError:
-        print("OpenTabulate root directory does not exist.",
-              "Use --initialize flag?", file=sys.stderr)
-        exit(1)    
-    
+        os.chdir(ROOT_DIR)
+    except (FileNotFoundError, NotADirectoryError):
+        print("Error! Configured OpenTabulate directory does not exist or not a directory.", file=sys.stderr)
+        exit(1)
+
+    # verify that the data directories are intact
+    for directory in DATA_TREE:
+        if not os.path.isdir(directory):
+            print("Error! Data directories are misconfigured.", file=sys.stderr)
+
+    # now we validate other command-line arguments here
     if p_args.SOURCE == []:
         print("Error! The following arguments are required: SOURCE", file=sys.stderr)
         exit(1)
@@ -111,6 +139,10 @@ def _args_handler(p_args):
         print("Running in debug mode (verbose output)")
     else:
         logging.basicConfig(format='[%(levelname)s] <%(name)s>: %(message)s', level=logging.WARNING)
+
+    # update input SOURCE paths to absolute paths
+    for i in range(0,len(p_args.SOURCE)):
+        p_args.SOURCE[i] = os.path.abspath(p_args.SOURCE[i])
 
 
 def _parse_src(p_args, SRC, URLS):

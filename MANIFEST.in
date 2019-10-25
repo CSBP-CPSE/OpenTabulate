@@ -1,3 +1,2 @@
 include README.md
 include LICENSE.md
-recursive-include docs *

@@ -228,24 +228,21 @@ class Algorithm(object):
     """
 
     # general data labels (e.g. contact info, location)
-    _GENERAL_LABELS = ('full_addr', 'street_no', 'street_name', 'postcode', 'unit', 'city', 'prov/terr', 'country',
-                       'comdist', 'region',
+    _GENERAL_LABELS = ('full_addr', 'street_no', 'street_name', 'postal_code', 'unit', 'city', 'region', 'country',
                        'longitude', 'latitude',
-                       'phone', 'fax', 'email', 'website', 'tollfree','hours', 'county')
+                       'phone', 'fax', 'email', 'website', 'tollfree')
 
     # business data labels
-    _BUSINESS_LABELS = ('bus_name', 'trade_name', 'bus_type', 'bus_no', 'bus_desc',
-                        'lic_type', 'lic_no', 'bus_start_date', 'bus_cease_date', 'active',
-                        'no_employed', 'no_seasonal_emp', 'no_full_emp', 'no_part_emp', 'emp_range',
+    _BUSINESS_LABELS = ('legal_name', 'trade_name', 'business_type', 'business_no', 'bus_desc',
+                        'licence_type', 'licence_no', 'start_date', 'closure_date', 'active',
+                        'no_emp', 'no_seasonal_emp', 'no_full_emp', 'no_part_emp', 'emp_range',
                         'home_bus', 'munic_bus', 'nonres_bus',
                         'exports', 'exp_cn_1', 'exp_cn_2', 'exp_cn_3',
                         'naics_2', 'naics_3', 'naics_4', 'naics_5', 'naics_6',
-                        'naics_desc',
-                        'qc_cae_1', 'qc_cae_desc_1', 'qc_cae_2', 'qc_cae_desc_2',
-                        'facebook', 'twitter', 'linkedin', 'youtube', 'instagram')
+                        'qc_cae_1', 'qc_cae_desc_1', 'qc_cae_2', 'qc_cae_desc_2')
 
     # education data labels
-    _EDU_FACILITY_LABELS = ('ins_name', 'ins_type', 'ins_code', 'edu_level', 'board_name',
+    _EDU_FACILITY_LABELS = ('institution_name', 'institution_type', 'ins_code', 'education_level', 'board_name',
                             'board_code', 'school_yr', 'range', 'isced010', 'isced020', 'isced1',
                             'isced2', 'isced3', 'isced4+')
 
@@ -256,11 +253,11 @@ class Algorithm(object):
     _LIBRARY_LABELS = ('library_name','library_type','library_board')
 
     # fire station labels
-    _FIRE_STATION_LABELS = ('fire_stn_name',)
+    _FIRE_STATION_LABELS = ('fire_station_name',)
 
     # supported address field labels
     # note that the labels are ordered to conform to the Canada Post mailing address standard
-    ADDR_FIELD_LABEL = ('unit', 'street_no', 'street_name', 'city', 'prov/terr', 'country', 'postcode')
+    ADDR_FIELD_LABEL = ('unit', 'street_no', 'street_name', 'city', 'region', 'country', 'postal_code')
 
     # supported encodings (as defined in Python standard library)
     ENCODING_LIST = ("utf-8", "cp1252", "cp437")
@@ -270,9 +267,9 @@ class Algorithm(object):
                             'street_name' : 'road',
                             'unit' : 'unit',
                             'city' : 'city',
-                            'prov/terr' : 'state',
+                            'region' : 'state',
                             'country' : 'country',
-                            'postcode' : 'postcode' }
+                            'postal_code' : 'postal_code' }
 
     def __init__(self, address_parser=None, database_type=None):
         """
@@ -325,7 +322,7 @@ class Algorithm(object):
         else:
             for enc in self.ENCODING_LIST:
                 try:
-                    with open('./pddir/raw/' + source.local_fname, encoding=enc) as f:
+                    with open('./data/raw/' + source.local_fname, encoding=enc) as f:
                         for line in f:
                             pass
                     return enc
@@ -390,10 +387,10 @@ class Algorithm(object):
              open(source.cleanerror, 'w') as error:
 
             csvreader = csv.DictReader(dirty)
-            csvwriter = csv.DictWriter(clean, fieldnames=csvreader.fieldnames, quoting=csv.QUOTE_ALL)
+            csvwriter = csv.DictWriter(clean, fieldnames=csvreader.fieldnames, quoting=csv.QUOTE_MINIMAL)
 
             error_headers = ['ERROR'] + csvreader.fieldnames
-            csverror = csv.DictWriter(error, fieldnames=error_headers, quoting=csv.QUOTE_ALL)
+            csverror = csv.DictWriter(error, fieldnames=error_headers, quoting=csv.QUOTE_MINIMAL)
             
             csvwriter.writeheader()
             csverror.writeheader()
@@ -421,15 +418,15 @@ class Algorithm(object):
             for row in csvreader:
                 # general field cleaning
                 # clean postal codes and filter errors
-                if 'postcode' in csvreader.fieldnames and row['postcode'] != '':
-                    postal_code = row['postcode']
+                if 'postal_code' in csvreader.fieldnames and row['postal_code'] != '':
+                    postal_code = row['postal_code']
                     postal_code = re.sub(r"\s+", "", postal_code)
                     postal_code = postal_code.upper()
-                    row['postcode'] = postal_code
+                    row['postal_code'] = postal_code
 
                     # check string length
                     if len(postal_code) != 6:
-                        row['ERROR'] = "postcode:"
+                        row['ERROR'] = "postal_code:"
                         csverror.writerow(row)
                         error_flag = True
                         continue
@@ -443,14 +440,14 @@ class Algorithm(object):
                         elif c.isdigit():
                             digit += 1
                     if alpha != 3 or digit != 3:
-                        row['ERROR'] = "postcode:"
+                        row['ERROR'] = "postal_code:"
                         csverror.writerow(row)
                         error_flag = True
                         continue
 
                     # check structure
                     if not re.match(r'[A-Z][0-9][A-Z][0-9][A-Z][0-9]', postal_code):
-                        row['ERROR'] = "postcode"
+                        row['ERROR'] = "postal_code"
                         csverror.writerow(row)
                         error_flag = True
                         continue
@@ -462,13 +459,13 @@ class Algorithm(object):
                     row['city'] = city_name
                 
                 # clean province name and filter errors
-                if 'prov/terr' in csvreader.fieldnames and row['prov/terr'] != '':
-                    if row['prov/terr'] in province_territory_shortlist:
+                if 'region' in csvreader.fieldnames and row['region'] != '':
+                    if row['region'] in province_territory_shortlist:
                         pass
-                    elif row['prov/terr'] in long_to_short_map:
-                        row['prov/terr'] = long_to_short_map[row['prov/terr']]
+                    elif row['region'] in long_to_short_map:
+                        row['region'] = long_to_short_map[row['region']]
                     else:
-                        row['ERROR'] = "prov/terr"
+                        row['ERROR'] = "region"
                         csverror.writerow(row)
                         error_flag = True
                         continue
@@ -585,7 +582,7 @@ class CSV_Algorithm(Algorithm):
 
             # define reader/writer
             csvreader = csv.DictReader(csv_file_read)
-            csvwriter = csv.DictWriter(csv_file_write, col_labels, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+            csvwriter = csv.DictWriter(csv_file_write, col_labels, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
             
             csvwriter.writeheader()
             
@@ -810,7 +807,7 @@ class XML_Algorithm(Algorithm):
                 PROVIDER_FLAG = True
             col_labels = self._generateFieldNames(col_names)
 
-            csvwriter = csv.DictWriter(csvfile, col_labels, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+            csvwriter = csv.DictWriter(csvfile, col_labels, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
             csvwriter.writeheader()
 
@@ -946,9 +943,9 @@ class Source(object):
         srcpath (str): Source file path.
         metadata (dict): Source file JSON dumps.
         local_fname (str): Data file name (not path!).
-        rawpath (str): Raw data path (in './pddir/raw/').
-        dirtypath (str): Dirty tabulated data path (in './pddir/dirty/').
-        cleanpath (str): Clean tabulated data path (in './pddir/clean/').
+        rawpath (str): Raw data path (in './data/raw/').
+        dirtypath (str): Dirty tabulated data path (in './data/dirty/').
+        cleanpath (str): Clean tabulated data path (in './data/clean/').
         label_map (dict): Mapping of standardized labels (in Algorithm) to
             the raw datasets labels, obtained from self.metadata.
         log (Logger): Logger with self.local_fname as its name.
@@ -1121,22 +1118,22 @@ class Source(object):
         
         # set local_fname, rawpath, dirtypath, and cleanpath values
         self.local_fname = self.metadata['localfile'].split(':')[0]
-        self.rawpath = './pddir/raw/' + self.local_fname        
+        self.rawpath = './data/raw/' + self.local_fname        
 
         if len(self.local_fname.split('.')) == 1:
-            self.dirtypath = './pddir/dirty/dirty-' + self.local_fname + ".csv"
-            self.dirtyerror = './pddir/dirty/err-dirty-' + self.local_fname + ".csv"
-            self.cleanpath = './pddir/clean/clean-' + self.local_fname + ".csv"
-            self.cleanerror = './pddir/clean/err-clean-' + self.local_fname + ".csv"
+            self.dirtypath = './data/dirty/dirty-' + self.local_fname + ".csv"
+            self.dirtyerror = './data/dirty/err-dirty-' + self.local_fname + ".csv"
+            self.cleanpath = './data/clean/clean-' + self.local_fname + ".csv"
+            self.cleanerror = './data/clean/err-clean-' + self.local_fname + ".csv"
         else:
-            self.dirtypath = './pddir/dirty/dirty-' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + ".csv"
-            self.dirtyerror = './pddir/dirty/err-dirty-' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + ".csv"
-            self.cleanpath = './pddir/clean/clean-' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + ".csv"
-            self.cleanerror = './pddir/clean/err-clean-' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + ".csv"
+            self.dirtypath = './data/dirty/dirty-' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + ".csv"
+            self.dirtyerror = './data/dirty/err-dirty-' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + ".csv"
+            self.cleanpath = './data/clean/clean-' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + ".csv"
+            self.cleanerror = './data/clean/err-clean-' + '.'.join(str(x) for x in self.local_fname.split('.')[:-1]) + ".csv"
 
         if 'pre' in self.metadata: # note: preprocessing script existence is checked before this step
-            self.prepath = './pddir/pre/pre-' + self.local_fname
-            self.prepath_temp = './pddir/pre/pre-temp-' + self.local_fname
+            self.prepath = './data/pre/pre-' + self.local_fname
+            self.prepath_temp = './data/pre/pre-temp-' + self.local_fname
 
         # check entire source to make sure correct keys are being used
         for i in self.metadata:
@@ -1148,23 +1145,22 @@ class Source(object):
 
         for i in self.metadata['info']:
             info_layer = ('full_addr', 'address', 'phone', 'fax', 'email', 'website', 'tollfree',
-                          'comdist', 'region', 'longitude', 'latitude', 'hours', 'county')
+                          'longitude', 'latitude')
 
             if self.metadata['database_type'] == 'business':
-                bus_layer = ('bus_name', 'trade_name', 'bus_type', 'bus_no', 'bus_desc',
-                             'lic_type', 'lic_no', 'bus_start_date', 'bus_cease_date', 'active',
-                             'no_employed', 'no_seasonal_emp', 'no_full_emp', 'no_part_emp', 'emp_range',
+                bus_layer = ('legal_name', 'trade_name', 'business_type', 'business_no', 'bus_desc',
+                             'licence_type', 'licence_no', 'start_date', 'closure_date', 'active',
+                             'no_emp', 'no_seasonal_emp', 'no_full_emp', 'no_part_emp', 'emp_range',
                              'home_bus', 'munic_bus', 'nonres_bus',
                              'exports', 'exp_cn_1', 'exp_cn_2', 'exp_cn_3',
                              'naics_2', 'naics_3', 'naics_4', 'naics_5', 'naics_6',
-                             'naics_desc',
-                             'qc_cae_1', 'qc_cae_desc_1', 'qc_cae_2', 'qc_cae_desc_2',
-                             'facebook', 'twitter', 'linkedin', 'youtube', 'instagram')
+                             'qc_cae_1', 'qc_cae_desc_1', 'qc_cae_2', 'qc_cae_desc_2')
+
                 if not (i in info_layer or i in bus_layer):
                     raise ValueError("Invalid key in bus_layer '%s' in source file" % i)
 
             elif self.metadata['database_type'] == 'education':
-                edu_layer = ('ins_name', 'ins_type', 'ins_code', 'edu_level', 'board_name',
+                edu_layer = ('institution_name', 'institution_type', 'ins_code', 'education_level', 'board_name',
                             'board_code', 'school_yr', 'range', 'isced010', 'isced020', 'isced1',
                             'isced2', 'isced3', 'isced4+')
                 if not (i in info_layer or i in edu_layer):
@@ -1181,12 +1177,12 @@ class Source(object):
                     raise ValueError("Invalid key in hosp_layer '%s' in source file" % i)
 
             elif self.metadata['database_type'] == 'fire_station':
-                fire_layer = ('fire_stn_name')
+                fire_layer = ('fire_station_name')
                 if not (i in info_layer or i in fire_layer):
                     raise ValueError("Invalid key in fire_layer '%s' in source file" % i)
 
         if 'address' in self.metadata['info']:
-            address_layer = ('street_no', 'street_name', 'unit', 'city', 'prov/terr', 'country', 'postcode')
+            address_layer = ('street_no', 'street_name', 'unit', 'city', 'region', 'country', 'postal_code')
             for i in self.metadata['info']['address']:
                 if i not in address_layer:
                     raise ValueError("Invalid key in address_layer '%s' in source file" % i)
@@ -1197,7 +1193,7 @@ class Source(object):
     def fetch_url(self):
         """
         Downloads a dataset by fetching its URL and writing to the raw directory 
-        (currently './pddir/raw').
+        (currently './data/raw').
         """
         if self.no_fetch_flag == True:
             return False
@@ -1213,30 +1209,30 @@ class Source(object):
             
         if 'compression' in self.metadata:
             if self.metadata['compression'] == "zip":
-                with open('./pddir/raw/' + self.metadata['localarchive'], 'wb') as data:
+                with open('./data/raw/' + self.metadata['localarchive'], 'wb') as data:
                     data.write(content)
         else:
-            with open('./pddir/raw/' + self.metadata['localfile'], 'wb') as data:
+            with open('./data/raw/' + self.metadata['localfile'], 'wb') as data:
                 data.write(content)
 
         return True
 
     def archive_extraction(self):
         """
-        Extracts data from an archive downloaded in the raw directory ('./pddir/raw'), 
+        Extracts data from an archive downloaded in the raw directory ('./data/raw'), 
         renaming the file if indicated by the source file.
         """
         if self.no_extract_flag == True:
             return False
         
         if self.metadata['compression'] == "zip":
-            with ZipFile('./pddir/raw/' + self.metadata['localarchive'], 'r') as zip_file:
+            with ZipFile('./data/raw/' + self.metadata['localarchive'], 'r') as zip_file:
                 archive_fname = self.metadata['localfile'].split(':')
                 if len(archive_fname) == 1:
-                    zip_file.extract(archive_fname[0], './pddir/raw/')
+                    zip_file.extract(archive_fname[0], './data/raw/')
                 else:
-                    zip_file.extract(archive_fname[1], './pddir/raw/')
-                    os.rename('./pddir/raw/' + archive_fname[1], './pddir/raw/' + self.local_fname)
+                    zip_file.extract(archive_fname[1], './data/raw/')
+                    os.rename('./data/raw/' + archive_fname[1], './data/raw/' + self.local_fname)
 
         return True
 
