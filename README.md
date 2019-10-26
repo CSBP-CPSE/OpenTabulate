@@ -18,7 +18,7 @@ A basic setup of the data processing software will at least require
 
 ## Optional dependencies
 
-To process sources with the `full_addr` key, an address parser is required. Below are the currently supported address parsers.
+To process sources with the `address_str` key, an address parser is required. Below are the currently supported address parsers.
 
 - [libpostal](https://github.com/openvenues/libpostal) (and [pypostal](https://github.com/openvenues/pypostal) for Python bindings)
 

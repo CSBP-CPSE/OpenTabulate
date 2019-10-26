@@ -228,7 +228,7 @@ class Algorithm(object):
     """
 
     # general data labels (e.g. contact info, location)
-    _GENERAL_LABELS = ('full_addr', 'street_no', 'street_name', 'postal_code', 'unit', 'city', 'region', 'country',
+    _GENERAL_LABELS = ('address_str', 'street_no', 'street_name', 'postal_code', 'unit', 'city', 'region', 'country',
                        'longitude', 'latitude',
                        'phone', 'fax', 'email', 'website', 'tollfree')
 
@@ -338,8 +338,8 @@ class Algorithm(object):
     def _generateFieldNames(self, keys):
         '''Generates headers (column names) for the target tabulated data.'''
         row = [k for k in keys]
-        if "full_addr" in row:
-            ind = row.index("full_addr")
+        if "address_str" in row:
+            ind = row.index("address_str")
             row.pop(ind)
             for atag in reversed(self.ADDR_FIELD_LABEL):
                 row.insert(ind, atag)
@@ -543,8 +543,8 @@ class CSV_Algorithm(Algorithm):
             if i in metadata['info'] and (not (i in self.ADDR_FIELD_LABEL)):
                 label_map[i] = metadata['info'][i]
             # short circuit evaluation
-            elif ('address' in metadata['info']) and (i in metadata['info']['address']):
-                label_map[i] = metadata['info']['address'][i] 
+            elif ('address_tokens' in metadata['info']) and (i in metadata['info']['address_tokens']):
+                label_map[i] = metadata['info']['address_tokens'][i] 
 
         source.label_map = label_map
 
@@ -626,10 +626,10 @@ class CSV_Algorithm(Algorithm):
                                     entry += ii[1] + ' '
                             entry = self._quick_scrub(entry)
                             # # #
-                            # decision: check if key is "full_addr"
+                            # decision: check if key is "address_str"
                             # depth: 2
                             # # #
-                            if key != "full_addr":
+                            if key != "address_str":
                                 row[key] = entry
                             else:
                                 ap_entry = self.address_parser.parse(entry)
@@ -643,10 +643,10 @@ class CSV_Algorithm(Algorithm):
                                         row[afl] = ""
                             continue
                         # # #
-                        # decision: check if key is "full_addr"
+                        # decision: check if key is "address_str"
                         # depth: 1
                         # # #
-                        if key == "full_addr":
+                        if key == "address_str":
                             entry = entity[tags[key]]
                             entry = self._quick_scrub(entry)
                             ap_entry = self.address_parser.parse(entry)
@@ -755,7 +755,7 @@ class XML_Algorithm(Algorithm):
         label_map = dict()
         # append existing data using XPath expressions (for parsing)
         for i in self.FIELD_LABEL:
-            if i in metadata['info'] and (not (i in self.ADDR_FIELD_LABEL)) and i != 'address':
+            if i in metadata['info'] and (not (i in self.ADDR_FIELD_LABEL)) and i != 'address_tokens':
                 if isinstance(metadata['info'][i], list):
                     label_map[i] = []
                     for t in metadata['info'][i]:
@@ -763,9 +763,9 @@ class XML_Algorithm(Algorithm):
                 else:
                     label_map[i] = ".//" + metadata['info'][i]
             # short circuit evaluation
-            elif ('address' in metadata['info']) and (i in metadata['info']['address']):
+            elif ('address_tokens' in metadata['info']) and (i in metadata['info']['address_tokens']):
                 # note that the labels have to map to XPath expressions
-                label_map[i] = ".//" + metadata['info']['address'][i]
+                label_map[i] = ".//" + metadata['info']['address_tokens'][i]
 
         source.label_map = label_map
 
@@ -854,10 +854,10 @@ class XML_Algorithm(Algorithm):
                                 entry += ii[1] + ' '
                         entry = self._quick_scrub(entry)
                         # # #
-                        # decision: check if key is "full_addr"
+                        # decision: check if key is "address_str"
                         # depth: 2
                         # # #
-                        if key != "full_addr":
+                        if key != "address_str":
                             row[key] = entry
                         else:
                             ap_entry = self.address_parser.parse(entry)
@@ -871,10 +871,10 @@ class XML_Algorithm(Algorithm):
                                     row[afl] = ""
                         continue
                     # # #
-                    # decision: check if key is "full_addr"
+                    # decision: check if key is "address_str"
                     # depth: 1
                     # # #
-                    if key == "full_addr":
+                    if key == "address_str":
                         entry = element.find(tags[key])
                         entry = self._xml_empty_element_handler(entry)
                         entry = self._quick_scrub(entry)
@@ -991,7 +991,7 @@ class Source(object):
         Raises:
             LookupError: Missing tag.
             ValueError: Incorrect entry or combination or entries, such as having
-                an 'address' and 'full_addr' tag will raise this error since they 
+                an 'address_tokens' and 'address_str' tag will raise this error since they 
                 cannot both be used in a source file.
             TypeError: Incorrect JSON type for a tag.
             OSError: Path for pre or post processing scripts not found.
@@ -1102,18 +1102,18 @@ class Source(object):
                         reg_ex = re.compile(attr_filter)
                         self.metadata['filter'][attribute] = reg_ex
 
-        # check that both full_addr and address are not in the source file
-        if ('address' in self.metadata['info']) and ('full_addr' in self.metadata['info']):
-            raise ValueError("Cannot have both 'full_addr' and 'address' tags in source file.")
+        # check that both address_str and address_tokens are not in the source file
+        if ('address_tokens' in self.metadata['info']) and ('address_str' in self.metadata['info']):
+            raise ValueError("Cannot have both 'address_str' and 'address_tokens' tags in source file.")
 
-        # verify address is an object with valid tags
-        if 'address' in self.metadata['info']:
-            if not (isinstance(self.metadata['info']['address'], dict)):
-                raise TypeError("'address' tag must be an object.")
+        # verify address_tokens is an object with valid tags
+        if 'address_tokens' in self.metadata['info']:
+            if not (isinstance(self.metadata['info']['address_tokens'], dict)):
+                raise TypeError("'address_tokens' tag must be an object.")
 
-            for i in self.metadata['info']['address']:
+            for i in self.metadata['info']['address_tokens']:
                 if not (i in Algorithm.ADDR_FIELD_LABEL):
-                    raise ValueError("'address' tag contains an invalid key.")
+                    raise ValueError("'address_tokens' tag contains an invalid key.")
 
         
         # set local_fname, rawpath, dirtypath, and cleanpath values
@@ -1144,7 +1144,7 @@ class Source(object):
                 raise ValueError("Invalid key in root_layer '%s' in source file" % i)
 
         for i in self.metadata['info']:
-            info_layer = ('full_addr', 'address', 'phone', 'fax', 'email', 'website', 'tollfree',
+            info_layer = ('address_str', 'address_tokens', 'phone', 'fax', 'email', 'website', 'tollfree',
                           'longitude', 'latitude')
 
             if self.metadata['database_type'] == 'business':
@@ -1181,9 +1181,9 @@ class Source(object):
                 if not (i in info_layer or i in fire_layer):
                     raise ValueError("Invalid key in fire_layer '%s' in source file" % i)
 
-        if 'address' in self.metadata['info']:
+        if 'address_tokens' in self.metadata['info']:
             address_layer = ('street_no', 'street_name', 'unit', 'city', 'region', 'country', 'postal_code')
-            for i in self.metadata['info']['address']:
+            for i in self.metadata['info']['address_tokens']:
                 if i not in address_layer:
                     raise ValueError("Invalid key in address_layer '%s' in source file" % i)
             

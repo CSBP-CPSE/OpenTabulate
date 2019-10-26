@@ -261,9 +261,9 @@ def main():
         exit(0)
 
     # --- might wrap this in a function later ---
-    # load address parser if 'full_addr' key exists
+    # load address parser if 'parse_address' key exists
     for so in src:
-        if 'full_addr' in so.metadata['info']:
+        if 'parse_address' in so.metadata['info']:
             logging.info("Loading address parser module...")
             try:
                 from postal.parser import parse_address
