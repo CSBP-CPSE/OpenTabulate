@@ -540,11 +540,11 @@ class CSV_Algorithm(Algorithm):
         metadata = source.metadata
         label_map = dict()
         for i in self.FIELD_LABEL:
-            if i in metadata['info'] and (not (i in self.ADDR_FIELD_LABEL)):
-                label_map[i] = metadata['info'][i]
+            if i in metadata['variables'] and (not (i in self.ADDR_FIELD_LABEL)):
+                label_map[i] = metadata['variables'][i]
             # short circuit evaluation
-            elif ('address_tokens' in metadata['info']) and (i in metadata['info']['address_tokens']):
-                label_map[i] = metadata['info']['address_tokens'][i] 
+            elif ('address_tokens' in metadata['variables']) and (i in metadata['variables']['address_tokens']):
+                label_map[i] = metadata['variables']['address_tokens'][i] 
 
         source.label_map = label_map
 
@@ -755,17 +755,17 @@ class XML_Algorithm(Algorithm):
         label_map = dict()
         # append existing data using XPath expressions (for parsing)
         for i in self.FIELD_LABEL:
-            if i in metadata['info'] and (not (i in self.ADDR_FIELD_LABEL)) and i != 'address_tokens':
-                if isinstance(metadata['info'][i], list):
+            if i in metadata['variables'] and (not (i in self.ADDR_FIELD_LABEL)) and i != 'address_tokens':
+                if isinstance(metadata['variables'][i], list):
                     label_map[i] = []
-                    for t in metadata['info'][i]:
+                    for t in metadata['variables'][i]:
                         label_map[i].append(".//" + t)
                 else:
-                    label_map[i] = ".//" + metadata['info'][i]
+                    label_map[i] = ".//" + metadata['variables'][i]
             # short circuit evaluation
-            elif ('address_tokens' in metadata['info']) and (i in metadata['info']['address_tokens']):
+            elif ('address_tokens' in metadata['variables']) and (i in metadata['variables']['address_tokens']):
                 # note that the labels have to map to XPath expressions
-                label_map[i] = ".//" + metadata['info']['address_tokens'][i]
+                label_map[i] = ".//" + metadata['variables']['address_tokens'][i]
 
         source.label_map = label_map
 
@@ -943,6 +943,8 @@ class Source(object):
         srcpath (str): Source file path.
         metadata (dict): Source file JSON dumps.
         local_fname (str): Data file name (not path!).
+        default_paths (bool): Allow Source.parse() to assign default paths to
+            the path attributes described below
         rawpath (str): Raw data path (in './data/raw/').
         dirtypath (str): Dirty tabulated data path (in './data/dirty/').
         cleanpath (str): Clean tabulated data path (in './data/clean/').
@@ -950,7 +952,11 @@ class Source(object):
             the raw datasets labels, obtained from self.metadata.
         log (Logger): Logger with self.local_fname as its name.
     """
-    def __init__(self, path, pre_flag=False, post_flag=False, no_fetch_flag=True, \
+    def __init__(self, path,
+                 default_paths=True,
+                 pre_flag=False,
+                 post_flag=False,
+                 no_fetch_flag=True,
                  no_extract_flag=True):
         """
         Initializes a new source file object.
@@ -964,6 +970,8 @@ class Source(object):
         with open(path) as f:
             self.metadata = json.load(f)
 
+        self.default_paths = default_paths
+        
         # determined by command line arguments
         self.pre_flag = pre_flag
         self.post_flag = post_flag
@@ -1001,8 +1009,8 @@ class Source(object):
             raise LookupError("'format' tag is missing.")
         if 'localfile' not in self.metadata:
             raise LookupError("'localfile' tag is missing.")
-        if 'info' not in self.metadata:
-            raise LookupError("'info' tag is missing.")
+        if 'variables' not in self.metadata:
+            raise LookupError("'variables' tag is missing.")
         if 'database_type' not in self.metadata:
             raise LookupError("'database_type' tag is missing.")
 
@@ -1011,8 +1019,8 @@ class Source(object):
             raise TypeError("'format' must be a string.")
         if not isinstance(self.metadata['localfile'], str):
             raise TypeError("'localfile' must be a string.")
-        if not isinstance(self.metadata['info'], dict):
-            raise TypeError("'info' must be an object.")
+        if not isinstance(self.metadata['variables'], dict):
+            raise TypeError("'variables' must be an object.")
         if not isinstance(self.metadata['database_type'], str):
             raise TypeError("'database_type' must be a string.")
 
@@ -1103,19 +1111,14 @@ class Source(object):
                         self.metadata['filter'][attribute] = reg_ex
 
         # check that both address_str and address_tokens are not in the source file
-        if ('address_tokens' in self.metadata['info']) and ('address_str' in self.metadata['info']):
+        if ('address_tokens' in self.metadata['variables']) and ('address_str' in self.metadata['variables']):
             raise ValueError("Cannot have both 'address_str' and 'address_tokens' tags in source file.")
 
-        # verify address_tokens is an object with valid tags
-        if 'address_tokens' in self.metadata['info']:
-            if not (isinstance(self.metadata['info']['address_tokens'], dict)):
-                raise TypeError("'address_tokens' tag must be an object.")
+        # verify address_tokens is an object
+        if 'address_tokens' in self.metadata['variables'] and \
+           not isinstance(self.metadata['variables']['address_tokens'], dict):
+            raise TypeError("'address_tokens' tag must be an object.")
 
-            for i in self.metadata['info']['address_tokens']:
-                if not (i in Algorithm.ADDR_FIELD_LABEL):
-                    raise ValueError("'address_tokens' tag contains an invalid key.")
-
-        
         # set local_fname, rawpath, dirtypath, and cleanpath values
         self.local_fname = self.metadata['localfile'].split(':')[0]
         self.rawpath = './data/raw/' + self.local_fname        
@@ -1138,13 +1141,13 @@ class Source(object):
         # check entire source to make sure correct keys are being used
         for i in self.metadata:
             root_layer = ('localfile', 'localarchive', 'url', 'format', 'database_type',
-                          'compression', 'encoding', 'pre', 'post', 'header', 'info',
+                          'compression', 'encoding', 'pre', 'post', 'header', 'variables',
                           'filter', 'provider')
             if i not in root_layer:
                 raise ValueError("Invalid key in root_layer '%s' in source file" % i)
 
-        for i in self.metadata['info']:
-            info_layer = ('address_str', 'address_tokens', 'phone', 'fax', 'email', 'website', 'tollfree',
+        for i in self.metadata['variables']:
+            variables_layer = ('address_str', 'address_tokens', 'phone', 'fax', 'email', 'website', 'tollfree',
                           'longitude', 'latitude')
 
             if self.metadata['database_type'] == 'business':
@@ -1156,37 +1159,37 @@ class Source(object):
                              'naics_2', 'naics_3', 'naics_4', 'naics_5', 'naics_6',
                              'qc_cae_1', 'qc_cae_desc_1', 'qc_cae_2', 'qc_cae_desc_2')
 
-                if not (i in info_layer or i in bus_layer):
+                if not (i in variables_layer or i in bus_layer):
                     raise ValueError("Invalid key in bus_layer '%s' in source file" % i)
 
             elif self.metadata['database_type'] == 'education':
                 edu_layer = ('institution_name', 'institution_type', 'ins_code', 'education_level', 'board_name',
                             'board_code', 'school_yr', 'range', 'isced010', 'isced020', 'isced1',
                             'isced2', 'isced3', 'isced4+')
-                if not (i in info_layer or i in edu_layer):
+                if not (i in variables_layer or i in edu_layer):
                     raise ValueError("Invalid key in edu_layer '%s' in source file" % i)
 
             elif self.metadata['database_type'] == 'library':
                 lib_layer = ('library_name','library_type','library_board')
-                if not (i in info_layer or i in lib_layer):
+                if not (i in variables_layer or i in lib_layer):
                     raise ValueError("Invalid key in lib_layer '%s' in source file" % i)
 
             elif self.metadata['database_type'] == 'hospital':
                 hosp_layer = ('hospital_name','hospital_type','health_authority')
-                if not (i in info_layer or i in hosp_layer):
+                if not (i in variables_layer or i in hosp_layer):
                     raise ValueError("Invalid key in hosp_layer '%s' in source file" % i)
 
             elif self.metadata['database_type'] == 'fire_station':
                 fire_layer = ('fire_station_name')
-                if not (i in info_layer or i in fire_layer):
+                if not (i in variables_layer or i in fire_layer):
                     raise ValueError("Invalid key in fire_layer '%s' in source file" % i)
 
-        if 'address_tokens' in self.metadata['info']:
+        if 'address_tokens' in self.metadata['variables']:
             address_layer = ('street_no', 'street_name', 'unit', 'city', 'region', 'country', 'postal_code')
-            for i in self.metadata['info']['address_tokens']:
+            for i in self.metadata['variables']['address_tokens']:
                 if i not in address_layer:
                     raise ValueError("Invalid key in address_layer '%s' in source file" % i)
-            
+
         self.log = logging.getLogger(self.local_fname)
 
                 

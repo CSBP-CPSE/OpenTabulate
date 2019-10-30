@@ -74,7 +74,7 @@ def _args_handler(p_args):
 
     DATA_TREE = ['./data', './data/raw', './data/pre', './data/dirty',
                  './data/clean', './sources', './scripts']
-    
+
     # check if --initialize flag is used
     if bool(p_args.initialize) == True:
         if not os.path.exists(CONF_PATH):
@@ -112,6 +112,11 @@ def _args_handler(p_args):
     # read configuration file
     config.read(CONF_PATH)
     ROOT_DIR = config['general']['root_dir']
+
+    # update input SOURCE paths to absolute paths **BEFORE** changing current working directory!
+    for i in range(0,len(p_args.SOURCE)):
+        print(os.path.realpath(p_args.SOURCE[i]))
+        p_args.SOURCE[i] = os.path.realpath(p_args.SOURCE[i])
         
     # check that OpenTabulate's root directory exists
     try:
@@ -140,9 +145,6 @@ def _args_handler(p_args):
     else:
         logging.basicConfig(format='[%(levelname)s] <%(name)s>: %(message)s', level=logging.WARNING)
 
-    # update input SOURCE paths to absolute paths
-    for i in range(0,len(p_args.SOURCE)):
-        p_args.SOURCE[i] = os.path.abspath(p_args.SOURCE[i])
 
 
 def _parse_src(p_args, SRC, URLS):
@@ -161,8 +163,11 @@ def _parse_src(p_args, SRC, URLS):
     
     for source in p_args.SOURCE:
         srclog.debug("Creating source object: %s" % source)
-        srcfile = tabulate.Source(source, p_args.pre, p_args.post, p_args.ignore_url, \
-                             p_args.no_decompress)
+        srcfile = tabulate.Source(source,
+                                  pre_flag=p_args.pre,
+                                  post_flag=p_args.post,
+                                  no_fetch_flag=p_args.ignore_url, 
+                                  no_extract_flag=p_args.no_decompress)
         srclog.debug("Parsing contents...")
         srcfile.parse()
         srclog.debug("Passed")
@@ -261,9 +266,9 @@ def main():
         exit(0)
 
     # --- might wrap this in a function later ---
-    # load address parser if 'parse_address' key exists
+    # load address parser if 'address_str' key exists
     for so in src:
-        if 'parse_address' in so.metadata['info']:
+        if 'address_str' in so.metadata['variables']:
             logging.info("Loading address parser module...")
             try:
                 from postal.parser import parse_address
