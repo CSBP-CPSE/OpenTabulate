@@ -37,12 +37,16 @@ def _parse_cmd_args():
         argparse.Namespace: Parsed arguments with positional and optional parameters.
     """
     cmd_args = argparse.ArgumentParser(description='OpenTabulate: a command-line data tabulation tool.')
-    cmd_args.add_argument('-p', '--ignore-proc', action='store_true', default=False, \
+    cmd_args.add_argument('-n', '--no-process', action='store_true', default=False, \
                           help='check source files without processing data')
-    cmd_args.add_argument('-u', '--ignore-url', action='store_true', default=False, \
-                          help='ignore "url" entries from source files')
+    cmd_args.add_argument('-d', '--download-url', action='store_true', default=False, \
+                          help='fetch data from \'url\' entries in source files')
+    '''
+    # DEPRECATED
+
     cmd_args.add_argument('-z', '--no-decompress', action='store_true', default=False, \
                           help='do not decompress files from compressed archives')
+    '''
     cmd_args.add_argument('--pre', action='store_true', default=False, \
                           help='allow preprocessing script to run')
     cmd_args.add_argument('--post', action='store_true', default=False, \
@@ -164,10 +168,9 @@ def _parse_src(p_args, SRC, URLS):
     for source in p_args.SOURCE:
         srclog.debug("Creating source object: %s" % source)
         srcfile = tabulate.Source(source,
-                                  pre_flag=p_args.pre,
-                                  post_flag=p_args.post,
-                                  no_fetch_flag=p_args.ignore_url, 
-                                  no_extract_flag=p_args.no_decompress)
+                                  has_pre=p_args.pre,
+                                  has_post=p_args.post,
+                                  download_url=p_args.download_url)
         srclog.debug("Parsing contents...")
         srcfile.parse()
         srclog.debug("Passed")
@@ -178,8 +181,12 @@ def _parse_src(p_args, SRC, URLS):
             srcfile.fetch_url()
             URLS.append(srcfile.metadata['url'])
 
+        '''
+        # DEPRECATED
+
         if 'compression' in srcfile.metadata:
             srcfile.archive_extraction()
+        '''
 
         SRC.append(srcfile)
 
@@ -199,18 +206,18 @@ def _process(source, parse_address):
     """
     pool_worker_id = multiprocessing.current_process().name
     prodsys = tabulate.DataProcess(source, parse_address)
-    srclog = logging.getLogger(source.local_fname)
+    srclog = logging.getLogger(source.localfile)
 
-    if not prodsys.source.pre_flag and 'pre' in source.metadata:
+    if not prodsys.source.has_pre and 'pre' in source.metadata:
         srclog.error("Source has 'pre' key but --pre flag not used as argument")
         return 1
-    if not prodsys.source.post_flag and 'post' in source.metadata:
+    if not prodsys.source.has_post and 'post' in source.metadata:
         srclog.error("Source has 'post' key but --post flag not used as argument")
         return 1
 
-    srclog.debug("Starting tabulation for '%s'" % prodsys.source.local_fname)
+    srclog.debug("Starting tabulation for '%s'" % prodsys.source.localfile)
 
-    if prodsys.source.pre_flag and 'pre' in source.metadata:
+    if prodsys.source.has_pre and 'pre' in source.metadata:
         srclog.warning("Running 'preprocessData()' method due to --pre flag and 'pre' key")
         prodsys.preprocessData()
         srclog.warning("Completed 'preprocessData()'")
@@ -235,12 +242,12 @@ def _process(source, parse_address):
     prodsys.clean()
     srclog.debug("Completed")
 
-    if prodsys.source.post_flag and 'post' in source.metadata:
+    if prodsys.source.has_post and 'post' in source.metadata:
         srclog.warning("Running 'postprocessData()' due to --post flag and 'post' key")
         prodsys.postprocessData()
         srclog.warning("Completed 'postprocessData()'")
 
-    srclog.debug("Tabulating '%s' complete." % prodsys.source.local_fname)
+    srclog.debug("Tabulating '%s' complete." % prodsys.source.localfile)
     return 0
 
 
@@ -262,13 +269,13 @@ def main():
     _parse_src(args, src, url)
 
     # exit if processing 
-    if args.ignore_proc == True:
+    if args.no_process == True:
         exit(0)
 
     # --- might wrap this in a function later ---
-    # load address parser if 'address_str' key exists
+    # load address parser if 'address_str_parse' key exists
     for so in src:
-        if 'address_str' in so.metadata['variables']:
+        if 'address_str_parse' in so.metadata['schema']:
             logging.info("Loading address parser module...")
             try:
                 from postal.parser import parse_address
@@ -316,7 +323,7 @@ def main():
         print("Error occurred during processing of:") 
         for i in range(0,len(src)):
             if results[i] != 0:
-                print("  *!*", src[i].local_fname)
+                print("  *!*", src[i].localfile)
         print("Please refer to the [ERROR] tagged messages during output.")
 
     print("Data processing complete.")
