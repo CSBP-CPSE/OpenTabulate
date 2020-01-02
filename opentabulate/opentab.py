@@ -14,7 +14,6 @@ Created and written by Maksym Neyra-Nesterenko.
 """
 
 import argparse
-import configparser
 import logging
 import multiprocessing
 import os
@@ -37,16 +36,12 @@ def _parse_cmd_args():
         argparse.Namespace: Parsed arguments with positional and optional parameters.
     """
     cmd_args = argparse.ArgumentParser(description='OpenTabulate: a command-line data tabulation tool.')
-    cmd_args.add_argument('-n', '--no-process', action='store_true', default=False, \
+    cmd_args.add_argument('-p', '--ignore-proc', action='store_true', default=False, \
                           help='check source files without processing data')
-    cmd_args.add_argument('-d', '--download-url', action='store_true', default=False, \
-                          help='fetch data from \'url\' entries in source files')
-    '''
-    # DEPRECATED
-
+    cmd_args.add_argument('-u', '--ignore-url', action='store_true', default=False, \
+                          help='ignore "url" entries from source files')
     cmd_args.add_argument('-z', '--no-decompress', action='store_true', default=False, \
                           help='do not decompress files from compressed archives')
-    '''
     cmd_args.add_argument('--pre', action='store_true', default=False, \
                           help='allow preprocessing script to run')
     cmd_args.add_argument('--post', action='store_true', default=False, \
@@ -55,7 +50,7 @@ def _parse_cmd_args():
                           help='run at most N jobs asynchronously')
     cmd_args.add_argument('-v', '--verbose', action='store_true',
                           help='enable debug mode printing')
-    cmd_args.add_argument('--initialize', action='store', default=None, type=str, metavar='DIR', \
+    cmd_args.add_argument('--initialize', action='store_true', default=False, \
                           help='create processing directories')
     cmd_args.add_argument('SOURCE', nargs='*', default=None, help='path to source file')
     return cmd_args.parse_args()
@@ -71,70 +66,38 @@ def _args_handler(p_args):
     Args:
         p_args (argparse.Namespace): Parsed arguments.
     """
-    CONF_DIR = os.path.expanduser('~') + '/.config'
-    CONF_PATH = CONF_DIR + '/opentabulate.conf'
-    ROOT_DIR = None
-    config = configparser.ConfigParser()
+    # get absolute paths
+    for i in range(0,len(p_args.SOURCE)):
+        p_args.SOURCE[i] = os.path.abspath(p_args.SOURCE[i])
 
-    DATA_TREE = ['./data', './data/raw', './data/pre', './data/dirty',
-                 './data/clean', './sources', './scripts']
+    root_path = os.path.expanduser('~') + '/.opentabulate'
 
-    # check if --initialize flag is used
-    if bool(p_args.initialize) == True:
-        if not os.path.exists(CONF_PATH):
-            # if the configuration file does not exist
-            config['general'] = {'root_dir' : p_args.initialize}
-            ROOT_DIR = p_args.initialize
-            os.makedirs(CONF_DIR, exist_ok=True)
-            with open(CONF_PATH, 'w') as configfile:
-                config.write(configfile)
+    if p_args.initialize == True:
+        if not os.path.exists(root_path):
+            os.makedirs(root_path)
+            os.chdir(root_path)
         else:
-            # otherwise try to read the existing configuration file
-            print("Will instead read existing configuration file: %s" % CONF_PATH, file=sys.stderr)
-            config.read(CONF_PATH)
-            ROOT_DIR = config['general']['root_dir']
-
-        try:
-            os.makedirs(ROOT_DIR, exist_ok=True)
-        except FileExistsError:
-            print(ROOT_DIR, "is a file.", file=sys.stderr)
+            print("OpenTabulate root directory already exists.", file=sys.stderr)
             exit(1)
-            
-        os.chdir(ROOT_DIR)
 
-        print("Creating OpenTabulate data directory tree.")
-        print("If the necessary directories already exist, they will NOT be overwritten.")
-        for directory in DATA_TREE:
-            os.makedirs(directory, exist_ok=True)
-        print("Finished creating directories at: %s" % os.getcwd())
+        PD_TREE = ['./pddir', './pddir/raw', './pddir/pre', './pddir/dirty',
+                       './pddir/clean', './sources', './scripts']
+
+        print("Creating data processing directory tree in current working directory...")
+        for p in PD_TREE:
+            if not os.path.isdir(p):
+                os.makedirs(p)
+        print("Finished creating directories")
         exit(0)
 
-    if not os.path.exists(CONF_PATH):
-        print("No configuration file found. Use --initialize flag?", file=sys.stderr)
-        exit(1)
-
-    # read configuration file
-    config.read(CONF_PATH)
-    ROOT_DIR = config['general']['root_dir']
-
-    # update input SOURCE paths to absolute paths **BEFORE** changing current working directory!
-    for i in range(0,len(p_args.SOURCE)):
-        print(os.path.realpath(p_args.SOURCE[i]))
-        p_args.SOURCE[i] = os.path.realpath(p_args.SOURCE[i])
-        
-    # check that OpenTabulate's root directory exists
+    # check that opentabulate directory exists
     try:
-        os.chdir(ROOT_DIR)
-    except (FileNotFoundError, NotADirectoryError):
-        print("Error! Configured OpenTabulate directory does not exist or not a directory.", file=sys.stderr)
-        exit(1)
-
-    # verify that the data directories are intact
-    for directory in DATA_TREE:
-        if not os.path.isdir(directory):
-            print("Error! Data directories are misconfigured.", file=sys.stderr)
-
-    # now we validate other command-line arguments here
+        os.chdir(root_path)
+    except FileNotFoundError:
+        print("OpenTabulate root directory does not exist.",
+              "Use --initialize flag?", file=sys.stderr)
+        exit(1)    
+    
     if p_args.SOURCE == []:
         print("Error! The following arguments are required: SOURCE", file=sys.stderr)
         exit(1)
@@ -148,7 +111,6 @@ def _args_handler(p_args):
         print("Running in debug mode (verbose output)")
     else:
         logging.basicConfig(format='[%(levelname)s] <%(name)s>: %(message)s', level=logging.WARNING)
-
 
 
 def _parse_src(p_args, SRC, URLS):
@@ -167,10 +129,8 @@ def _parse_src(p_args, SRC, URLS):
     
     for source in p_args.SOURCE:
         srclog.debug("Creating source object: %s" % source)
-        srcfile = tabulate.Source(source,
-                                  has_pre=p_args.pre,
-                                  has_post=p_args.post,
-                                  download_url=p_args.download_url)
+        srcfile = tabulate.Source(source, p_args.pre, p_args.post, p_args.ignore_url, \
+                             p_args.no_decompress)
         srclog.debug("Parsing contents...")
         srcfile.parse()
         srclog.debug("Passed")
@@ -181,12 +141,8 @@ def _parse_src(p_args, SRC, URLS):
             srcfile.fetch_url()
             URLS.append(srcfile.metadata['url'])
 
-        '''
-        # DEPRECATED
-
         if 'compression' in srcfile.metadata:
             srcfile.archive_extraction()
-        '''
 
         SRC.append(srcfile)
 
@@ -206,18 +162,18 @@ def _process(source, parse_address):
     """
     pool_worker_id = multiprocessing.current_process().name
     prodsys = tabulate.DataProcess(source, parse_address)
-    srclog = logging.getLogger(source.localfile)
+    srclog = logging.getLogger(source.local_fname)
 
-    if not prodsys.source.has_pre and 'pre' in source.metadata:
+    if not prodsys.source.pre_flag and 'pre' in source.metadata:
         srclog.error("Source has 'pre' key but --pre flag not used as argument")
         return 1
-    if not prodsys.source.has_post and 'post' in source.metadata:
+    if not prodsys.source.post_flag and 'post' in source.metadata:
         srclog.error("Source has 'post' key but --post flag not used as argument")
         return 1
 
-    srclog.debug("Starting tabulation for '%s'" % prodsys.source.localfile)
+    srclog.debug("Starting tabulation for '%s'" % prodsys.source.local_fname)
 
-    if prodsys.source.has_pre and 'pre' in source.metadata:
+    if prodsys.source.pre_flag and 'pre' in source.metadata:
         srclog.warning("Running 'preprocessData()' method due to --pre flag and 'pre' key")
         prodsys.preprocessData()
         srclog.warning("Completed 'preprocessData()'")
@@ -242,12 +198,12 @@ def _process(source, parse_address):
     prodsys.clean()
     srclog.debug("Completed")
 
-    if prodsys.source.has_post and 'post' in source.metadata:
+    if prodsys.source.post_flag and 'post' in source.metadata:
         srclog.warning("Running 'postprocessData()' due to --post flag and 'post' key")
         prodsys.postprocessData()
         srclog.warning("Completed 'postprocessData()'")
 
-    srclog.debug("Tabulating '%s' complete." % prodsys.source.localfile)
+    srclog.debug("Tabulating '%s' complete." % prodsys.source.local_fname)
     return 0
 
 
@@ -269,13 +225,13 @@ def main():
     _parse_src(args, src, url)
 
     # exit if processing 
-    if args.no_process == True:
+    if args.ignore_proc == True:
         exit(0)
 
     # --- might wrap this in a function later ---
-    # load address parser if 'address_str_parse' key exists
+    # load address parser if 'full_addr' key exists
     for so in src:
-        if 'address_str_parse' in so.metadata['schema']:
+        if 'full_addr' in so.metadata['info']:
             logging.info("Loading address parser module...")
             try:
                 from postal.parser import parse_address
@@ -323,7 +279,7 @@ def main():
         print("Error occurred during processing of:") 
         for i in range(0,len(src)):
             if results[i] != 0:
-                print("  *!*", src[i].localfile)
+                print("  *!*", src[i].local_fname)
         print("Please refer to the [ERROR] tagged messages during output.")
 
     print("Data processing complete.")

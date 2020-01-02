@@ -18,7 +18,7 @@ A basic setup of the data processing software will at least require
 
 ## Optional dependencies
 
-To process sources with the `address_str` key, an address parser is required. Below are the currently supported address parsers.
+To process sources with the `full_addr` key, an address parser is required. Below are the currently supported address parsers.
 
 - [libpostal](https://github.com/openvenues/libpostal) (and [pypostal](https://github.com/openvenues/pypostal) for Python bindings)
 
@@ -33,10 +33,10 @@ $ pip install opentabulate
 After installing the package, initialize the OpenTabulate environment by running
 
 ```
-$ opentab --initialize DATA_DIR
+$ opentab --initialize
 ```
 
-where `DATA_DIR` is a path to a (preferably empty) directory. This configures OpenTabulate to read, write and organize data in `DATA_DIR`.
+which creates `~/.opentabulate` and other subdirectories.
 
 ## Documentation
 
