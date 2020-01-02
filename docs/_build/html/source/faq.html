@@ -1,0 +1,160 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Frequently asked questions &#8212; OpenTabulate 2.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="Source files" href="source-files.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="frequently-asked-questions">
+<span id="faq"></span><h1>Frequently asked questions<a class="headerlink" href="#frequently-asked-questions" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="what-is-the-opentabulate">
+<h2>What is the OpenTabulate?<a class="headerlink" href="#what-is-the-opentabulate" title="Permalink to this headline">¶</a></h2>
+<p>OpenTabulate is an open source Python package developed by the Data Exploration and Integration Lab’s (DEIL) at Statistics Canada. The goal is to provide a data processing framework to support DEIL’s open data project, the <em>Linkable Open Data Environment</em> (LODE), where OpenTabulate plays the role of transforming data into a suitable format for record linkage. Our decided format to transform to is CSV (comma-separated values), hence the “Tabulate” in OpenTabulate.</p>
+</div>
+<div class="section" id="what-type-of-data-content-does-opentabulate-support">
+<h2>What type of data content does OpenTabulate support?<a class="headerlink" href="#what-type-of-data-content-does-opentabulate-support" title="Permalink to this headline">¶</a></h2>
+<p>OpenTabulate processes micro-level data (we simply call this <em>microdata</em>) such as contact information, addresses, geocoordinates, etc. of public facilities in Canada such as</p>
+<ul class="simple">
+<li><p>fire stations</p></li>
+<li><p>libraries</p></li>
+<li><p>hospitals</p></li>
+<li><p>education facilities (e.g. universities)</p></li>
+<li><p>businesses</p></li>
+</ul>
+<p>As the project evolves, the list above will grow.</p>
+</div>
+<div class="section" id="what-data-formats-can-opentabulate-process-from">
+<h2>What data formats can OpenTabulate process from?<a class="headerlink" href="#what-data-formats-can-opentabulate-process-from" title="Permalink to this headline">¶</a></h2>
+<p>CSV and XML format are currently supported.</p>
+</div>
+<div class="section" id="how-do-we-use-opentabulate">
+<h2>How do we use OpenTabulate?<a class="headerlink" href="#how-do-we-use-opentabulate" title="Permalink to this headline">¶</a></h2>
+<p>Please view the <a class="reference external" href="https://github.com/CSBP-CPSE/OpenTabulate">README</a> and <a class="reference internal" href="running-opentabulate.html#running-opentabulate"><span class="std std-ref">Running OpenTabulate</span></a>.</p>
+</div>
+<div class="section" id="why-was-the-opentabulate-written">
+<h2>Why was the OpenTabulate written?<a class="headerlink" href="#why-was-the-opentabulate-written" title="Permalink to this headline">¶</a></h2>
+<p>After 2010, municipalities, provinces, federal departments and other organizations have started to release microdata as part of Canada’s <a class="reference external" href="https://open.canada.ca/en/about-open-government">open government initiative</a>.</p>
+<ul class="simple">
+<li><p>is not released with a standardized schema shared among the participating groups</p></li>
+<li><p>is not consistently provided by each of the participating groups (although such information is public)</p></li>
+<li><p>is subject to copyright or some proprietary license</p></li>
+</ul>
+<p>The LODE project aims to resolve the above to: process, link and distribute data under an <a class="reference external" href="https://open.canada.ca/en/open-government-licence-canada">open government license</a>. OpenTabulate is a piece of the LODE project, providing a tool to reformat microdata to a standardized schema and format suitable for further processing.</p>
+</div>
+<div class="section" id="what-limitations-are-present-in-the-opentabulate">
+<h2>What limitations are present in the OpenTabulate?<a class="headerlink" href="#what-limitations-are-present-in-the-opentabulate" title="Permalink to this headline">¶</a></h2>
+<p>There are numerous features and code adjustments that can be made to improve OpenTabulate. The project altogther is relatively young and has a lot of room for growth and improvement. If you feel there is something missing, address it in our GitHub <a class="reference external" href="https://github.com/CSBP-CPSE/OpenBusinessRepository/issues">issues</a>.</p>
+</div>
+<div class="section" id="what-is-the-future-of-the-opentabulate">
+<h2>What is the future of the OpenTabulate?<a class="headerlink" href="#what-is-the-future-of-the-opentabulate" title="Permalink to this headline">¶</a></h2>
+<p>There are a few development paths that are in consideration. An important one is to turn OpenTabulate into a general purpose tool. For example, we may allow for customized schemas to be defined in configuration files, instead of hard-coding, so just about any data content can be handled. Another path is to directly integrate the tool with the LODE, as it was originally intended for.</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">OpenTabulate</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="running-opentabulate.html">Running OpenTabulate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source-files.html">Source files</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Frequently asked questions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#what-is-the-opentabulate">What is the OpenTabulate?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#what-type-of-data-content-does-opentabulate-support">What type of data content does OpenTabulate support?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#what-data-formats-can-opentabulate-process-from">What data formats can OpenTabulate process from?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#how-do-we-use-opentabulate">How do we use OpenTabulate?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#why-was-the-opentabulate-written">Why was the OpenTabulate written?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#what-limitations-are-present-in-the-opentabulate">What limitations are present in the OpenTabulate?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#what-is-the-future-of-the-opentabulate">What is the future of the OpenTabulate?</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="source-files.html" title="previous chapter">Source files</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Government of Canada.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/source/faq.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

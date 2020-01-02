@@ -1,0 +1,450 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Source files &#8212; OpenTabulate 2.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Frequently asked questions" href="faq.html" />
+    <link rel="prev" title="Running OpenTabulate" href="running-opentabulate.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="source-files">
+<span id="id1"></span><h1>Source files<a class="headerlink" href="#source-files" title="Permalink to this headline">¶</a></h1>
+<p>A fundamental component of OpenTabulate and its use to tabulate your data is the <em>source file</em>. A source file is a file in JSON format that configures OpenTabulate to process data from a specific dataset. Such information includes the original dataset format, mapping attribute names in the original data to a standardized set of attributes, the name of the dataset stored on the disk, and so on.</p>
+<p>We refer to a JSON key-value pair as a <em>tag</em>. Some keys may contain a list of key-value pairs, such as <code class="docutils literal notranslate"><span class="pre">address_tokens</span></code> containing key-value pairs for <code class="docutils literal notranslate"><span class="pre">city</span></code>, <code class="docutils literal notranslate"><span class="pre">postcode</span></code> and so forth.</p>
+<p>Source files follow a specific format for OpenTabulate to parse. Below is a source file for a business register dataset for Kitchener in Ontario, Canada.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;localfile&quot;</span><span class="p">:</span> <span class="s2">&quot;on-kitchener.csv&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://opendata.arcgis.com/datasets/9b9c871eafce491da8a3d926a8a44ef2_0.csv&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;csv&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;delimiter&quot;</span><span class="p">:</span> <span class="s2">&quot;,&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;quote&quot;</span><span class="p">:</span> <span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">&quot;</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;database_type&quot;</span><span class="p">:</span> <span class="s2">&quot;business&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;provider&quot;</span><span class="p">:</span> <span class="s2">&quot;Municipality of Kitchener&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;schema&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;legal_name&quot;</span><span class="p">:</span> <span class="s2">&quot;COMPANY_NAME&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;business_no&quot;</span><span class="p">:</span> <span class="s2">&quot;ID&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;address_tokens&quot;</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;street_no&quot;</span><span class="p">:</span> <span class="s2">&quot;STREET_NUMBER&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;street_name&quot;</span><span class="p">:</span> <span class="s2">&quot;STREET_NAME&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;UNIT&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;postal_code&quot;</span><span class="p">:</span> <span class="s2">&quot;POSTAL_CODE&quot;</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;latitude&quot;</span><span class="p">:</span> <span class="s2">&quot;Y&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;longitude&quot;</span><span class="p">:</span> <span class="s2">&quot;X&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The keys within the first pair of curly braces are <code class="docutils literal notranslate"><span class="pre">localfile</span></code>, <code class="docutils literal notranslate"><span class="pre">url</span></code>, <code class="docutils literal notranslate"><span class="pre">format</span></code>, <code class="docutils literal notranslate"><span class="pre">database_type</span></code>, <code class="docutils literal notranslate"><span class="pre">provider</span></code> and <code class="docutils literal notranslate"><span class="pre">schema</span></code>. Besides <code class="docutils literal notranslate"><span class="pre">schema</span></code>, tags that occur in this layer are intended for file handling.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">localfile</span></code>  represents the name of the file (to be) stored locally to the disk.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">url</span></code> defines the download link for the dataset</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">format</span></code> tells OpenTabulate what the dataset’s original format is, so as to choose the appropriate algorithms</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">database_type</span></code> describes which data attribute names will be considered under <code class="docutils literal notranslate"><span class="pre">schema</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">provider</span></code> defines a column in the tabulation that is auto-filled with the provider name, so distinguishing data is easy if you choose to concatenate it</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">schema</span></code> tag contains attribute mapping information. OpenTabulate’s job is to reformat your data into a tabular format, but you must specify where and which data attributes (from the original dataset) should appear in the tabulated data. Consider <code class="docutils literal notranslate"><span class="pre">on-kitchener.csv</span></code> which has a column with the attribute name <code class="docutils literal notranslate"><span class="pre">COMPANY_NAME</span></code>. Assume by consulting with the data provider, you determine that this column holds legal business names. This best aligns with the key <code class="docutils literal notranslate"><span class="pre">legal_name</span></code>, which is a standardized column name defined in OpenTabulate. The remaining tags in <code class="docutils literal notranslate"><span class="pre">schema</span></code> are determined by a similar methodology with reference to the different keys documented below.</p>
+<div class="section" id="how-to-read-the-tag-documentation">
+<h2>How to read the tag documentation<a class="headerlink" href="#how-to-read-the-tag-documentation" title="Permalink to this headline">¶</a></h2>
+<p>The documented source file tags are organized to match the structure of the example above. The tag information is structured as</p>
+<dl class="simple">
+<dt>Key<span class="classifier">JSON Type</span><span class="classifier">Requirements</span></dt><dd><p><em>Description…</em></p>
+</dd>
+</dl>
+<ul class="simple">
+<li><p><strong>Key</strong> : Key name and column name for the tabulated data.</p></li>
+<li><p><strong>JSON Type</strong> : The supported JSON type for the key’s value.</p></li>
+<li><p><strong>Requirements</strong> : Specifies if the tag <em>must</em> be included and any tag dependencies it has, if any.</p></li>
+<li><p><em>Description</em> : A brief description of the what the key represents.</p></li>
+</ul>
+</div>
+<div class="section" id="file-handling-tags">
+<h2>File handling tags<a class="headerlink" href="#file-handling-tags" title="Permalink to this headline">¶</a></h2>
+<p>The following tags are generally for data file handling and naming. These tags must appear in the first set of curly braces <code class="docutils literal notranslate"><span class="pre">{...}</span></code> of the source file.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">localfile</span></code><span class="classifier">string</span><span class="classifier">Required.</span></dt><dd><p>The name of the local data file stored in <code class="docutils literal notranslate"><span class="pre">./data/raw/</span></code> to process. If <code class="docutils literal notranslate"><span class="pre">url</span></code> is used, the
+downloaded file will be named to value of this key.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">url</span></code><span class="classifier">string</span><span class="classifier">Optional.</span></dt><dd><p>A direct link to the data set as a URL string.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">format</span></code><span class="classifier">object</span><span class="classifier">Required.</span></dt><dd><p>Dataset file format specification.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">database_type</span></code><span class="classifier">string</span><span class="classifier">Required.</span></dt><dd><p>Dataset type to define which <code class="docutils literal notranslate"><span class="pre">schema</span></code> tags to use. Currently supports <code class="docutils literal notranslate"><span class="pre">business</span></code>,
+<code class="docutils literal notranslate"><span class="pre">education</span></code>, <code class="docutils literal notranslate"><span class="pre">hospital</span></code>, <code class="docutils literal notranslate"><span class="pre">library</span></code>, and <code class="docutils literal notranslate"><span class="pre">fire_station</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">encoding</span></code><span class="classifier">string</span><span class="classifier">Optional.</span></dt><dd><p>Dataset character encoding, which can be “utf-8”, “cp1252”, or “cp437”. If not specified, the
+encoding is guessed from these options.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">pre</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>A path or list of paths to run pre-processing scripts. The relative path starts in the
+configured directory of OpenTabulate.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">post</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>A path or list of paths to run post-processing scripts. The relative path starts in the
+configured directory of OpenTabulate.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">schema</span></code><span class="classifier">object</span><span class="classifier">Required.</span></dt><dd><p>Description of data schema transcription.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">filter</span></code><span class="classifier">object</span><span class="classifier">Optional.</span></dt><dd><p>Filter rules for choosing which entries to process. <code class="docutils literal notranslate"><span class="pre">filter</span></code> contains key which are the
+attributes to filter by. The value of each key is a list of entries (strings) that are
+acceptable to process.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">provider</span></code><span class="classifier">string</span><span class="classifier">Optional.</span></dt><dd><p>Data provider name to auto-fill the column created during tabulation.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="format-tags">
+<h2>Format tags<a class="headerlink" href="#format-tags" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">format</span></code> tag is a JSON object, specifying data format information so as to tell Opentabulate how to read the raw dataset.</p>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">type</span></code><span class="classifier">string</span><span class="classifier">Required.</span></dt><dd><p>The dataset format. Currently supports the values “csv” and “xml”.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">header</span></code><span class="classifier">string</span><span class="classifier">Required if <code class="docutils literal notranslate"><span class="pre">&quot;type&quot;:</span> <span class="pre">&quot;xml&quot;</span></code>.</span></dt><dd><p>XML tag name identifying a single data point. Each occurence of this tag should contain the
+information referenced in the schema.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">delimiter</span></code><span class="classifier">string</span><span class="classifier">Required if <code class="docutils literal notranslate"><span class="pre">&quot;type&quot;:</span> <span class="pre">&quot;csv&quot;</span></code>, must be one character.</span></dt><dd><p>The delimiting character in the raw CSV dataset.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">quote</span></code><span class="classifier">string</span><span class="classifier">Required if <code class="docutils literal notranslate"><span class="pre">&quot;type&quot;:</span> <span class="pre">&quot;csv&quot;</span></code>, must be one character.</span></dt><dd><p>The quote character in the raw CSV dataset.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="schema-tags">
+<h2>Schema tags<a class="headerlink" href="#schema-tags" title="Permalink to this headline">¶</a></h2>
+<p>The tag <code class="docutils literal notranslate"><span class="pre">schema</span></code> is defined as a JSON object, with valid tags described below. They are separated into different categories: general tags, address tags and by database type. References to them are indexed below.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#general-tags"><span class="std std-ref">General tags</span></a></p></li>
+<li><p><a class="reference internal" href="#address-tags"><span class="std std-ref">Address schema tag</span></a></p></li>
+<li><p><a class="reference internal" href="#business-tags"><span class="std std-ref">Business schema tags</span></a></p></li>
+<li><p><a class="reference internal" href="#education-tags"><span class="std std-ref">Education facility schema tags</span></a></p></li>
+<li><p><a class="reference internal" href="#hospital-tags"><span class="std std-ref">Hospital schema tags</span></a></p></li>
+<li><p><a class="reference internal" href="#library-tags"><span class="std std-ref">Library schema tags</span></a></p></li>
+<li><p><a class="reference internal" href="#fire-station-tags"><span class="std std-ref">Fire station schema tags</span></a></p></li>
+</ul>
+<div class="section" id="general-tags">
+<span id="id2"></span><h3>General tags<a class="headerlink" href="#general-tags" title="Permalink to this headline">¶</a></h3>
+<p>These keys can be used for any <code class="docutils literal notranslate"><span class="pre">database_type</span></code>. Currently, all of them refer to non-address location and contact information.</p>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">address_str</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Full address of business (concatenated street name, number, etc.).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">address_str_parse</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional, cannot be used with <code class="docutils literal notranslate"><span class="pre">address_tokens</span></code>.</span></dt><dd><p>Full address of business. The entries for this key will used with an address parser!</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">address_tokens</span></code><span class="classifier">object</span><span class="classifier">Optional, cannot be used with <code class="docutils literal notranslate"><span class="pre">address_str_parse</span></code>.</span></dt><dd><p>Address metadata, such as street number, street name, postal code, etc.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">phone</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Business phone number.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">fax</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Business fax number.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">email</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Business e-mail.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">website</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Business website.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">tollfree</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Business toll-free number.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">longitude</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Longitude coordinate (in degrees) of location.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">latitude</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Latitude coordinate (in degrees) of location.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="address-schema-tag">
+<span id="address-tags"></span><h3>Address schema tag<a class="headerlink" href="#address-schema-tag" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">address_tokens</span></code> tag (formerly named <code class="docutils literal notranslate"><span class="pre">address</span></code>) is a JSON object defined inside <code class="docutils literal notranslate"><span class="pre">schema</span></code>. It cannot be used together with <code class="docutils literal notranslate"><span class="pre">address_str_parse</span></code>, since the latter invokes an address parser, whereas this tag is reserved for datasets that have already separated the address tokens. <em>The tags below must be used inside</em> <code class="docutils literal notranslate"><span class="pre">address_tokens</span></code>.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">street_no</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Street number.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">street_name</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Street name, type, and direction.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">unit</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Unit number.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">city</span></code><span class="classifier">string</span><span class="classifier">Optional.</span></dt><dd><p>City name.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">province</span></code><span class="classifier">string</span><span class="classifier">Optional.</span></dt><dd><p>Province or territory name; <em>former tag name:</em> <code class="docutils literal notranslate"><span class="pre">prov/terr</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">country</span></code><span class="classifier">string</span><span class="classifier">Optional.</span></dt><dd><p>Country name.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">postal_code</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Postal code; <em>former tag name:</em> <code class="docutils literal notranslate"><span class="pre">postcode</span></code>.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="business-schema-tags">
+<span id="business-tags"></span><h3>Business schema tags<a class="headerlink" href="#business-schema-tags" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">legal_name</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Business (legal) name; <em>former tag name:</em> <code class="docutils literal notranslate"><span class="pre">bus_name</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">trade_name</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Trade name.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">business_type</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Business type.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">business_no</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>CRA-assigned business number; <em>former tag name:</em> <code class="docutils literal notranslate"><span class="pre">bus_no</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">licence_type</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Business licence type; <em>former tag name:</em> <code class="docutils literal notranslate"><span class="pre">lic_type</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">licence_no</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Business license number; <em>former tag name:</em> <code class="docutils literal notranslate"><span class="pre">lic_no</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">start_date</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Start date of business; <em>former tag name:</em> <code class="docutils literal notranslate"><span class="pre">bus_start_date</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">closure_date</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Closure date of business; <em>former tag name:</em> <code class="docutils literal notranslate"><span class="pre">bus_cease_date</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">active</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Is the business active?</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">exports</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Does this business export?</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">exp_cn_#</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional, replace #  with 1,2 or 3.</span></dt><dd><p>Export country.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">naics_#</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional, replace # with 2,3,4,5 or 6.</span></dt><dd><p>NAICS #-digit code.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">qc_cae_#</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional, replace # with 1 or 2.</span></dt><dd><p>Quebec establishment economic activity code.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">qc_cae_desc_#</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional, replace # with 1 or 2.</span></dt><dd><p>Quebec establishment economic activity description.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="education-facility-schema-tags">
+<span id="education-tags"></span><h3>Education facility schema tags<a class="headerlink" href="#education-facility-schema-tags" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">institution_name</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Institution (or school) name; <em>former tag name:</em> <code class="docutils literal notranslate"><span class="pre">ins_name</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">institution_type</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Institution type (public, private, etc.); <em>former tag name:</em> <code class="docutils literal notranslate"><span class="pre">ins_type</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">education_level</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Education level (elementary, secondary, post-secondary, etc.); <em>former tag name:</em> <code class="docutils literal notranslate"><span class="pre">edu_level</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">board_name</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>School board or district name.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">board_code</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>School board name or district code. (note: usually specific to the data provider)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">range</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Education level range (e.g. K-12).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">isced010</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Boolean value representing the <a class="reference external" href="https://en.wikipedia.org/wiki/International_Standard_Classification_of_Education">ISCED</a> level for early childhood education.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">isced020</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Boolean value representing the <a class="reference external" href="https://en.wikipedia.org/wiki/International_Standard_Classification_of_Education">ISCED</a> level for kindergarten.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">isced1</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Boolean value representing the <a class="reference external" href="https://en.wikipedia.org/wiki/International_Standard_Classification_of_Education">ISCED</a> level for elementary.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">isced2</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Boolean value representing the <a class="reference external" href="https://en.wikipedia.org/wiki/International_Standard_Classification_of_Education">ISCED</a> level for junior secondary.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">isced3</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Boolean value representing the <a class="reference external" href="https://en.wikipedia.org/wiki/International_Standard_Classification_of_Education">ISCED</a> level for senior secondary.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">isced4+</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Boolean value representing the <a class="reference external" href="https://en.wikipedia.org/wiki/International_Standard_Classification_of_Education">ISCED</a> level for post-secondary.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="hospital-schema-tags">
+<span id="hospital-tags"></span><h3>Hospital schema tags<a class="headerlink" href="#hospital-schema-tags" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">hospital_name</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Name of hospital or health centre.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">hospital_type</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Type of health centre (e.g. Community Hospital, Community Health Centre, etc.)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">health_authority</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Regional governing health authority.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="library-schema-tags">
+<span id="library-tags"></span><h3>Library schema tags<a class="headerlink" href="#library-schema-tags" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">library_name</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Library name.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">library_type</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Library type (depends on the provider, example values are branch or head, or municipal).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">library_board</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Name of governing library board.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="fire-station-schema-tags">
+<span id="fire-station-tags"></span><h3>Fire station schema tags<a class="headerlink" href="#fire-station-schema-tags" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">fire_station_name</span></code><span class="classifier">string, list of strings</span><span class="classifier">Optional.</span></dt><dd><p>Fire station name; <em>former tag name:</em> <code class="docutils literal notranslate"><span class="pre">fire_stn_name</span></code>.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="additional-features">
+<h2>Additional features<a class="headerlink" href="#additional-features" title="Permalink to this headline">¶</a></h2>
+<p>Extracting information from data to be tabulated sometimes requires methods beyond simply mapping data attributes, such as regular expression filtering and entry concatenation. To incorporate such methods into OpenTabulate, special keys have been added or specific syntax for key values is taken into account. Below is a complete list of the methods.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#concatenating-entries"><span class="std std-ref">Concatenating entries</span></a></p></li>
+<li><p><a class="reference internal" href="#manually-inject-or-fill-data"><span class="std std-ref">Manually inject or fill data</span></a></p></li>
+<li><p><a class="reference internal" href="#filtering-with-regular-expressions"><span class="std std-ref">Filtering with regular expressions</span></a></p></li>
+<li><p><a class="reference internal" href="#writing-custom-processing-scripts"><span class="std std-ref">Writing custom processing scripts</span></a></p></li>
+</ul>
+<div class="section" id="debugging-syntax-errors">
+<h3>Debugging syntax errors<a class="headerlink" href="#debugging-syntax-errors" title="Permalink to this headline">¶</a></h3>
+<p>OpenTabulate checks the syntax of your source file and will warn you if something is off, but this validation does not cover all situations. Moreover, it cannot make sense of logical errors until either during processing or when you inspect the tabulated output.</p>
+<p>Before posting a question or issue, check this <a class="reference external" href="https://github.com/CSBP-CPSE/OpenTabulate/issues/12">GitHub issue</a> for clues to erroneous output or functionality.</p>
+</div>
+<div class="section" id="concatenating-entries">
+<span id="id3"></span><h3>Concatenating entries<a class="headerlink" href="#concatenating-entries" title="Permalink to this headline">¶</a></h3>
+<p>When writing tags, some keys above support having JSON lists as a value. For example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">...</span>
+<span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;value1&quot;</span><span class="p">,</span> <span class="s2">&quot;value2&quot;</span><span class="p">,</span> <span class="s2">&quot;value3&quot;</span><span class="p">],</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>OpenTabulate interprets this as “for each data point to process, concatenate (separating by spaces) the information under the attributes <code class="docutils literal notranslate"><span class="pre">value1</span></code>, <code class="docutils literal notranslate"><span class="pre">value2</span></code>, and <code class="docutils literal notranslate"><span class="pre">value3</span></code> (in that order) for the data point, and assign it to the standardized attribute <code class="docutils literal notranslate"><span class="pre">key</span></code> for further processing.</p>
+<p>A common use of this feature is for address parsing. Since address lines (address data that is concatenated into one string) are not supported keys and some datasets will only provide address information in this manner, we still want to tabulate the data. For example, if a dataset has the entry and columns</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Business</span> <span class="n">Name</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="n">Address</span> <span class="n">Line</span> <span class="mi">1</span><span class="p">,</span> <span class="n">Address</span> <span class="n">Line</span> <span class="mi">2</span><span class="p">,</span> <span class="n">Address</span> <span class="n">Line</span> <span class="mi">3</span><span class="p">,</span> <span class="o">...</span>
+<span class="o">...</span>
+<span class="s2">&quot;JOHN TITOR TIME MACHINES&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="s2">&quot;2036 STEINS GATE&quot;</span><span class="p">,</span> <span class="s2">&quot;CANADA&quot;</span><span class="p">,</span> <span class="s2">&quot;T5T 5R5&quot;</span><span class="p">,</span> <span class="o">...</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>and our source file contains</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">...</span>
+<span class="s2">&quot;address_str_parse&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Address Line 1&quot;</span><span class="p">,</span> <span class="s2">&quot;Address Line 2&quot;</span><span class="p">,</span> <span class="s2">&quot;Address Line 3&quot;</span><span class="p">],</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>then OpenTabulate will process the entry</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;2036 STEINS GATE CANADA T5T 5R5&quot;</span>
+</pre></div>
+</div>
+<p>for <code class="docutils literal notranslate"><span class="pre">&quot;JOHN</span> <span class="pre">TITOR</span> <span class="pre">TIME</span> <span class="pre">MACHINES&quot;</span></code> in whatever way <code class="docutils literal notranslate"><span class="pre">address_str_parse</span></code> is handled. In this case, <code class="docutils literal notranslate"><span class="pre">address_str_parse</span></code> uses an address parser, and will parse the concatenated entry above.</p>
+</div>
+<div class="section" id="manually-inject-or-fill-data">
+<span id="id4"></span><h3>Manually inject or fill data<a class="headerlink" href="#manually-inject-or-fill-data" title="Permalink to this headline">¶</a></h3>
+<p>Any string-valued tags that appear anywhere under <code class="docutils literal notranslate"><span class="pre">schema</span></code> support what we call the <code class="docutils literal notranslate"><span class="pre">force</span></code> value. If a <code class="docutils literal notranslate"><span class="pre">force</span></code> value is assigned to a key, OpenTabulate adds and fills the entire output column (corresponding to the key) with that value. A few situations in which this may be helpful are:</p>
+<ul class="simple">
+<li><p>The dataset to process represents a particular city or province, say Winnipeg and Manitoba, but the data does not explicitly have the city and province for any data point. If we want to include the city or province information in the tabulated data, we can add the tags <code class="docutils literal notranslate"><span class="pre">&quot;city&quot;:</span> <span class="pre">&quot;force:Winnipeg&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;region&quot;:</span> <span class="pre">&quot;force:Manitoba&quot;</span></code> to the source file. The resulting tabulated data will have columns <code class="docutils literal notranslate"><span class="pre">city</span></code> and <code class="docutils literal notranslate"><span class="pre">region</span></code> with filled values Winnipeg and Manitoba respectively.</p></li>
+<li><p>A dataset on public schools does not describe its own institution type (namely, that the schools are public). Adding <code class="docutils literal notranslate"><span class="pre">&quot;institution_type&quot;:</span> <span class="pre">&quot;force:public&quot;</span></code> to the source file means OpenTabulate will generate a tabulated dataset with an <code class="docutils literal notranslate"><span class="pre">institution_type</span></code> column with <code class="docutils literal notranslate"><span class="pre">public</span></code> in all of its entries.</p></li>
+<li><p>The address parser you’re using is more accurate with additional data that may not be explicitly in the dataset. For example, we may have a XML file with a <code class="docutils literal notranslate"><span class="pre">&lt;CivicAddress&gt;</span></code> XML tag that contains the street number, name, city, and province, a separate <code class="docutils literal notranslate"><span class="pre">&lt;PostalCode&gt;</span></code> XML tag, and no tags for the country. If you know your data resides in Canada, you can write <code class="docutils literal notranslate"><span class="pre">&quot;address_str_parse&quot;:</span> <span class="pre">[&quot;CivicAddress&quot;,</span> <span class="pre">&quot;force:Canada&quot;,</span> <span class="pre">&quot;PostalCode&quot;]&quot;</span></code> to inject “Canada” into the entry-concatenated address before running it through the address parser.</p></li>
+</ul>
+<p>The general syntax is <code class="docutils literal notranslate"><span class="pre">&quot;key&quot;:</span> <span class="pre">&quot;force:value&quot;</span></code> for <code class="docutils literal notranslate"><span class="pre">schema</span></code> keys that support string values.</p>
+<p><strong>Note:</strong> User-defined content under <code class="docutils literal notranslate"><span class="pre">force</span></code> applies <em>after</em> <a class="reference internal" href="#writing-custom-processing-scripts"><span class="std std-ref">pre-processing</span></a> and <em>before</em> OpenTabulate’s standard processing.</p>
+</div>
+<div class="section" id="filtering-with-regular-expressions">
+<span id="id5"></span><h3>Filtering with regular expressions<a class="headerlink" href="#filtering-with-regular-expressions" title="Permalink to this headline">¶</a></h3>
+<p>Source files support a <code class="docutils literal notranslate"><span class="pre">filter</span></code> tag, which is defined in the first set of curly braces <code class="docutils literal notranslate"><span class="pre">{...}</span></code>.</p>
+<p>Each key in <code class="docutils literal notranslate"><span class="pre">filter</span></code> is a desired data attribute to filter by. The value of each key is a <a class="reference external" href="https://docs.python.org/3/library/re.html">Python regular expression</a> which filters values under the attribute. For example, let us say that we have an attribute named <code class="docutils literal notranslate"><span class="pre">Place</span> <span class="pre">of</span> <span class="pre">Interest</span></code> in a dataset and we want to extract park and community center information. These correspond to the values <code class="docutils literal notranslate"><span class="pre">Park</span></code> and <code class="docutils literal notranslate"><span class="pre">Community</span> <span class="pre">Center</span></code> for every place of interest. We can define our filter as</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;filter&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;Places of Interest&quot;</span><span class="p">:</span> <span class="s2">&quot;Park|Community Center&quot;</span> <span class="p">}</span>
+</pre></div>
+</div>
+<p>Note that the filter keys are grouped by a logical <code class="docutils literal notranslate"><span class="pre">AND</span></code>. For example, if a source file contains</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;filter&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;attribute1&quot;</span> <span class="p">:</span> <span class="s2">&quot;regex1&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;attribute2&quot;</span> <span class="p">:</span> <span class="s2">&quot;regex2&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;attribute3&quot;</span> <span class="p">:</span> <span class="s2">&quot;regex3&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>then each data point is checked if every regular expression returns a match for each attribute-regex pair. Provided all regular expressions return a match, the data point will be marked for processing. Otherwise, the data point is ignored.</p>
+</div>
+<div class="section" id="writing-custom-processing-scripts">
+<span id="id6"></span><h3>Writing custom processing scripts<a class="headerlink" href="#writing-custom-processing-scripts" title="Permalink to this headline">¶</a></h3>
+<p><strong>Note: OpenTabulate currently does not secure or containerize custom scripts. Always check the code from unknown sources before running them!</strong></p>
+<p>The purpose of custom processing scripts is to support automating processing tasks that are not available in OpenTabulate. OpenTabulate handles two types of custom scripts, <em>pre-processing</em> and <em>post-processing</em>. Pre-processing scripts run strictly before processing in OpenTabulate and post-processing scripts run strictly after processing in OpenTabulate.</p>
+<p>For example, a dataset may only be provided as a Microsoft Excel spreadsheet, which is an unsupported data format in OpenTabulate. In this situtation, writing a pre-processing script that converts the spreadsheet to CSV format is a way to automate its processing by OpenTabulate.</p>
+<p>The requirements for an OpenTabulate custom script is described below. Note that the term “scripts” here refers to executable programs that accept command line arguments. The number of arguments and what they represent depend on if you are writing a pre-processing or post-processing script.</p>
+<ul class="simple">
+<li><p>For a <em>pre-processing script</em>, you must read the first two command line arguments (e.g. <code class="docutils literal notranslate"><span class="pre">sys.argv[1]</span></code> and <code class="docutils literal notranslate"><span class="pre">sys.argv[2]</span></code> in Python). OpenTabulate enters the path of the raw dataset stored locally into the first argument, and enters the path of the pre-processed output into the second argument.</p></li>
+<li><p>For a <em>post-processing script</em>, you need to allow for one command line argument (e.g. <code class="docutils literal notranslate"><span class="pre">sys.argv[1]</span></code> in Python). OpenTabulate enters the path of the clean dataset into the single argument.</p></li>
+</ul>
+<p>To include the scripts in a source file, use the <code class="docutils literal notranslate"><span class="pre">pre</span></code> and <code class="docutils literal notranslate"><span class="pre">post</span></code> keys.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">OpenTabulate</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="running-opentabulate.html">Running OpenTabulate</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Source files</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-read-the-tag-documentation">How to read the tag documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#file-handling-tags">File handling tags</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#format-tags">Format tags</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#schema-tags">Schema tags</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#additional-features">Additional features</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently asked questions</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="running-opentabulate.html" title="previous chapter">Running OpenTabulate</a></li>
+      <li>Next: <a href="faq.html" title="next chapter">Frequently asked questions</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Government of Canada.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/source/source-files.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
