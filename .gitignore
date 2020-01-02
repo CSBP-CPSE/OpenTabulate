@@ -2,9 +2,5 @@ build
 dist
 opentabulate.egg-info
 opentabulate/__pycache__
-pddir
-statistics
-sources
-scripts
-testing
-misc
+virtualenv
+docs/_build/doctrees
