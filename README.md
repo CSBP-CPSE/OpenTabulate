@@ -40,7 +40,7 @@ where `DATA_DIR` is a path to a (preferably empty) directory. This configures Op
 
 ## Documentation
 
-Please see our [GitHub wiki](https://github.com/CSBP-CPSE/OpenTabulate/wiki).
+~~Please see our documentation [here](https://opentabulate.readthedocs.io/en/latest/).
 
 ## Issues
 
