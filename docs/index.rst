@@ -11,13 +11,16 @@ Welcome to OpenTabulate's documentation!
    :caption: Contents:
 
    source/introduction
+   source/faq
    source/running-opentabulate
    source/source-files
-   source/faq
+   source/changelog
+   
 
-Indices and tables
-==================
+.. Indices and tables
+   ==================
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   * :ref:`genindex`
+   * :ref:`modindex`
+   * :ref:`search`
+
