@@ -40,7 +40,7 @@ where `DATA_DIR` is a path to a (preferably empty) directory. This configures Op
 
 ## Documentation
 
-~~Please see our documentation [here](https://opentabulate.readthedocs.io/en/latest/).
+Please read our documentation [here](https://opentabulate.readthedocs.io/en/latest/).
 
 ## Issues
 

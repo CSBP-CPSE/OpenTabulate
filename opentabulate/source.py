@@ -5,20 +5,16 @@ Source file API.
 This module holds the Source class for OpenTabulate, which is an object that stores
 metadata about the datasets to be processed by OpenTabulate. The metadata is extracted
 during initialization of the object, which reads a corresponding "source file" 
-formatted in Javascript Object Notation (JSON).
+formatted in JSON.
 
 The Source object is designed to be mutable and is modified by DataProcess objects 
 to abstract the data processing.
 
-Created and written by Maksym Neyra-Nesterenko.
 
-* Data Exploration and Integration Lab (DEIL)
-* Center for Special Business Projects (CSBP)
-* Statistics Canada
+Created and written by Maksym Neyra-Nesterenko, with support and funding from the
+*Center for Special Business Projects* (CSBP) at *Statistics Canada*.
 """
 
-# - Additional notes -
-#
 # Code comment prefixes: 
 # IMPORTANT, SUGGESTION, DEBUG, TESTING, DEPRECATED
 # ---
@@ -58,12 +54,24 @@ class Source(object):
     Attributes:
         srcpath (str): Source file path.
         metadata (dict): Source file JSON dumps.
-        localfile (str): Data file name (not path!).
+
         default_paths (bool): Allow Source.parse() to assign default paths to
             the path attributes described below
+        has_pre (bool): pre-process flag
+        has_post (bool): post-process flag
+        download_url (bool): download data flag
+        
+        localfile (str): Data file name (not path).
         rawpath (str): Raw data path (in './data/raw/').
+        prepath (str): Preprocessed data path (in './data/raw/')
+        prepath_temp (str): Temporary file (in './data/raw/')
+        
         dirtypath (str): Dirty tabulated data path (in './data/dirty/').
         cleanpath (str): Clean tabulated data path (in './data/clean/').
+        dirtyerror (str): ---
+        cleanerror (str): Data that could not be tabulated (in './data/clean/')
+        
+
         label_map (dict): Mapping of standardized labels (in Algorithm) to
             the raw datasets labels, obtained from self.metadata.
         log (Logger): Logger with self.localfile as its name.
@@ -72,7 +80,6 @@ class Source(object):
                  has_pre=False, has_post=False,
                  download_url=False, default_paths=True):
         """
-
         Initializes a new source file object.
 
         Raises:
@@ -101,7 +108,7 @@ class Source(object):
         self.prepath_temp = None
         self.dirtypath = None
         self.cleanpath = None
-        self.dirtyerror = None
+        self.dirtyerror = None # DEPRECATED (for now)
         self.cleanerror = None
         
         self.label_map = None
@@ -218,8 +225,6 @@ class Source(object):
             raise LookupError(where_str + "'compression' tag missing for localarchive " + self.metadata['localarchive'])
         '''
 
-        # TESTING / DEBUG - need to review this #
-
         # -- preprocessing type and path existence check --
         if 'pre' in self.metadata:
             if not (isinstance(self.metadata['pre'], str) or isinstance(self.metadata['pre'], list)):
@@ -315,8 +320,8 @@ class Source(object):
                           'encoding', 'pre', 'post', 'header', 'schema', 'filter', 'provider')
             if i not in root_layer:
                 raise ValueError("%s Invalid key in root_layer '%s' in source file" % (src_str, i))
-            elif i == 'compression': # TESTING: To be removed later...
-                raise ValueError("%s Version <=1.0.1b 'compression' key removed")
+            elif i == 'compression': # DEPRECATED - this should be removed later...
+                raise ValueError("%s Version > 1.0.1 'compression' key removed")
             
         for i in self.metadata['format']:
             format_layer = ('type', 'header', 'quote', 'delimiter')
@@ -385,7 +390,7 @@ class Source(object):
     def fetch_url(self):
         """
         Downloads a dataset by fetching its URL and writing to the raw directory 
-        (currently './data/raw').
+        (currently './data/raw/').
 
         Returns:
             bool: True if download and writing succeeds, False otherwise.

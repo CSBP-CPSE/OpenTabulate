@@ -2,24 +2,16 @@
 """
 Tabulation and processing API.
 
-This module defines the core OpenTabulate API, which contains classes and methods 
-for parsing, processing, and reformatting microdata into CSV format. Source objects 
-are abstractions of datasets, which reads and stores important metadata upon use of 
-the Source constructor. The dynamic modification of Source objects by DataProcess 
-objects abstracts the data processing. A DataProcess object uses the Algorithm 
-class methods and its child classes to process specific data formats, such as
-CSV and XML format.
+This module defines the core OpenTabulate API, which contains wrapper classes and 
+methods for parsing, processing, and reformatting microdata to CSV format. The 
+DataProcess class wraps the Algorithm class methods and its child classes to process 
+specific data formats (currently CSV and XML format).
 
 
-Created and written by Maksym Neyra-Nesterenko.
-
-* Data Exploration and Integration Lab (DEIL)
-* Center for Special Business Projects (CSBP)
-* Statistics Canada
+Created and written by Maksym Neyra-Nesterenko, with support and funding from the
+*Center for Special Business Projects* (CSBP) at *Statistics Canada*.
 """
 
-# - Additional notes -
-#
 # Code comment prefixes: 
 # IMPORTANT, SUGGESTION, DEBUG, TESTING, DEPRECATED
 # ---

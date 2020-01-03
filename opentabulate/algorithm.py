@@ -8,15 +8,11 @@ reformatting microdata into CSV format.
 
 The child classes correspond to the different data formats handled (e.g. CSV, XML).
 
-Created and written by Maksym Neyra-Nesterenko.
 
-* Data Exploration and Integration Lab (DEIL)
-* Center for Special Business Projects (CSBP)
-* Statistics Canada
+Created and written by Maksym Neyra-Nesterenko, with support and funding from the
+*Center for Special Business Projects* (CSBP) at *Statistics Canada*.
 """
 
-# - Additional notes -
-#
 # Code comment prefixes: 
 # IMPORTANT, SUGGESTION, DEBUG, TESTING, DEPRECATED
 # ---
@@ -109,7 +105,6 @@ class Algorithm(object):
             source (Source): Dataset abstraction.
             address_parser (function): Address parsing function, accepts a string 
                 as an argument.
-            database_type (str): Content type string of database.
         """
         self.source = source
         self.address_parser = address_parser
@@ -142,9 +137,6 @@ class Algorithm(object):
         Identifies the character encoding of a source by reading the metadata
         or by a heuristic test.
         
-        Args:
-            source (Source): Dataset abstraction.
-
         Returns:
             e (str): Python character encoding string.
 
@@ -211,7 +203,12 @@ class Algorithm(object):
 
     def _rowParseAddress(self, row, entry):
         """
-        DEBUG ...
+        Parse the address of the string 'entry' and add the values to the 
+        OrderedDict object 'row'.
+
+        Args:
+            row (dict): CSV row for processed output.
+            entry (str): Address string.
         """
         ap_entry = self.address_parser.parse(entry)
         # SUGGESTION: This for loop is exclusively for libpostal output.
@@ -227,7 +224,8 @@ class Algorithm(object):
         
     def _isForceValue(self, value):
         """
-        DEBUG...
+        Returns:
+            (bool): if 'value' is of the form 'force:*'
         """
         return bool(self.FORCE_REGEXP.match(value))
 
@@ -519,7 +517,7 @@ class CSV_Algorithm(Algorithm):
 
     def _csv_keep_entry(self, entity):
         """
-        DEBUG ...
+        Regular expression filtering implementation.
         """
         if not self.FILTER_FLAG:
             # keep entries if no filter flag is used
@@ -672,7 +670,7 @@ class XML_Algorithm(Algorithm):
 
     def _xml_keep_entry(self, element):
         """
-        DEBUG ...
+        Regular expression filtering implementation.
         """
         if not self.FILTER_FLAG:
             # keep entries if no filter flag is used
@@ -695,12 +693,6 @@ class XML_Algorithm(Algorithm):
             # otherwise, keep entry
             return True
 
-    def _xml_list_tag_handler(self):
-        """
-        DEBUG ...
-        """
-        pass
-        
     def _xml_empty_element_handler(self, element):
         """
         The xml.etree module returns 'None' for text of empty-element tags. Moreover, 

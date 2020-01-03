@@ -20,10 +20,14 @@ together form a *processing pipeline*. This simplifies the processing procedure
 as a sequence of class method invocations. Moreover, this design allows for ease 
 of addition, modification and removal of code.
 
+To review the code, the package is broken down into these parts:
 
-Created and written by Maksym Neyra-Nesterenko.
+- opentab.py: command line tool
+- algorithm.py: data processing classes and methods
+- source.py: source file reading and handling
+- tabulate.py: data processing wrappers used by opentab.py
 
-* Data Exploration and Integration Lab (DEIL)
-* Center for Special Business Projects (CSBP)
-* Statistics Canada
+
+Created and written by Maksym Neyra-Nesterenko, with support and funding from the
+*Center for Special Business Projects* (CSBP) at *Statistics Canada*.
 """

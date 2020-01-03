@@ -6,12 +6,17 @@ This script is used as a console script entry point for setuptools. It aims to
 serve as a OpenTabulate API pipeline and command line tool, with support for 
 verbose logging and multiprocessing.
 
-Created and written by Maksym Neyra-Nesterenko.
-
-* Data Exploration and Integration Lab (DEIL)
-* Center for Special Business Projects (CSBP)
-* Statistics Canada
+Created and written by Maksym Neyra-Nesterenko, with support and funding from the
+*Center for Special Business Projects* (CSBP) at *Statistics Canada*.
 """
+
+# Code comment prefixes: 
+# IMPORTANT, SUGGESTION, DEBUG, TESTING, DEPRECATED
+# ---
+
+###########
+# MODULES #
+###########
 
 import argparse
 import configparser
@@ -42,7 +47,7 @@ def _parse_cmd_args():
     cmd_args.add_argument('-d', '--download-url', action='store_true', default=False, \
                           help='fetch data from \'url\' entries in source files')
     '''
-    # DEPRECATED
+    # DEPRECATED #
 
     cmd_args.add_argument('-z', '--no-decompress', action='store_true', default=False, \
                           help='do not decompress files from compressed archives')
