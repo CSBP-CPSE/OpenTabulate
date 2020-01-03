@@ -14,7 +14,7 @@ with open("README.md", 'r') as readme:
 
 setup(
     name='opentabulate',
-    version='1.0.1b1',
+    version='2.0.0',
     description='Tabulates structured data into a mergeable CSV format',
     long_description=long_desc,
     long_description_content_type='text/markdown',
@@ -26,12 +26,14 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Topic :: Text Processing :: General',
         'Operating System :: POSIX :: Linux',
+        'Environment :: Console',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7'
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8'
     ],
     project_urls={
-        'Documentation': 'https://github.com/CSBP-CPSE/OpenTabulate/wiki',
+        'Documentation': 'https://opentabulate.readthedocs.io/en/latest/',
         'Source code': 'https://github.com/CSBP-CPSE/OpenTabulate/tree/master/opentabulate',
         'Bug tracker': 'https://github.com/CSBP-CPSE/OpenTabulate/issues',
         'License': 'https://github.com/CSBP-CPSE/OpenTabulate/tree/master/LICENSE.md'
