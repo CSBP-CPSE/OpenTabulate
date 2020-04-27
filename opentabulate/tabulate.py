@@ -89,18 +89,18 @@ class DataProcess(object):
         # string argument for script path
         if isinstance(scr, str):
             rc = subprocess.call([scr, self.source.rawpath, self.source.prepath])
-            self.source.log.warning("'%s' return code: %d" % (scr, rc))
+            self.source.logger.warning("'%s' return code: %d" % (scr, rc))
         # list of strings argument for script path
         elif isinstance(scr, list):
             num = len(scr)
             for i in range(num):
                 if i != 0:
                     rc = subprocess.call([scr[i], self.source.prepath, self.source.prepath_temp])
-                    self.source.log.warning("'%s' return code: %d" % (scr[i], rc))
+                    self.source.logger.warning("'%s' return code: %d" % (scr[i], rc))
                     os.rename(self.source.prepath_temp, self.source.prepath)
                 else:
                     rc = subprocess.call([scr[i], self.source.rawpath, self.source.prepath])
-                    self.source.log.warning("'%s' return code: %d" % (scr[i], rc))
+                    self.source.logger.warning("'%s' return code: %d" % (scr[i], rc))
 
                 
     def prepareData(self):
@@ -162,12 +162,12 @@ class DataProcess(object):
         # string argument for script path
         if isinstance(scr, str):
             rc = subprocess.call([scr, self.source.cleanpath])
-            self.source.log.warning("'%s' return code: %d" % (scr, rc))
+            self.source.logger.warning("'%s' return code: %d" % (scr, rc))
         # list of strings argument for script path
         elif isinstance(scr, list):
             for subscr in scr:
                 rc = subprocess.call([subscr, self.source.cleanpath])
-                self.source.log.warning("'%s' return code: %d" % (subscr, rc))
+                self.source.logger.warning("'%s' return code: %d" % (subscr, rc))
 
 
 class AddressParser(object):

@@ -89,7 +89,9 @@ class Source(object):
             raise OSError('Path "%s" does not exist.' % path)
         self.srcpath = path
         with open(path) as f:
+            print("Loading", path)
             self.metadata = json.load(f)
+            
 
         # used separately for debugging and unit test writing
         #
@@ -317,7 +319,8 @@ class Source(object):
         # check entire source to make sure correct keys are being used
         for i in self.metadata:
             root_layer = ('localfile', 'localarchive', 'url', 'format', 'database_type',
-                          'encoding', 'pre', 'post', 'header', 'schema', 'filter', 'provider')
+                          'encoding', 'pre', 'post', 'header', 'schema', 'filter', 'provider',
+                          'licence', 'source')
             if i not in root_layer:
                 raise ValueError("%s Invalid key in root_layer '%s' in source file" % (src_str, i))
             elif i == 'compression': # DEPRECATED - this should be removed later...

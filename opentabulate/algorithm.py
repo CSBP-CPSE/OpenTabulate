@@ -95,7 +95,7 @@ class Algorithm(object):
                              'city' : 'city',
                              'province' : 'state',
                              'country' : 'country',
-                             'postal_code' : 'postal_code' }
+                             'postal_code' : 'postcode' }
 
     def __init__(self, source=None, address_parser=None):
         """
@@ -108,28 +108,30 @@ class Algorithm(object):
         """
         self.source = source
         self.address_parser = address_parser
-        self.database_type = source.metadata['database_type']
 
-        self.FILTER_FLAG = True if 'filter' in source.metadata else False    
-        self.PROVIDER_FLAG = True if 'provider' in source.metadata else False
+        if source is not None:
+            self.database_type = source.metadata['database_type']
 
-        if self.PROVIDER_FLAG == False:
-            source.logger.warning("No 'provider' flag given")
+            self.FILTER_FLAG = True if 'filter' in source.metadata else False    
+            self.PROVIDER_FLAG = True if 'provider' in source.metadata else False
 
-        self.FORCE_REGEXP = re.compile('force:.*')
+            if self.PROVIDER_FLAG == False:
+                source.logger.warning("No 'provider' flag given")
 
-        if self.database_type == "education":
-            self.FIELD_LABEL = self._EDU_FACILITY_LABELS + self._GENERAL_LABELS
-        elif self.database_type == "hospital":
-            self.FIELD_LABEL = self._HOSPITAL_LABELS + self._GENERAL_LABELS
-        elif self.database_type == "library":
-            self.FIELD_LABEL = self._LIBRARY_LABELS + self._GENERAL_LABELS
-        elif self.database_type == "fire_station":
-            self.FIELD_LABEL = self._FIRE_STATION_LABELS + self._GENERAL_LABELS
-        elif self.database_type == "business":
-            self.FIELD_LABEL = self._BUSINESS_LABELS + self._GENERAL_LABELS
-        else:
-            self.FIELD_LABEL = None
+            self.FORCE_REGEXP = re.compile('force:.*')
+
+            if self.database_type == "education":
+                self.FIELD_LABEL = self._EDU_FACILITY_LABELS + self._GENERAL_LABELS
+            elif self.database_type == "hospital":
+                self.FIELD_LABEL = self._HOSPITAL_LABELS + self._GENERAL_LABELS
+            elif self.database_type == "library":
+                self.FIELD_LABEL = self._LIBRARY_LABELS + self._GENERAL_LABELS
+            elif self.database_type == "fire_station":
+                self.FIELD_LABEL = self._FIRE_STATION_LABELS + self._GENERAL_LABELS
+            elif self.database_type == "business":
+                self.FIELD_LABEL = self._BUSINESS_LABELS + self._GENERAL_LABELS
+            else:
+                self.FIELD_LABEL = None
             
 
     def char_encode_check(self):
@@ -178,9 +180,15 @@ class Algorithm(object):
         return row
 
     def _isRowEmpty(self, row):
-        '''Checks if a row (dict) has no non-empty entries.'''
+        """
+        Checks if a row (dict) has no non-empty entries.
+        
+        Raises:
+            AssertionError: Row value is not a string.
+        """
         for key in row:
             if row[key] != "":
+                assert isinstance(row[key], str), 'Row value is not a string'
                 return False
         return True
 
@@ -488,7 +496,7 @@ class CSV_Algorithm(Algorithm):
                             else:
                                 self._rowParseAddress(row, entry)
                                 
-                            continue
+                        continue
                             
                     # --%-- check if key is 'address_str_parse' --%--
                     if key == "address_str_parse":
@@ -510,7 +518,7 @@ class CSV_Algorithm(Algorithm):
                 if not self._isRowEmpty(row):
                     # add customized entries here (e.g. provider)
                     if self.PROVIDER_FLAG:
-                        row['provider'] = source.metadata['provider']
+                        row['provider'] = self.source.metadata['provider']
                             
                     csvwriter.writerow(row)
             
