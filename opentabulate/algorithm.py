@@ -1,35 +1,26 @@
 # -*- coding: utf-8 -*-
 """
-Tabulation methods API.
+Tabulation API.
 
 This module defines the core functionality of OpenTabulate, which contains the 
-Algorithm class and its children, which give methods for parsing, processing, and 
-reformatting microdata into CSV format.
-
-The child classes correspond to the different data formats handled (e.g. CSV, XML).
-
+Algorithm class and its children. The classes provide methods for parsing, 
+processing and tabulating input data into CSV format.
 
 Created and written by Maksym Neyra-Nesterenko, with support and funding from the
 *Center for Special Business Projects* (CSBP) at *Statistics Canada*.
 """
 
-# Code comment prefixes: 
-# IMPORTANT, SUGGESTION, DEBUG, TESTING, DEPRECATED
-# ---
-
-# SUGGESTION: Handle "with open" so that Algorithm parsing methods receive file descriptors
-# rather than paths?
-
-###########
-# MODULES #
-###########
+#######################
+# MODULES AND IMPORTS #
+#######################
 
 import csv
-import operator
 import os
 import re
 from copy import deepcopy
 from xml.etree import ElementTree
+
+from opentabulate.config import SUPPORTED_ENCODINGS
 
 #####################################
 # DATA PROCESSING ALGORITHM CLASSES #
@@ -40,104 +31,42 @@ class Algorithm(object):
     Parent algorithm class for data processing.
 
     Attributes:
-        FIELD_LABEL (tuple): Standardized field names for the database type.
-        ADDR_FIELD_LABEL (tuple): Standardized address field names.
-        ENCODING_LIST (tuple): List of character encodings to test.
-        address_parser (function): Address parsing function, accepts a 
-            string as an argument.
+        source (Source): Dataset processing configuration and metadata.
+        label_map (dict): Column name mapping to output CSV.
+        FORCE_REGEXP (re.Pattern): Regular expression for 'force' values in source.
+        FILTER_FLAG (bool): Flag for data filtering.
+        PROVIDER_FLAG (bool): Flag for 'provider' column.
+        ADD_INDEX (bool): Flag for 'idx' column.
     """
-
-    # general data labels (e.g. contact info, location)
-    _GENERAL_LABELS = ('address_str_parse', 'address_str',
-                       'street_no', 'street_name', 'postal_code', 'unit', 'city', 'province', 'country',
-                       'longitude', 'latitude',
-                       'phone', 'fax', 'email', 'website', 'tollfree'
-    ) + ('comdist', 'region', 'hours', 'county')
-
-    # business data labels
-    _BUSINESS_LABELS = ('legal_name', 'trade_name', 'business_type', 'business_no', 'bus_desc',
-                        'licence_type', 'licence_no', 'start_date', 'closure_date', 'active',
-                        'no_emp', 'no_seasonal_emp', 'no_full_emp', 'no_part_emp', 'emp_range',
-                        'home_bus', 'munic_bus', 'nonres_bus',
-                        'exports', 'exp_cn_1', 'exp_cn_2', 'exp_cn_3',
-                        'naics_2', 'naics_3', 'naics_4', 'naics_5', 'naics_6',
-                        'qc_cae_1', 'qc_cae_desc_1', 'qc_cae_2', 'qc_cae_desc_2'
-    ) + ('no_employed', 'no_seasonal_emp', 'no_full_emp', 'no_part_emp', 'emp_range',
-         'home_bus', 'munic_bus', 'nonres_bus', 'naics_desc',
-         'facebook', 'twitter', 'linkedin', 'youtube', 'instagram')
-
-    # education data labels
-    _EDU_FACILITY_LABELS = ('institution_name', 'institution_type', 'ins_code', 'education_level', 'board_name',
-                            'board_code', 'school_yr', 'range', 'isced010', 'isced020', 'isced1',
-                            'isced2', 'isced3', 'isced4+'
-    ) + ('ins_code', 'school_yr')
-
-    # hospital data labels
-    _HOSPITAL_LABELS = ('hospital_name','hospital_type','health_authority')
-
-    # hospital data labels
-    _LIBRARY_LABELS = ('library_name','library_type','library_board')
-
-    # fire station labels
-    _FIRE_STATION_LABELS = ('fire_station_name',)
-
-    # supported address field labels
-    # note that the labels are ordered to conform to the Canada Post mailing address standard
-    ADDR_FIELD_LABEL = ('unit', 'street_no', 'street_name', 'city', 'province', 'country', 'postal_code')
-
-    # supported encodings (as defined in Python standard library)
-    ENCODING_LIST = ("utf-8", "cp1252", "cp437")
-    
-    # conversion table for address labels to libpostal tags
-    _ADDR_LABEL_TO_POSTAL = {'street_no' : 'house_number',
-                             'street_name' : 'road',
-                             'unit' : 'unit',
-                             'city' : 'city',
-                             'province' : 'state',
-                             'country' : 'country',
-                             'postal_code' : 'postcode' }
-
-    def __init__(self, source=None, address_parser=None):
+    def __init__(self, source=None):
         """
         Initializes Algorithm object.
 
         Args:
             source (Source): Dataset abstraction.
-            address_parser (function): Address parsing function, accepts a string 
-                as an argument.
         """
         self.source = source
-        self.address_parser = address_parser
+        self.label_map = None
 
         if source is not None:
-            self.database_type = source.metadata['database_type']
-
+            self.FORCE_REGEXP = re.compile('force:.*')
+            
+            # flags from source file metadata
             self.FILTER_FLAG = True if 'filter' in source.metadata else False    
             self.PROVIDER_FLAG = True if 'provider' in source.metadata else False
 
             if self.PROVIDER_FLAG == False:
                 source.logger.warning("No 'provider' flag given")
 
-            self.FORCE_REGEXP = re.compile('force:.*')
-
-            if self.database_type == "education":
-                self.FIELD_LABEL = self._EDU_FACILITY_LABELS + self._GENERAL_LABELS
-            elif self.database_type == "hospital":
-                self.FIELD_LABEL = self._HOSPITAL_LABELS + self._GENERAL_LABELS
-            elif self.database_type == "library":
-                self.FIELD_LABEL = self._LIBRARY_LABELS + self._GENERAL_LABELS
-            elif self.database_type == "fire_station":
-                self.FIELD_LABEL = self._FIRE_STATION_LABELS + self._GENERAL_LABELS
-            elif self.database_type == "business":
-                self.FIELD_LABEL = self._BUSINESS_LABELS + self._GENERAL_LABELS
-            else:
-                self.FIELD_LABEL = None
-            
+            if source.config is not None:
+            # configuration or command line flags
+            self.ADD_INDEX = True if source.config.getboolean('general', 'add_index') else False
+            self.NO_WHITESPACE = True if source.config.getboolean('general', 'clean_whitespace') else False
+            self.LOWERCASE = True if source.config.getboolean('general', 'lowercase_output') else False
 
     def char_encode_check(self):
         """
-        Identifies the character encoding of a source by reading the metadata
-        or by a heuristic test.
+        Heuristic test to identify the character encoding of a source.
         
         Returns:
             e (str): Python character encoding string.
@@ -149,14 +78,14 @@ class Algorithm(object):
         metadata = self.source.metadata
         if 'encoding' in metadata:
             data_enc = metadata['encoding']
-            if data_enc in self.ENCODING_LIST:
+            if data_enc in SUPPORTED_ENCODINGS:
                 return data_enc
             else:
                 raise ValueError(data_enc + " is not a valid encoding.")
         else:
-            for enc in self.ENCODING_LIST:
+            for enc in SUPPORTED_ENCODINGS:
                 try:
-                    with open(self.source.rawpath, encoding=enc) as f:
+                    with open(self.source.input_path, encoding=enc) as f:
                         for line in f:
                             pass
                     return enc
@@ -165,19 +94,13 @@ class Algorithm(object):
             raise RuntimeError("Could not guess original character encoding.")
 
 
-    ############################################
-    # Support functions for the 'parse' method #
-    ############################################
+    ##############################################
+    # Helper functions for the 'tabulate' method #
+    ##############################################
 
     def _generateFieldNames(self, keys):
-        '''Generates headers (column names) for the target tabulated data.'''
-        row = [k for k in keys]
-        if "address_str_parse" in row:
-            ind = row.index("address_str_parse")
-            row.pop(ind)
-            for atag in reversed(self.ADDR_FIELD_LABEL):
-                row.insert(ind, atag)
-        return row
+        """Generates headers (column names) for the target tabulated data."""
+        return [k for k in keys]
 
     def _isRowEmpty(self, row):
         """
@@ -192,256 +115,66 @@ class Algorithm(object):
                 return False
         return True
 
-    def _quickScrub(self, entry):
-        '''Reformats a string using regex and returns it.'''
+    def _quickCleanEntry(self, entry):
+        """Reformats a string using regex and returns it."""
         if isinstance(entry, bytes):
             entry = entry.decode()
-            # remove [:space:] char class
-            #
+
+        if self.NO_WHITESPACE: # remove redundant [:space:] char class characters
             # since this includes removal of newlines, the next regexps are safe and
             # do not require the "DOTALL" flag
-        entry = re.sub(r"\s+", " ", entry)
-        # remove spaces occuring at the beginning and end of an entry
-        entry = re.sub(r"^\s+([^\s].+)", r"\1", entry)
-        entry = re.sub(r"(.+[^\s])\s+$", r"\1", entry)
-        entry = re.sub(r"^\s+$", "", entry)
-        # make entries lowercase
-        entry = entry.lower()
+            entry = re.sub(r"\s+", " ", entry)
+            # remove spaces occuring at the beginning and end of an entry
+            entry = re.sub(r"^\s+([^\s].*)", r"\1", entry)
+            entry = re.sub(r"(.*[^\s])\s+$", r"\1", entry)
+            entry = re.sub(r"^\s+$", "", entry)
+
+        if self.LOWERCASE: # make entries lowercase
+            entry = entry.lower()
+            
         return entry
 
-    def _rowParseAddress(self, row, entry):
-        """
-        Parse the address of the string 'entry' and add the values to the 
-        OrderedDict object 'row'.
-
-        Args:
-            row (dict): CSV row for processed output.
-            entry (str): Address string.
-        """
-        ap_entry = self.address_parser.parse(entry)
-        # SUGGESTION: This for loop is exclusively for libpostal output.
-        # Perhaps it should be moved to the AddressParser object?
-        for afl in self.ADDR_FIELD_LABEL:
-            if self._ADDR_LABEL_TO_POSTAL[afl] in [x[1] for x in ap_entry]:
-                ind = list(map(operator.itemgetter(1), ap_entry)).index(self._ADDR_LABEL_TO_POSTAL[afl])
-                row[afl] = ap_entry[ind][0]
-            else:
-                row[afl] = ""
-
-        ap_entry = self.address_parser.parse(entry)
-        
     def _isForceValue(self, value):
-        """
-        Returns:
-            (bool): if 'value' is of the form 'force:*'
-        """
+        """Returns True if value contains the prefix 'force:'."""
         return bool(self.FORCE_REGEXP.match(value))
-
-    
-    def clean(self, source):
-        """
-        A general dataset cleaning method.
-
-        Note:
-            This function may be deprecated in the future for a more modular
-            approach to defining cleaning methods.
-
-        Args:
-            source (Source): Dataset abstraction.
-        """
-        error_flag = False
         
-        with open(source.dirtypath, 'r') as dirty, \
-             open(source.cleanpath, 'w') as clean, \
-             open(source.cleanerror, 'w') as error:
 
-            csvreader = csv.DictReader(dirty)
-            csvwriter = csv.DictWriter(clean, fieldnames=csvreader.fieldnames, quoting=csv.QUOTE_MINIMAL)
-
-            error_headers = ['ERROR'] + csvreader.fieldnames
-            csverror = csv.DictWriter(error, fieldnames=error_headers, quoting=csv.QUOTE_MINIMAL)
-            
-            csvwriter.writeheader()
-            csverror.writeheader()
-
-            # hard-coded variables used in cleaning
-            province_territory_shortlist = ["ab", "bc", "mb", "nb", "nl", "ns", "nt", "nu", "on", "pe", "qc", "sk", "yt"]
-            
-            long_to_short_map = {"alberta": "ab",
-                                 "british columbia": "bc",
-                                 "manitoba": "mb",
-                                 "new brunswick": "nb",
-                                 "newfoundland": "nl",
-                                 "newfoundland and labrador": "nl",
-                                 "nova scotia": "ns",
-                                 "northwest territories": "nt",
-                                 "nunavut": "nu",
-                                 "ontario": "on",
-                                 "prince edward island": "pe",
-                                 "québec": "qc",
-                                 "quebec": "qc",
-                                 "saskatchewan": "sk",
-                                 "yukon": "yt"}
-
-            # cleaning begins at this loop
-            for row in csvreader:
-                # general field cleaning
-                # clean postal codes and filter errors
-                if 'postal_code' in csvreader.fieldnames and row['postal_code'] != '':
-                    postal_code = row['postal_code']
-                    postal_code = re.sub(r"\s+", "", postal_code)
-                    postal_code = postal_code.upper()
-                    row['postal_code'] = postal_code
-
-                    # check string length
-                    if len(postal_code) != 6:
-                        row['ERROR'] = "postal_code:"
-                        csverror.writerow(row)
-                        error_flag = True
-                        continue
-
-                    # check character frequency
-                    alpha = 0
-                    digit = 0
-                    for c in postal_code:
-                        if c.isalpha():
-                            alpha += 1
-                        elif c.isdigit():
-                            digit += 1
-                    if alpha != 3 or digit != 3:
-                        row['ERROR'] = "postal_code:"
-                        csverror.writerow(row)
-                        error_flag = True
-                        continue
-
-                    # check structure
-                    if not re.match(r'[A-Z][0-9][A-Z][0-9][A-Z][0-9]', postal_code):
-                        row['ERROR'] = "postal_code"
-                        csverror.writerow(row)
-                        error_flag = True
-                        continue
-
-                # clean city name
-                if 'city' in csvreader.fieldnames and row['city'] != '':
-                    city_name = row['city']
-                    city_name = re.sub(r"[.,']", '', city_name)
-                    row['city'] = city_name
-                    
-                # clean province name and filter errors
-                if 'province' in csvreader.fieldnames and row['province'] != '':
-                    if row['province'] in province_territory_shortlist:
-                        pass
-                    elif row['province'] in long_to_short_map:
-                        row['province'] = long_to_short_map[row['province']]
-                    else:
-                        row['ERROR'] = "province"
-                        csverror.writerow(row)
-                        error_flag = True
-                        continue
-
-                # clean country name and filter errors
-                if 'country' in csvreader.fieldnames and row['country'] != '':
-                    if row['country'] in ["ca", "can", "canada"]:
-                        row['country'] = "ca"
-                    else:
-                        row['ERROR'] = "country"
-                        csverror.writerow(row)
-                        error_flag = True
-                        continue
-
-                # clean street name (specifically, the type and direction)
-                # by definition, no false positives are captured
-                if 'street_name' in csvreader.fieldnames and row['street_name'] != '':
-                    st_name = row['street_name']
-                    
-                    # remove punctuation
-                    st_name = re.sub(r"[.,']", '', st_name)
-                    # remove number suffixes
-                    st_name = re.sub(r'(\d+)(st|nd|rd|th)', r'\1', st_name)
-
-                    direction_map = {"east": "e", "west": "w", "north": "n", "south": "s"}
-                    for i in ("east", "west", "north", "south"):
-                        if re.search(r'%s$' % i, st_name):
-                            st_name = re.sub(r'%s$' % i, direction_map[i], st_name)
-                            break
-                        
-                    row['street_name'] = st_name
-
-
-                # business label cleaning
-                if self.database_type == "business":
-                    pass
-                
-                # education label cleaning
-                if self.database_type == "education":
-                    pass
-                
-                # hospital label cleaning
-                if self.database_type == "hospital":
-                    pass
-
-                # library label cleaning
-                if self.database_type == "library":
-                    pass
-
-                # fire station label cleaning
-                if self.database_type == "fire_station":
-                    pass
-                
-                csvwriter.writerow(row)
-                
-        if error_flag == False:
-            os.remove(source.cleanerror)
-            os.remove(source.dirtypath)
-
-        
 class CSV_Algorithm(Algorithm):
     """
-    Algorithm child class, accompanied with methods designed for data in CSV format.
+    Algorithm child class designed to handle CSV formatted data.
     """
-    def extract_labels(self):
+    def construct_label_map(self):
         """
-        Constructs a dictionary that stores tags exclusively used in a source file.
+        Constructs a dictionary from a column map that the 'tabulate' function uses to
+        to reformat input data.
         """
-        metadata = self.source.metadata
-        label_map = dict()
-        for i in self.FIELD_LABEL:
-            if i in metadata['schema'] and (not (i in self.ADDR_FIELD_LABEL)):
-                label_map[i] = metadata['schema'][i]
-                # short circuit evaluation
-            elif ('address_tokens' in metadata['schema']) and (i in metadata['schema']['address_tokens']):
-                label_map[i] = metadata['schema']['address_tokens'][i] 
+        self.label_map = self.source.column_map
 
-        self.label_map = label_map
-
-
-    def parse(self):
+    def tabulate(self):
         """
         Parses a dataset in CSV format to transform into a standardized CSV format.
 
-        Raises:
-            Exception: Requires external handling if caught.
+        Exceptions raised must be handled external to this module.
         """
         if not hasattr(self, 'label_map'):
-            self.source.logger.error("Missing 'label_map', 'extract_labels' was not ran")
+            self.source.logger.error("Missing 'label_map', 'construct_label_map' was not ran")
             raise ValueError("Missing 'label_map' for parsing")
 
-        tags = deepcopy(self.label_map)
+        tags = self.label_map
         enc = self.char_encode_check()
 
-        if self.source.prepath == None:
-            path = self.source.rawpath
-        else:
-            path = self.source.prepath
-        
-        with open(path, 'r', encoding=enc) as csv_file_read, \
-             open(self.source.dirtypath, 'w', encoding="utf-8") as csv_file_write:
+        with open(self.source.input_path, 'r', encoding=enc) as csv_file_read, \
+             open(self.source.output_path, 'w',
+                  encoding=self.source.config.get('general', 'target_encoding')
+             ) as csv_file_write:
             # define column labels
-            col_names = [t for t in tags]
+            fieldnames = self._generateFieldNames(tags)
+            
             if self.PROVIDER_FLAG:
-                col_names.append('provider')
+                fieldnames.append('provider')
 
-            col_labels = self._generateFieldNames(col_names)
+            if self.ADD_INDEX:
+                fieldnames.insert(0, 'idx')
 
             # define reader/writer
             csvreader = csv.DictReader(
@@ -451,17 +184,19 @@ class CSV_Algorithm(Algorithm):
             )
             csvwriter = csv.DictWriter(
                 csv_file_write,
-                col_labels,
+                fieldnames,
                 delimiter=',',
                 quotechar='"',
                 quoting=csv.QUOTE_MINIMAL
             )
 
-            # remove byte order mark (BOM)
+            # remove (possible) byte order mark (BOM)
             csvreader.fieldnames[0] = re.sub(r"^\ufeff(.+)", r"\1", csvreader.fieldnames[0])
             no_columns = len(csvreader.fieldnames)
             
             csvwriter.writeheader()
+
+            idx = 0
             
             for entity in csvreader:
                 row = dict()
@@ -478,7 +213,8 @@ class CSV_Algorithm(Algorithm):
                     continue
                     
                 for key in tags:
-                    # --%-- check if tags[key] is a JSON array --%--
+
+                     --%-- check if tags[key] is a JSON array --%--
                     if isinstance(tags[key], list):
                         components = []
                         for subentry in tags[key]:
@@ -489,23 +225,11 @@ class CSV_Algorithm(Algorithm):
                                 components.append(entity[subentry])
 
                             entry = ' '.join(components)
-                            entry = self._quickScrub(entry)
-                            # --%-- check if key is "address_str_parse" --%--
-                            if key != "address_str_parse":
-                                row[key] = entry
-                            else:
-                                self._rowParseAddress(row, entry)
-                                
+                            entry = self._quickCleanEntry(entry)
+                            
+                        row[key] = entry
                         continue
                             
-                    # --%-- check if key is 'address_str_parse' --%--
-                    if key == "address_str_parse":
-                        # SUGGESTION: get source.py to error handle when 'address_str_parse' value is 'force'
-                        entry = entity[tags[key]]
-                        entry = self._quickScrub(entry)
-                        self._rowParseAddress(row, entry)
-                        continue
-
                     # --%-- all other cases handled here --%--
                     # is 'tags[key]' a 'force' entry?
                     if self._isForceValue(tags[key]):
@@ -513,13 +237,17 @@ class CSV_Algorithm(Algorithm):
                     else:
                         entry = entity[tags[key]]
 
-                    row[key] = self._quickScrub(entry)
+                    row[key] = self._quickCleanEntry(entry)
                                                     
                 if not self._isRowEmpty(row):
                     # add customized entries here (e.g. provider)
                     if self.PROVIDER_FLAG:
                         row['provider'] = self.source.metadata['provider']
-                            
+
+                    if self.ADD_INDEX:
+                        row['idx'] = idx
+                        idx += 1
+                        
                     csvwriter.writerow(row)
             
 
@@ -549,69 +277,58 @@ class CSV_Algorithm(Algorithm):
 
 class XML_Algorithm(Algorithm):
     """
-    Algorithm child class, accompanied with methods designed for data in XML format.
+    Algorithm child class with methods designed to handle XML formatted data.
     """
-
-    def extract_labels(self):
+    def construct_label_map(self):
         """
-        Constructs a dictionary that stores tags exclusively used in a source file. 
-        Since datasets in XML format require a header tag in its source file, the 
-        labels must be reformatted to XPath expressions.
+        Constructs a dictionary from a column map that the 'tabulate' function uses to
+        to reformat input data. In this case (XML formatted data), the values in the
+        column map must be converted to XPath expressions.
         """
-        metadata = self.source.metadata
         label_map = dict()
         # append existing data using XPath expressions (for parsing)
-        for i in self.FIELD_LABEL:
-            if i in metadata['schema'] and (not (i in self.ADDR_FIELD_LABEL)) and i != 'address_tokens':
-                if isinstance(metadata['schema'][i], list):
-                    label_map[i] = []
-                    for t in metadata['schema'][i]:
-                        label_map[i] = t if self._isForceValue(t) else (".//" + t)
-                else:
-                    val = metadata['schema'][i]
-                    label_map[i] = val if self._isForceValue(val) else (".//" + val)
-                    # short circuit evaluation
-            elif ('address_tokens' in metadata['schema']) and (i in metadata['schema']['address_tokens']):
-                # note that the labels have to map to XPath expressions
-                val = metadata['schema']['address_tokens'][i]
-                label_map[i] = val if self._isForceValue(val) else (".//" + val)
-
+        for k in self.source.column_map:
+            if isinstance(self.source.column_map[k], list):
+                label_map[k] = list()
+                for t in self.source.column_map[k]:
+                    label_map[k].append(t if self._isForceValue(t) else (".//" + t))
+            else:
+                val = self.source.column_map[k]
+                label_map[k] = val if self._isForceValue(val) else (".//" + val)
+                    
         self.label_map = label_map
 
 
-    def parse(self):
+    def tabulate(self):
         """
         Parses a dataset in XML format to transform into a standardized CSV format.
+
+        Exceptions raised must be handled external to this module.
         """
         if not hasattr(self, 'label_map'):
-            self.source.logger.error("Missing 'label_map', 'extract_labels' was not ran")
+            self.source.logger.error("Missing 'label_map', 'construct_label_map' was not ran")
             raise ValueError("Missing 'label_map' for parsing")
 
-        path = ''
-        if self.source.prepath == None:
-            path = self.source.rawpath
-        else:
-            path = self.source.prepath
-
-        tags = deepcopy(self.label_map)
+        tags = self.label_map
         header = self.source.metadata['format']['header']
         enc = self.char_encode_check()
 
         xmlp = ElementTree.XMLParser(encoding=enc)
-        tree = ElementTree.parse(path, parser=xmlp)
+        tree = ElementTree.parse(self.source.input_path, parser=xmlp)
         root = tree.getroot()
 
-        with open(self.source.dirtypath, 'w', encoding="utf-8") as csvfile:
+        with open(self.source.output_path, 'w',
+                  encoding=self.source.config.get('general', 'target_encoding')
+        ) as csvfile:
             # write the initial row which identifies each column
-            col_names = [t for t in tags]
+            fieldnames = self._generateFieldNames(tags)
+            
             if self.PROVIDER_FLAG:
-                col_names.append('provider')
+                fieldnames.append('provider')
    
-            col_labels = self._generateFieldNames(col_names)
-
             csvwriter = csv.DictWriter(
                 csvfile,
-                col_labels,
+                fieldnames,
                 delimiter=',',
                 quotechar='"',
                 quoting=csv.QUOTE_MINIMAL
@@ -619,43 +336,30 @@ class XML_Algorithm(Algorithm):
 
             csvwriter.writeheader()
 
-            for element in root.iter(header):
+            for head_element in root.iter(header):
                 row = dict()
                 
                 # filter entry
-                if not self._xml_keep_entry(element): 
+                if not self._xml_keep_entry(head_element): 
                     continue
                 
                 for key in tags:
                     # --%-- check if tags[key] is a JSON array --%--
                     if isinstance(tags[key], list):
                         components = []
-                        for subentry in tags[key]:
-                            # is subentry a 'force' entry?
-                            if self._isForceValue(subentry):
-                                components.append(subentry.split(':')[1])
+                        for val in tags[key]:
+                            # is val a 'force' entry?
+                            if self._isForceValue(val):
+                                components.append(val.split(':')[1])
                             else:
-                                subelement = element.find(subentry)
-                                subelement = self._xml_empty_element_handler(subelement)
+                                assert val[:3] == './/'
+                                tag_name = val[3:] # removes './/' prefix
+                                subelement = head_element.find(val)
+                                subelement = self._xml_is_element_missing(subelement, tag_name, head_element)
                                 components.append(subelement)
 
                         entry = ' '.join(components)
-                        entry = self._quickScrub(entry)
-                        # --%-- check if key is "address_str_parse" --%--
-                        if key != "address_str_parse":
-                            row[key] = entry
-                        else:
-                            self._rowParseAddress(row, entry)
-                            
-                        continue
-
-                    # --%-- check if key is 'address_str_parse' --%--
-                    if key == "address_str_parse":
-                        # SUGGESTION: get source.py to error handle when 'address_str_parse' value is 'force'
-                        entry = element.find(tags[key])
-                        entry = self._xml_empty_element_handler(entry)
-                        entry = self._quickScrub(entry)
-                        self._rowParseAddress(row, entry)
+                        row[key] = self._quickCleanEntry(entry)
                         continue
 
                     # --%-- all other cases handled here --%--
@@ -663,20 +367,27 @@ class XML_Algorithm(Algorithm):
                     if self._isForceValue(tags[key]):
                         entry = tags[key].split(':')[1]
                     else:
-                        entry = element.find(tags[key])
-                        entry = self._xml_empty_element_handler(entry)
+                        assert tags[key][:3] == './/'
+                        tag_name = tags[key][3:] # removes './/' prefix
+                        element = head_element.find(tags[key])
+                        element = self._xml_is_element_missing(element, tag_name, head_element)
+                        entry = element
                         
-                    row[key] = self._quickScrub(entry)
+                    row[key] = self._quickCleanEntry(entry)
                         
                 if not self._isRowEmpty(row):
                     # add customized entries here (e.g. provider)
                     if self.PROVIDER_FLAG:
                         row['provider'] = self.source.metadata['provider']
-                        
+
+                    if self.ADD_INDEX:
+                        row['idx'] = idx
+                        idx += 1
+
                     csvwriter.writerow(row)
 
 
-    def _xml_keep_entry(self, element):
+    def _xml_keep_entry(self, head_element):
         """
         Regular expression filtering implementation.
         """
@@ -688,8 +399,8 @@ class XML_Algorithm(Algorithm):
             for attribute in self.source.metadata['filter']:
                 match = False
                 regexp = self.source.metadata['filter'][attribute]
-                el = element.find(".//" + attribute)
-                el = self._xml_empty_element_handler(el)
+                element = head_element.find(".//" + attribute)
+                element = self._xml_is_element_missing(element, attribute, head_element)
                 if regexp.search(el):
                     match = True
                 BOOL_MATCHES.append(match)
@@ -701,20 +412,28 @@ class XML_Algorithm(Algorithm):
             # otherwise, keep entry
             return True
 
-    def _xml_empty_element_handler(self, element):
+    def _xml_is_element_missing(self, element, tag_name, head_element):
         """
-        The xml.etree module returns 'None' for text of empty-element tags. Moreover, 
-        if the element cannot be found, the element is None. This function is defined 
-        to handle these cases.
+        The xml.etree module returns 'None' if there is no text in a tag. Moreover, if
+        the element cannot be found, the element is None. In this latter case, we raise
+        an exception.
 
         Args:
-            element (?): A node in the XML tree.
+            element (ElementTree.Element): Target node in XML tree.
+            tag_name (str): Target tag name in tree parsing.
+            head_element (ElementTree.Element): Header node in XML tree.
 
         Returns:
             str: Empty string if missing or empty tag, otherwise element.text.
+
+        Raises:
+            ElementTree.ParseError: Element is missing in header.
         """
-        if element is None: # SUGGESTION: add warnings or raise error if tags are missing
-            return ''
+        if element is None:
+            self.source.logger.error("Tag '%s' is missing in header with attributes: %s"
+                                     % (tag_name, head_element.attrib))
+            raise ElementTree.ParseError("Element is missing in header.")
+        
         if not (element.text is None):
             return element.text
         else:

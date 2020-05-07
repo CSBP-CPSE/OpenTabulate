@@ -5,28 +5,29 @@ Microdata processing, tabulation and cleaning support.
 OpenTabulate is a Python package designed to organize, tabulate, and process 
 structured data. It currently aims to be a data processing framework for the 
 Linkable Open Data Environment, an exploratory project in development by the 
-Data Exploration and Integration Lab (DEIL) at Statistics Canada. It offers
+Data Exploration and Integration Lab (DEIL) at Statistics Canada. It primarily
+offers
 
-- automated data retrieval
 - a systematic way of organizing and retrieving data using *sources files*
   (inspired by OpenAddresses),
 - tabulation of data into a standardized CSV format that is suitable for merging 
   and linkage,
-- various methods to process data, including address parsing, cleaning and 
-  reformatting.
+- basic cleaning and data filtering methods
 
-OpenTabulate's API defines several classes and methods, such that when put 
-together form a *processing pipeline*. This simplifies the processing procedure 
-as a sequence of class method invocations. Moreover, this design allows for ease 
-of addition, modification and removal of code.
+Comprehensive documentation of OpenTabulate is linked here:
+
+https://opentabulate.readthedocs.io/en/stable/index.html
+
 
 To review the code, the package is broken down into these parts:
 
-- opentab.py: command line tool
+- opentab.py : command line tool
+- opentab_funcs.py : wrapper functions for the command line tool
+- args.py : command line argument parsing and validation
+- config.py : configuration file parsing and validation
+- source.py : source file parsing and validation
+- tabulate.py : data processing wrappers
 - algorithm.py: data processing classes and methods
-- source.py: source file reading and handling
-- tabulate.py: data processing wrappers used by opentab.py
-
 
 Created and written by Maksym Neyra-Nesterenko, with support and funding from the
 *Center for Special Business Projects* (CSBP) at *Statistics Canada*.

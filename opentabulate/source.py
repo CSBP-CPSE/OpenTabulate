@@ -2,202 +2,185 @@
 """
 Source file API.
 
-This module holds the Source class for OpenTabulate, which is an object that stores
-metadata about the datasets to be processed by OpenTabulate. The metadata is extracted
-during initialization of the object, which reads a corresponding "source file" 
-formatted in JSON.
+This module defines the Source class for OpenTabulate, which is an object that stores
+metadata about the datasets to be processed by OpenTabulate. A "source file" written
+in JSON will store this metadata and the Source object will read it during 
+initialization. The metadata is extracted and validated using the parse() method.
 
-The Source object is designed to be mutable and is modified by DataProcess objects 
-to abstract the data processing.
-
+Note: the Source object is not meant to be modified by external functions or classes.
 
 Created and written by Maksym Neyra-Nesterenko, with support and funding from the
 *Center for Special Business Projects* (CSBP) at *Statistics Canada*.
 """
-
-# Code comment prefixes: 
-# IMPORTANT, SUGGESTION, DEBUG, TESTING, DEPRECATED
-# ---
-
-###########
-# MODULES #
-###########
-
 import json
 import logging
 import os
 import re
-import requests
-import urllib.request as req
-
-#############
-# VARIABLES #
-#############
-
-# -- JSON tags --
-
-#
-# SUGGESTION: have shared or immutable 'global' variables for source objects
-# 
-
-#################################
-# SOURCE DATASET METADATA CLASS #
-#################################
+import sys
+from ast import literal_eval
 
 class Source(object):
     """
-    Source dataset class. Abstracts a dataset by storing metadata involving the data 
-    file (format, name, etc.) and structure (XML headers, CSV delimiter, schema, etc.). 
-    Other processing metadata inferred from a source file (file paths, scripts, etc.)
-    used by OpenTabulate are also stored.
+    Source class. Stores the metadata of a dataset pertaining to the file (format,
+    filename, etc.) and structure (XML headers, CSV delimiter, schema, etc.). Other
+    processing metadata inferred from a source file (e.g. file paths) used by 
+    OpenTabulate are also stored.
 
     Attributes:
-        srcpath (str): Source file path.
+        src_path (str): Source file path.
         metadata (dict): Source file JSON dumps.
+        p_args (argparse.Namespace) OpenTabulate (parsed) command line arguments.
+        config (configparser.ConfigParser): OpenTabulate configuration file.
 
-        default_paths (bool): Allow Source.parse() to assign default paths to
-            the path attributes described below
-        has_pre (bool): pre-process flag
-        has_post (bool): post-process flag
-        download_url (bool): download data flag
+        default_paths (bool): For developers; set to False for unit test writing.
         
-        localfile (str): Data file name (not path).
-        rawpath (str): Raw data path (in './data/raw/').
-        prepath (str): Preprocessed data path (in './data/raw/')
-        prepath_temp (str): Temporary file (in './data/raw/')
-        
-        dirtypath (str): Dirty tabulated data path (in './data/dirty/').
-        cleanpath (str): Clean tabulated data path (in './data/clean/').
-        dirtyerror (str): ---
-        cleanerror (str): Data that could not be tabulated (in './data/clean/')
-        
+        local_file (str): Data file name (not path).
+        input_path (str): Raw data path (in './data/input/').
+        output_path (str): Tabulated data path (in './data/output/').
 
-        label_map (dict): Mapping of standardized labels (in Algorithm) to
-            the raw datasets labels, obtained from self.metadata.
-        log (Logger): Logger with self.localfile as its name.
+        column_map (dict): Mapping of input data schema to output schema. The output
+            schema labels are defined by the user in a configuration file.
+
+        logger (Logger): Logger with self.localfile as its name.
     """
-    def __init__(self, path,
-                 has_pre=False, has_post=False,
-                 download_url=False, default_paths=True):
+    def __init__(self, path, p_args=None, config=None, default_paths=True):
         """
         Initializes a new source file object.
+
+        Args:
+            path (str): Path string to source file.
+            p_args (argparse.Namespace): Parsed arguments.
+            config (Configuration): OpenTabulate configuration file.
+            default_paths (bool): For developers; set to False for unit test writing.
 
         Raises:
             OSError: Path (of source file) does not exist.
         """
         if not os.path.exists(path):
             raise OSError('Path "%s" does not exist.' % path)
-        self.srcpath = path
-        with open(path) as f:
-            print("Loading", path)
-            self.metadata = json.load(f)
-            
+        self.src_path = path
+        try:
+            with open(path) as f:
+                print("Loading", path)
+                self.metadata = json.load(f)
+        except:
+            raise # either raises JSONDecodeError or a file reading exception
 
-        # used separately for debugging and unit test writing
-        #
-        # SUGGESTION: Add warnings if path variables are set to None?
+        self.p_args = p_args
+        self.config = config
+
+        # 
         self.default_paths = default_paths
         
-        # flags -- determined by command line arguments
-        self.has_pre = has_pre
-        self.has_post = has_post
-        self.download_url = download_url
-        
-        # processing path variables -- determined during parsing
-        self.localfile = None
-        self.rawpath = None
-        self.prepath = None
-        self.prepath_temp = None
-        self.dirtypath = None
-        self.cleanpath = None
-        self.dirtyerror = None # DEPRECATED (for now)
-        self.cleanerror = None
-        
-        self.label_map = None
+        # tabulation variables -- determined during parsing
+        self.local_file = None
+        self.input_path = None
+        self.output_path = None
+
+        self.column_map = None
 
         self.logger = None
 
         
     def parse(self):
         """
-        Parses the source file to check correction of syntax.
+        Parses and validates most of the contents of a source file and stores the 
+        metadata into the Source object.
+
+        Validation primarily focuses on correct JSON typing, JSON key locations,
+        key naming and inserting required key-value pairs. Regarding validation of
+        key values, most of these are done by checking if they match hard-coded 
+        values (e.g. character encoding or input file format). 
+
+        Otherwise if there are any errors with the values, they will be likely be
+        discovered during data processing. It is left to the responbility of the
+        user that the target output matches the intension of the user.
+        
+        Note: validation is not done for existence of duplicate entries, empty 
+            strings or paths of datasets.
 
         Raises:
             LookupError: Missing tag.
-            ValueError: Incorrect entry or combination or entries, such as having
-                an 'address_tokens' and 'address_str_parse' tag will raise this error since they 
-                cannot both be used in a source file.
+            SyntaxError: Incorrectly formatted group in configuration file.
             TypeError: Incorrect JSON type for a tag.
-            OSError: Path for pre or post processing scripts not found.
+            ValueError: Incorrect entry (key or value) or combination or entries.
         """
+        src_basename = os.path.basename(self.src_path)
 
-        print("Parsing", self.srcpath)
-        
-        src_str = os.path.basename(self.srcpath)
-        # SUGGESTION: replace Python error handling (and use logging)?
-        #parse_log = logging.getLogger(name=srcpath)
-        #parse_log.info("Parsing", self.srcpath)
-
-        self._convert_backward_compat_keys()
-        
         #####################
         # REQUIRED METADATA #
         #####################
 
         # first set of required tags
-        first_req_tags = ('localfile', 'format', 'schema', 'database_type')
-        for tag in first_req_tags:
+        required_tags = ('localfile', 'format', 'schema', 'schema_groups')
+        for tag in required_tags:
             if tag not in self.metadata:
-                raise LookupError("%s '%s' tag is missing." % (src_str, tag))
+                raise LookupError("%s '%s' tag is missing." % (src_basename, tag))
             
         # types required for required tags
         if not isinstance(self.metadata['localfile'], str):
-            raise TypeError("%s 'localfile' must be a string." % src_str)
+            raise TypeError("%s 'localfile' must be a string." % src_basename)
         if not isinstance(self.metadata['format'], dict):
-            raise TypeError("%s 'format' must be an object." % src_str)
+            raise TypeError("%s 'format' must be an object." % src_basename)
         if not isinstance(self.metadata['schema'], dict):
-            raise TypeError("%s 'schema' must be an object." % src_str)
-        if not isinstance(self.metadata['database_type'], str):
-            raise TypeError("%s 'database_type' must be a string." % src_str)
+            raise TypeError("%s 'schema' must be an object." % src_basename)
+        
+        # required schema groups as defined in the configuration file
+        db_types = tuple([group for group in self.config['labels']])
+        
+        schema_groups = self.metadata['schema_groups']
 
-        # required database types
-        db_types = ('business', 'hospital', 'library', 'fire_station', 'education')
-        if self.metadata['database_type'] not in db_types:
-            raise ValueError("%s Unsupported database type '%s'" % (src_str, self.metadata['database_type']))
+        if isinstance(schema_groups, str):
+            if schema_groups not in db_types:
+                raise ValueError(
+                    "%s schema group does not appear in '%s'" % (src_basename, schema_groups)
+                )
+            else:
+                schema_groups = [schema_groups] # turn schema_groups into a list
+                
+        elif isinstance(schema_groups, list):
+            for group in schema_groups:
+                if group not in db_types:
+                    raise ValueError(
+                        "%s schema group does not appear in '%s'" % (src_basename, schema_groups)
+                    )
+            
+        else:
+            raise TypeError("%s 'schema_groups' must be a string or list." % src_basename)
 
         # required tags for 'format'
         if 'type' not in self.metadata['format']:
-            raise LookupError("%s 'format.type' tag is missing." % src_str)
+            raise LookupError("%s 'format.type' tag is missing." % src_basename)
         if not isinstance(self.metadata['format']['type'], str):
-            raise TypeError("%s 'format.type' must be a string." % src_str)
+            raise TypeError("%s 'format.type' must be a string." % src_basename)
 
         # required formats
         if (self.metadata['format']['type'] == 'csv'):
             # -- CSV --
             # delimiter
             if 'delimiter' not in self.metadata['format']:
-                raise LookupError("%s 'format.delimiter' tag is missing for format 'csv'" % src_str)
+                raise LookupError("%s 'format.delimiter' tag is missing for format 'csv'" % src_basename)
             elif not (isinstance(self.metadata['format']['delimiter'], str) and
                       len(self.metadata['format']['delimiter']) == 1):
-                raise TypeError("%s 'format.delimiter' must be a single character string." % src_str)
+                raise TypeError("%s 'format.delimiter' must be a single character string." % src_basename)
             
             # quotes
             if 'quote' not in self.metadata['format']:
-                raise LookupError("%s 'format.quote' tag is missing for format 'csv'" % src_str)
+                raise LookupError("%s 'format.quote' tag is missing for format 'csv'" % src_basename)
             elif not (isinstance(self.metadata['format']['quote'], str) and
                       len(self.metadata['format']['quote']) == 1):
-                raise TypeError("%s 'format.quote' must be a single character string." % src_str)
+                raise TypeError("%s 'format.quote' must be a single character string." % src_basename)
             
         elif (self.metadata['format']['type'] == 'xml'):
             # -- XML --
             # xml header
             if 'header' not in self.metadata['format']:
-                raise LookupError("%s 'format.header' tag is missing for format 'xml'" % src_str)
+                raise LookupError("%s 'format.header' tag is missing for format 'xml'" % src_basename)
             elif not isinstance(self.metadata['format']['header'], str):
-                raise TypeError("%s 'format.header' must be a string." % src_str)
+                raise TypeError("%s 'format.header' must be a string." % src_basename)
         else:
             # -- unsupported format --
-            raise ValueError("%s Unsupported data format '%s'" % (src_str, self.metadata['format']['type']))
+            raise ValueError("%s Unsupported data format '%s'" % (src_basename, self.metadata['format']['type']))
         
         #####################
         # OPTIONAL METADATA #
@@ -205,282 +188,115 @@ class Source(object):
 
         # dataset provider (name)
         if 'provider' in self.metadata and (not isinstance(self.metadata['provider'], str)):
-            raise TypeError("%s 'provider' must be a string." % src_str)
+            raise TypeError("%s 'provider' must be a string." % src_basename)
 
-        # url
-        if 'url' in self.metadata and (not isinstance(self.metadata['url'], str)):
-            raise TypeError("%s 'url' must be a string." % src_str)
-
-        '''
-        # DEPRECATED #
-        
-        # compression
-        if 'compression' in self.metadata:
-            if not isinstance(self.metadata['compression'], str):
-                raise TypeError(where_str + "'compression' must be a string.")
-            if self.metadata['compression'] != 'zip':
-                raise ValueError(where_str + "Unsupported compression format '" + self.metadata['compression'] + "'")
-        
-
-        # localarchive
-        if ('localarchive' in self.metadata) and ('compression' not in self.metadata):
-            raise LookupError(where_str + "'compression' tag missing for localarchive " + self.metadata['localarchive'])
-        '''
-
-        # -- preprocessing type and path existence check --
-        if 'pre' in self.metadata:
-            if not (isinstance(self.metadata['pre'], str) or isinstance(self.metadata['pre'], list)):
-                raise TypeError(where_str + "'pre' must be a string or a list of strings.")
-
-            if isinstance(self.metadata['pre'], list):
-                for entry in self.metadata['pre']:
-                    if not isinstance(entry, str):
-                        raise TypeError(where_str + "'pre' must be a string or a list of strings.")
-
-            if isinstance(self.metadata['pre'], str) and not os.path.exists(self.metadata['pre']):
-                raise OSError(where_str + 'Preprocessing script "%s" does not exist.' % self.metadata['pre'])
-            elif isinstance(self.metadata['pre'], list):
-                for script_path in self.metadata['pre']:
-                    if not os.path.exists(script_path):
-                        raise OSError(where_str + 'Preprocessing script "%s" does not exist.' % script_path)
-
-        # -- postprocessing type and path existence check --
-        if 'post' in self.metadata:
-            if not (isinstance(self.metadata['post'], str) or isinstance(self.metadata['post'], list)):
-                raise TypeError(where_str + "'post' must be a string or a list of strings.")
-
-            if isinstance(self.metadata['post'], list):
-                for entry in self.metadata['post']:
-                    if not isinstance(entry, str):
-                        raise TypeError(where_str + "'post' must be a string or a list of strings.")
-
-            if isinstance(self.metadata['post'], str) and not os.path.exists(self.metadata['post']):
-                raise OSError(where_str + 'Postprocessing script "%s" does not exist.' % self.metadata['post'])
-            elif isinstance(self.metadata['post'], list):
-                for script_path in self.metadata['post']:
-                    if not os.path.exists(script_path):
-                        raise OSError(where_str + 'Postprocessing script "%s" does not exist.' % script_path)                    
         # -- filter contents check --
         if 'filter' in self.metadata:
             if not isinstance(self.metadata['filter'], dict):
-                raise TypeError("%s 'filter' must be an object." % src_str)
+                raise TypeError("%s 'filter' must be an object." % src_basename)
             else:
                 for attribute in self.metadata['filter']:
                     if not isinstance(self.metadata['filter'][attribute], str):
-                        raise TypeError("%s Filter attribute '%s' must be a string (regex)." % (src_str, attribute))
+                        raise TypeError(
+                            "%s Filter attribute '%s' must be a string (regex)." % (src_basename, attribute)
+                        )
                     else:
                         attr_filter = self.metadata['filter'][attribute]
                         regexp = re.compile(attr_filter)
                         self.metadata['filter'][attribute] = regexp
 
-
-        # check that both address_str_parse and address_tokens are not in the source file
-        if ('address_tokens' in self.metadata['schema']) and ('address_str_parse' in self.metadata['schema']):
-            raise ValueError(
-                "%s Cannot have both 'schema.address_str_parse' and 'schema.address_tokens' tags." % src_str
-            )
-
-        # verify address_tokens is an object
-        if 'address_tokens' in self.metadata['schema'] and \
-           not isinstance(self.metadata['schema']['address_tokens'], dict):
-            raise TypeError("%s 'schema.address_tokens' tag must be an object." % src_str)
-
         ###################
         # PATH ASSIGNMENT #
         ###################
         
-        # set localfile, rawpath, dirtypath, and cleanpath values
         self.localfile = self.metadata['localfile']
 
-        # by default, the OpenTabulate program defines the processing paths
         if self.default_paths:
             dirs = {
-                'raw' : './data/raw',
-                'dirty' : './data/dirty',
-                'clean' : './data/clean',
-                'pre' : './data/pre'
+                'input' : './data/input',
+                'output' : './data/output'
             }
             extensions = ('.csv', '.xml')
             basename = os.path.splitext(self.localfile)
 
             assert basename[1] in extensions, \
-                "%s 'localfile' has an invalid file extension '%s'" % (src_str, basename[1])
+                "%s 'localfile' has an invalid file extension '%s'" % (src_basename, basename[1])
             
-            self.rawpath = os.path.join(dirs['raw'], self.localfile)
-            self.dirtypath = os.path.join(dirs['dirty'], 'DIRTY-' + basename[0] + '.csv')
-            self.dirtyerror = os.path.join(dirs['dirty'], 'ERR-DIRTY-' + basename[0] + '.csv')
-            self.cleanpath = os.path.join(dirs['clean'], 'CLEAN-' + basename[0] + '.csv')
-            self.cleanerror = os.path.join(dirs['clean'], 'ERR-CLEAN-' + basename[0] + '.csv')
-            
-            if 'pre' in self.metadata: # note: preprocessing script existence is checked before this step
-                self.prepath = os.path.join(dirs['pre'], 'PRE-' + self.localfile)
-                self.prepath_temp = os.path.join(dirs['pre'], 'PRE-TEMP' + self.localfile)
+            self.input_path = os.path.join(dirs['input'], self.localfile)
+            self.output_path = os.path.join(dirs['output'], basename[0] + '.csv')
 
         # check entire source to make sure correct keys are being used
+        root_layer = ('localfile', 'format', 'schema_groups', 'encoding', 'header', 'schema',
+                      'filter', 'provider', 'licence', 'source')
+        format_layer = ('type', 'header', 'quote', 'delimiter')
+        
         for i in self.metadata:
-            root_layer = ('localfile', 'localarchive', 'url', 'format', 'database_type',
-                          'encoding', 'pre', 'post', 'header', 'schema', 'filter', 'provider',
-                          'licence', 'source')
             if i not in root_layer:
-                raise ValueError("%s Invalid key in root_layer '%s' in source file" % (src_str, i))
-            elif i == 'compression': # DEPRECATED - this should be removed later...
-                raise ValueError("%s Version > 1.0.1 'compression' key removed")
+                raise ValueError("%s Invalid key in root_layer '%s' in source file" % (src_basename, i))
             
         for i in self.metadata['format']:
-            format_layer = ('type', 'header', 'quote', 'delimiter')
             if i not in format_layer:
-                raise ValueError("%s Invalid key in format_layer '%s' in source file" % (src_str, i))
+                raise ValueError("%s Invalid key in format_layer '%s' in source file" % (src_basename, i))
 
-        for i in self.metadata['schema']:
-            schema_layer = ('address_str_parse', 'address_str', 'address_tokens',
-                            'phone', 'fax', 'email', 'website', 'tollfree',
-                            'longitude', 'latitude')
-
-            deprecated_schema_keys = ('comdist', 'region', 'hours', 'county')
-
-            schema_layer = schema_layer + deprecated_schema_keys
-
-            if self.metadata['database_type'] == 'business':
-                bus_layer = ('legal_name', 'trade_name', 'business_type', 'business_no', 'bus_desc',
-                             'licence_type', 'licence_no', 'start_date', 'closure_date', 'active',
-                             'exports', 'exp_cn_1', 'exp_cn_2', 'exp_cn_3',
-                             'naics_2', 'naics_3', 'naics_4', 'naics_5', 'naics_6',
-                             'qc_cae_1', 'qc_cae_desc_1', 'qc_cae_2', 'qc_cae_desc_2')
-
-                deprecated_bus_keys = ('no_employed', 'no_seasonal_emp', 'no_full_emp', 'no_part_emp', 'emp_range',
-                                       'home_bus', 'munic_bus', 'nonres_bus', 'naics_desc',
-                                       'facebook', 'twitter', 'linkedin', 'youtube', 'instagram')
-
-                bus_layer = bus_layer + deprecated_bus_keys
-                if not (i in schema_layer or i in bus_layer):
-                    raise ValueError("%s Invalid key in bus_layer '%s' in source file" % (src_str, i))
-
-            elif self.metadata['database_type'] == 'education':
-                edu_layer = ('institution_name', 'institution_type', 'education_level', 'board_name',
-                             'board_code', 'range', 'isced010', 'isced020', 'isced1',
-                             'isced2', 'isced3', 'isced4+')
-
-                deprecated_edu_keys = ('ins_code', 'school_yr')
-
-                edu_layer = edu_layer + deprecated_edu_keys
-                if not (i in schema_layer or i in edu_layer):
-                    raise ValueError("%s Invalid key in edu_layer '%s' in source file" % (src_str, i))
-
-            elif self.metadata['database_type'] == 'library':
-                lib_layer = ('library_name','library_type','library_board')
-                if not (i in schema_layer or i in lib_layer):
-                    raise ValueError("%s Invalid key in lib_layer '%s' in source file" % (src_str, i))
-
-            elif self.metadata['database_type'] == 'hospital':
-                hosp_layer = ('hospital_name','hospital_type','health_authority')
-                if not (i in schema_layer or i in hosp_layer):
-                    raise ValueError("%s Invalid key in hosp_layer '%s' in source file" % (src_str, i))
-
-            elif self.metadata['database_type'] == 'fire_station':
-                fire_layer = ('fire_station_name')
-                if not (i in schema_layer or i in fire_layer):
-                    raise ValueError("%s Invalid key in fire_layer '%s' in source file" % (src_str, i))
-
-        if 'address_tokens' in self.metadata['schema']:
-            address_layer = ('street_no', 'street_name', 'unit', 'city', 'province', 'country', 'postal_code')
-            for i in self.metadata['schema']['address_tokens']:
-                if i not in address_layer:
-                    raise ValueError("%s Invalid key in address_layer '%s' in source file" % (src_str, i))
-
-        self.logger = logging.getLogger(self.localfile)
+        #############################################
+        # SCHEMA VALIDATION AND COLUMN NAME MAPPING #
+        #############################################
         
+        # check contents of 'schema' and build the column map (to be used for label map)
+        column_names = tuple()
 
-    def fetch_url(self):
-        """
-        Downloads a dataset by fetching its URL and writing to the raw directory 
-        (currently './data/raw/').
+        for group in schema_groups:
+            group_labels = literal_eval(self.config.get('labels', group))
+            if not isinstance(group_labels, tuple):
+                raise SyntaxError(
+                    "%s Invalid config syntax for label in group %s" % (src_basename, group)
+                )
+            column_names += group_labels
 
-        Returns:
-            bool: True if download and writing succeeds, False otherwise.
-        """
-        if self.download_url == False:
-            return False
-        
-        # use requests library if protocol is HTTP
-        if self.metadata['url'][0:4] == "http":
-            response = requests.get(self.metadata['url'])
-            content = response.content
-            # otherwise, use urllib to handle other protocols (e.g. FTP)
-        else:
-            response = req.urlopen(self.metadata['url'])
-            content = response.read()
+        self.column_map = dict()
 
-        '''
-        # DEPRECATED #
-
-        if 'compression' in self.metadata:
-            if self.metadata['compression'] == "zip":
-                with open('./data/raw/' + self.metadata['localarchive'], 'wb') as data:
-                    data.write(content)
-        else:
-            with open('./data/raw/' + self.metadata['localfile'], 'wb') as data:
-                data.write(content)
-        '''
-        
-        return True
-
-    '''
-    # DEPRECATED #
-
-    def archive_extraction(self):
-        """
-        Extracts data from an archive downloaded in the raw directory ('./data/raw'), 
-        renaming the file if indicated by the source file.
-        """
-        if self.no_extract_flag == True:
-            return False
-        
-        if self.metadata['compression'] == "zip":
-            with ZipFile('./data/raw/' + self.metadata['localarchive'], 'r') as zip_file:
-                archive_fname = self.metadata['localfile'].split(':')
-                if len(archive_fname) == 1:
-                    zip_file.extract(archive_fname[0], './data/raw/')
-                else:
-                    zip_file.extract(archive_fname[1], './data/raw/')
-                    os.rename('./data/raw/' + archive_fname[1], './data/raw/' + self.localfile)
-
-        return True
-    '''
-
-    def _convert_backward_compat_keys(self):
-        """
-        Legacy source key names are converted to the current version's standardized
-        key names.
-        """
-        bcc_key_map = { "info" : "schema",
-                        "full_addr" : "address_str_parse",
-                        "address" : "address_tokens",
-                        "bus_name" : "legal_name",
-                        "lic_type" : "licence_type",
-                        "lic_no" : "licence_no",
-                        "bus_start_date": "start_date",
-                        "bus_cease_date": "closure_date",
-                        "ins_name": "institution_name",
-                        "ins_type": "institution_type",
-                        "edu_level": "education_level",
-                        "fire_stn_name": "fire_station_name",
-                        "prov/terr": "province",
-                        "postcode": "postal_code"
-        }
-
-        def recursive_adjust(node):
-            if not isinstance(node, dict):
-                return
+        def is_leaf(a):
+            if isinstance(a, str):
+                return True
+            elif isinstance(a, list):
+                for item in a:
+                    if not isinstance(item, str):
+                        return False
+                return True
             else:
-                mappable_keys = []
-                # identify mappable keys
-                for key in node:
-                    recursive_adjust(node[key])
-                    if key in bcc_key_map:
-                        mappable_keys.append(key)
-                # replace them accordingly
-                for key in mappable_keys:
-                    node[bcc_key_map[key]] = node.pop(key)
-                return
+                return False
+        
+        for k in self.metadata['schema']:
+            node = self.metadata['schema'][k]
             
-        recursive_adjust(self.metadata)
+            if is_leaf(node):
+                if k not in column_names:
+                    raise ValueError("%s: Invalid key '%s', must be target column name(s) if value"
+                                     " is a string or list of strings." % (src_basename, k))
+
+                self.column_map[k] = node
+
+            elif isinstance(node, dict):
+                if k not in schema_groups:
+                    raise ValueError("%s: Invalid key '%s', must be a group label if value is an"
+                                     " object." % (src_basename, k))
+
+                # otherwise check that children are keys to a column name
+                for c in node:
+                    child = node[c]
+                    if not is_leaf(child):
+                        raise TypeError("%s: Value of key '%s' in group '%s' must be a string or list"
+                                          " of strings." % (src_basename, c, k))
+
+                    if c not in column_names:
+                        raise ValueError("%s: Invalid key '%s' in group '%s', must be target column name(s)."
+                                         % (src_basename, c, k))
+
+                    self.column_map[c] = child
+                    
+            else:
+                raise TypeError("%s: Value of key '%s' must be a string, list of strings, or object."
+                                  % (src_basename, k))
+            
+        # set logger for source file
+        self.logger = logging.getLogger(self.localfile)
