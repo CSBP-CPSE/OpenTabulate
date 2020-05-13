@@ -33,18 +33,18 @@ setup(
         'Programming Language :: Python :: 3.8'
     ],
     project_urls={
-        'Documentation': 'https://opentabulate.readthedocs.io/en/latest/',
+        'Documentation': 'https://opentabulate.readthedocs.io/en/stable/',
         'Source code': 'https://github.com/CSBP-CPSE/OpenTabulate/tree/master/opentabulate',
         'Bug tracker': 'https://github.com/CSBP-CPSE/OpenTabulate/issues',
         'License': 'https://github.com/CSBP-CPSE/OpenTabulate/tree/master/LICENSE.md'
     },
-    packages=find_packages(),
-    install_requires=['requests'],
+    packages=find_packages(exclude=['tests']),
     python_requires='>=3.5',
     include_package_data=True,
+    package_data={
+        'opentabulate' : ['share/opentabulate.example.conf']
+    },
     entry_points={
-        'console_scripts': [
-            'opentab=opentabulate.opentab:main'
-        ],
+        'console_scripts': ['opentab=opentabulate.opentab:main']
     }
 )

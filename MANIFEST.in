@@ -1,3 +1,11 @@
 include README.md
 include LICENSE.md
-recursive-include docs *
+
+include docs/conf.py
+include docs/Makefile
+include docs/make.bat
+
+recursive-include opentabulate/data *
+recursive-include docs *.rst
+recursive-include docs/_static *
+recursive-include docs/_templates *
