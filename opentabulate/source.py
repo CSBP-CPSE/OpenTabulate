@@ -226,7 +226,7 @@ class Source(object):
             self.output_path = os.path.join(dirs['output'], basename[0] + '.csv')
 
         # check entire source to make sure correct keys are being used
-        root_layer = ('localfile', 'format', 'schema_groups', 'encoding', 'header', 'schema',
+        root_layer = ('localfile', 'format', 'schema_groups', 'encoding', 'schema',
                       'filter', 'provider', 'licence', 'source')
         format_layer = ('type', 'header', 'quote', 'delimiter')
         

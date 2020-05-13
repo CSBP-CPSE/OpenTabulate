@@ -59,10 +59,10 @@ class Algorithm(object):
                 source.logger.warning("No 'provider' flag given")
 
             if source.config is not None:
-            # configuration or command line flags
-            self.ADD_INDEX = True if source.config.getboolean('general', 'add_index') else False
-            self.NO_WHITESPACE = True if source.config.getboolean('general', 'clean_whitespace') else False
-            self.LOWERCASE = True if source.config.getboolean('general', 'lowercase_output') else False
+                # configuration or command line flags
+                self.ADD_INDEX = True if source.config.getboolean('general', 'add_index') else False
+                self.NO_WHITESPACE = True if source.config.getboolean('general', 'clean_whitespace') else False
+                self.LOWERCASE = True if source.config.getboolean('general', 'lowercase_output') else False
 
     def char_encode_check(self):
         """
@@ -214,7 +214,7 @@ class CSV_Algorithm(Algorithm):
                     
                 for key in tags:
 
-                     --%-- check if tags[key] is a JSON array --%--
+                    # --%-- check if tags[key] is a JSON array --%--
                     if isinstance(tags[key], list):
                         components = []
                         for subentry in tags[key]:

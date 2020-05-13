@@ -17,6 +17,9 @@ import sys
 from configparser import ConfigParser
 from ast import literal_eval
 
+DEFAULT_PATHS = {'conf_dir' : os.path.expanduser('~') + '/.config',
+                 'conf_file' :os.path.expanduser('~') + '/.config/opentabulate.conf'}
+
 SUPPORTED_ENCODINGS = ('utf-8', 'cp1252')
 
 class Configuration(ConfigParser):
@@ -30,18 +33,20 @@ class Configuration(ConfigParser):
     """
     def __init__(self, conf_path=None):
         """
-        Initializes ConfigParser object and attempts to read hard-coded configuration
-        file.
+        Initializes ConfigParser object with configuration path. If the path is set
+        to None, use the default path.
         """
         super().__init__(strict=True, empty_lines_in_values=False)
 
         if conf_path is None:
-            conf_dir = os.path.expanduser('~') + '/.config'
-            self.conf_path = conf_dir + '/opentabulate.conf'
+            self.conf_path = DEFAULT_PATHS['conf_file']
         else:
             self.conf_path = conf_path
-            
 
+    def load(self):
+        """
+        Load the configuration file.
+        """
         if not os.path.exists(self.conf_path):
             print("No configuration file found in %s." % conf_path, file=sys.stderr)
             sys.exit(1)
@@ -52,7 +57,7 @@ class Configuration(ConfigParser):
                 print(e)
                 print("Failed to read configuration file, exiting.", file=sys.stderr)
                 sys.exit(1)
-
+        
     def validate(self):
         """
         Validates the contents of the configuration file.
@@ -66,7 +71,7 @@ class Configuration(ConfigParser):
         general_section = ('root_directory', 'add_index', 'target_encoding',
                            'clean_whitespace', 'lowercase_output', 'log_level')
 
-        reserved_words = general_section + ('idx', 'provider')
+        reserved_cols = ('idx', 'provider')
         
         # check that the mandatory section 'general' and option 'root_directory' are present
         # in the configuration file
@@ -109,7 +114,7 @@ class Configuration(ConfigParser):
 
         # check if 'labels' section is using core labels
         for option in self['labels']:
-            if option in reserved_words:
+            if option in general_section:
                 print("Configuration error: cannot define label '%s', it is a"
                       " reserved word" % option, file=sys.stderr)
                 sys.exit(1)
@@ -151,8 +156,11 @@ class Configuration(ConfigParser):
                   % encoding, file=sys.stderr)
             sys.exit(1)
 
-        # validate labels to make sure they are tuples
+        # validate labels to make sure they are tuples and column names are not
+        # reserved words
         for option in self['labels']:
+            value = None
+
             try:
                 value = literal_eval(self.get('labels', option))
                 assert isinstance(value, tuple)
@@ -160,3 +168,8 @@ class Configuration(ConfigParser):
                 print("Configuration error: value of label '%s' is not a tuple"
                       % option, file=sys.stderr)
                 sys.exit(1)
+
+            for col in value:
+                if col in reserved_cols:
+                    print("Configuration error: the column name '%s' cannot be"
+                          "used, is a reserved word" % col, file=sys.stderr)

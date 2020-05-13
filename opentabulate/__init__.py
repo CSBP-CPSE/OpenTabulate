@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Microdata processing, tabulation and cleaning support.
-
 OpenTabulate is a Python package designed to organize, tabulate, and process 
 structured data. It currently aims to be a data processing framework for the 
 Linkable Open Data Environment, an exploratory project in development by the 
@@ -12,7 +10,8 @@ offers
   (inspired by OpenAddresses),
 - tabulation of data into a standardized CSV format that is suitable for merging 
   and linkage,
-- basic cleaning and data filtering methods
+- basic data cleaning and formatting, data filtering and customizing output schema
+
 
 Comprehensive documentation of OpenTabulate is linked here:
 

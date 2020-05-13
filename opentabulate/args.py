@@ -8,7 +8,7 @@ Created and written by Maksym Neyra-Nesterenko, with support and funding from th
 import os
 import sys
 import argparse
-
+from opentabulate.config import DEFAULT_PATHS as def_paths
 
 def parse_arguments():
     """
@@ -21,6 +21,8 @@ def parse_arguments():
                           help='validate source files without processing data')
     cmd_args.add_argument('-l', '--log-level', action='store', default=None, type=int, metavar='N', \
                           help='specify data processing log verbosity')
+    cmd_args.add_argument('-c', '--copy-config', action='store_true',
+                          help='copy example config file to ~/.config/opentabulate')
     cmd_args.add_argument('--initialize', action='store_true', \
                           help='create processing directories')
     #cmd_args.add_argument('-t', '--print-trace', action='store_true', \
@@ -30,9 +32,10 @@ def parse_arguments():
     return cmd_args.parse_args()
 
 
-def validate_arguments(p_args, config):
+def validate_args_and_config(p_args, config):
     """
-    Validate and perform actions based on the provided command line arguments.
+    Validate the configuration file and command line arguments, then perform
+    actions based on the read parameters.
 
     Note:
         p_args is modified in this method.
@@ -41,8 +44,40 @@ def validate_arguments(p_args, config):
         p_args (argparse.Namespace): Parsed arguments.
         config (Configuration): OpenTabulate configuration.
     """
-    root_dir = config.get('general', 'root_directory')
     data_folders = ('./data', './data/input', './data/output', './sources')
+    
+    if p_args.copy_config == True:
+        if os.path.exists(def_paths['conf_file']):
+            print("Configuration file already exists, not doing anything.", file=sys.stderr)
+            sys.exit(1)
+        
+        conf_example = os.path.join(
+            os.path.dirname(__file__),
+            'share/opentabulate.conf.example'
+        )
+        try:
+            assert os.path.exists(conf_example)
+        except AssertionError:
+            print("Cannot find or read example OpenTabulate configuration.", file=sys.stderr)
+            sys.exit(1)
+
+        print("Copying configuration to %s." % def_paths['conf_file'])
+
+        # create configuration directory if it doesn't already exist
+        os.makedirs(def_paths['conf_dir'], exist_ok=True)
+
+        # write example configuration file
+        with open(def_paths['conf_file'], 'wb') as outfile, open(conf_example, 'rb') as infile:
+            outfile.write(infile.read())
+
+        print("Done.")
+        sys.exit(0)
+
+    # load and validate configuration
+    config.load()
+    config.validate()
+
+    root_dir = config.get('general', 'root_directory')
         
     if p_args.initialize == True:
         # try to populate root directory with folders (also validate

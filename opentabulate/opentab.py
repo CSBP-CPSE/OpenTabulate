@@ -11,7 +11,7 @@ import os
 import sys
 import time
 
-from opentabulate.args import parse_arguments, validate_arguments
+from opentabulate.args import parse_arguments, validate_args_and_config
 from opentabulate.config import Configuration
 from opentabulate.opentab_funcs import parse_source_file, process
 
@@ -19,10 +19,7 @@ def main():
     config = Configuration()
     parsed_args = parse_arguments()
 
-    # validate configuration and command line arguments
-    config.validate()
-    
-    validate_arguments(parsed_args, config)
+    validate_args_and_config(parsed_args, config)
 
     # parse source files
     source_list = parse_source_file(parsed_args, config)
