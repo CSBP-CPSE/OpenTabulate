@@ -29,7 +29,7 @@ The following are valid key-value pairs for the section ``[general]``.
     can read and write data. After setting this, one should run ``opentab --initialize`` to
     initialize the data processing directories.
 
-``add_index`` : boolean : true
+``add_index`` : boolean : false
     Add a positive integer index column to the output. The indices start at zero and then
     increment by one for each row added to the output.
 

@@ -88,16 +88,6 @@ class Configuration(ConfigParser):
                   " in 'general' section", file=sys.stderr)
             sys.exit(1)
 
-        # check that root directory is an absolute path
-        try:
-            assert os.path.isabs(
-                os.path.expanduser(self.get('general', 'root_directory'))
-            )
-        except AssertionError:
-            print("Configuration error: root directory must be an absolute path",
-                  file=sys.stderr)
-            sys.exit(1)
-                
         # check if configuration sections are valid
         for sec in self.sections():
             if sec not in base_sections:
@@ -120,8 +110,8 @@ class Configuration(ConfigParser):
                 sys.exit(1)
 
         # add default settings then validate
-        defaults = {'add_index' : 'true',
-                    'target_encoding' : 'utf-8',
+        defaults = {'target_encoding' : 'utf-8',
+                    'add_index' : 'false',
                     'clean_whitespace' : 'false',
                     'lowercase_output' : 'false',
                     'log_level' : '3'}

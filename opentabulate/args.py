@@ -78,6 +78,14 @@ def validate_args_and_config(p_args, config):
     config.validate()
 
     root_dir = config.get('general', 'root_directory')
+
+    # check that root directory is an absolute path
+    try:
+        assert os.path.isabs(os.path.expanduser(root_dir))
+    except AssertionError:
+        print("Configuration error: root directory must be an absolute path",
+              file=sys.stderr)
+        sys.exit(1)
         
     if p_args.initialize == True:
         # try to populate root directory with folders (also validate
