@@ -4,45 +4,46 @@
 Source files
 ============
 
-A fundamental component of OpenTabulate and its use to tabulate your data is the *source file*. A source file is a file in JSON format that configures OpenTabulate to process data from a specific dataset. Such information includes the original dataset format, mapping attribute names in the original data to a standardized set of attributes, the name of the dataset stored on the disk, and so on.
+A fundamental component of OpenTabulate and its use to tabulate your data is the *source file*. A source file is a metadata and configuration file in JSON format that directs how OpenTabulate should process a specific dataset. The contents include the input data format, data attribute mapping to the output schema, the filename of the dataset stored on the disk, and so on.
 
-We refer to a JSON key-value pair as a *tag*. Some keys may contain a list of key-value pairs, such as ``address_tokens`` containing key-value pairs for ``city``, ``postcode`` and so forth. 
-
-Source files follow a specific format for OpenTabulate to parse. Below is a source file for a business register dataset for Kitchener in Ontario, Canada. ::
+Source files follow a specific format which OpenTabulate parses and validates. Below is an example source file for British Columbia hospital data ::
 
   {
-      "localfile": "on-kitchener.csv",
-      "url": "https://opendata.arcgis.com/datasets/9b9c871eafce491da8a3d926a8a44ef2_0.csv",
-      "format": {
-          "type": "csv",
-	  "delimiter": ",",
-	  "quote": "\""
-      },
-      "database_type": "business",
-      "provider": "Municipality of Kitchener",
-      "schema": {
-          "legal_name": "COMPANY_NAME",
-          "business_no": "ID",
-	  "address_tokens" : {
-	      "street_no": "STREET_NUMBER",
-	      "street_name": "STREET_NAME",
-	      "unit": "UNIT",
-	      "postal_code": "POSTAL_CODE"
-	  },
-	  "latitude": "Y",
-	  "longitude": "X",
-      }
+    "localfile": "bc-hospitals.csv",
+    "schema_groups": ["health", "geocoordinates", "address"],
+    "source": "https://catalogue.data.gov.bc.ca/dataset/hospitals-in-bc",
+    "licence": "https://www2.gov.bc.ca/gov/content/data/open-data/open-government-licence-bc",
+    "provider": "Province of British Columbia",
+    "encoding": "cp1252",
+    "format": {
+        "type": "csv",
+        "delimiter": ",",
+        "quote": "\""
+    },
+    "schema": {
+        "name" : "SV_NAME",
+        "health_authority": "RG_NAME",
+        "address_str": ["STREET_NUMBER", "CITY", "PROVINCE", "POSTAL_CODE"],
+        "geocoordinates" : {
+            "longitude": "geo_lon",
+            "latitude": "geo_lat"
+        }
+    }
   }
 
-The keys within the first pair of curly braces are ``localfile``, ``url``, ``format``, ``database_type``, ``provider`` and ``schema``. Besides ``schema``, tags that occur in this layer are intended for file handling.
+For brevity, we refer to
 
-* ``localfile``  represents the name of the file (to be) stored locally to the disk.
-* ``url`` defines the download link for the dataset
-* ``format`` tells OpenTabulate what the dataset's original format is, so as to choose the appropriate algorithms
-* ``database_type`` describes which data attribute names will be considered under ``schema``
-* ``provider`` defines a column in the tabulation that is auto-filled with the provider name, so distinguishing data is easy if you choose to concatenate it
+- the JSON keys that appear in (the top level of) a pair of closing curly braces as a *layer*
+- the JSON key-value pairs as a *tag*
 
-The ``schema`` tag contains attribute mapping information. OpenTabulate's job is to reformat your data into a tabular format, but you must specify where and which data attributes (from the original dataset) should appear in the tabulated data. Consider ``on-kitchener.csv`` which has a column with the attribute name ``COMPANY_NAME``. Assume by consulting with the data provider, you determine that this column holds legal business names. This best aligns with the key ``legal_name``, which is a standardized column name defined in OpenTabulate. The remaining tags in ``schema`` are determined by a similar methodology with reference to the different keys documented below. 
+In the above example, the keys found in the first layer are ``localfile``, ``schema_groups``, ``source``, ``licence``, ``provider``, ``encoding``, ``format`` and ``schema``. Besides ``schema``, most of these keys specify metadata and data reading parameters. In more detail:
+
+* ``localfile`` is the filename of a dataset stored in the input directory (to be processed)
+* ``schema_groups`` is a list of group names specifying which column names in the output schema are allowed to be used; the group names are defined in ``opentabulate.conf``
+* ``source``, ``licence`` and ``provider`` are metadata for organizational purposes; the ``provider`` value is stored in a column in the output format
+* ``encoding`` refers to the input data's character encoding
+* ``format`` provides parameters to parse the input data
+* ``schema`` gives the input data attribute mapping to the output schema
 
 ---------------------------------
 How to read the tag documentation
@@ -53,61 +54,56 @@ The documented source file tags are organized to match the structure of the exam
 Key : JSON Type : Requirements
     *Description...*
 
-* **Key** : Key name and column name for the tabulated data.
+* **Key** : Key name.
 * **JSON Type** : The supported JSON type for the key's value.
-* **Requirements** : Specifies if the tag *must* be included and any tag dependencies it has, if any.
+* **Requirements** : Specifies if the tag *must* be included and any dependencies it has, if any.
 * *Description* : A brief description of the what the key represents.
 
 
-------------------
-File handling tags
-------------------
+-------------------------------
+Metadata and configuration tags
+-------------------------------
 
-The following tags are generally for data file handling and naming. These tags must appear in the first set of curly braces ``{...}`` of the source file.
+The tags presented refer to the first layer of the source file, i.e. they must appear first set of closing curly braces ``{...}``.
 
 ``localfile`` : string : Required.
-    The name of the local data file stored in ``./data/raw/`` to process. If ``url`` is used, the
-    downloaded file will be named to value of this key.
+    The filename of the input data to process stored in ``$root_directory/data/input``.
 
-``url`` : string : Optional.
-    A direct link to the data set as a URL string.
+``schema_groups`` : string, list of strings : Required.
+   Groups referring to output column names this source file is allowed to use. The group names are
+   specified in the ``[labels]`` section of the configuration file ``opentabulate.conf``.
 
 ``format`` : object : Required.
-    Dataset file format specification.
-
-``database_type`` : string : Required.
-    Dataset type to define which ``schema`` tags to use. Currently supports ``business``,
-    ``education``, ``hospital``, ``library``, and ``fire_station``.
+    Input data format specification.
 
 ``encoding`` : string : Optional.
-    Dataset character encoding, which can be "utf-8", "cp1252", or "cp437". If not specified, the
-    encoding is guessed from these options.
-
-``pre`` : string, list of strings : Optional.
-    A path or list of paths to run pre-processing scripts. The relative path starts in the
-    configured directory of OpenTabulate.
-
-``post`` : string, list of strings : Optional.
-    A path or list of paths to run post-processing scripts. The relative path starts in the
-    configured directory of OpenTabulate.
+    Dataset character encoding, which currently can only be "utf-8" or "cp1252". If not specified,
+    the encoding is guessed from these options.
 
 ``schema`` : object : Required.
-    Description of data schema transcription.
+    The mapping of input data attributes to output columns. This describes how the attributes of
+    the input dataset should be tabulated. The output column names must appear in the group names
+    provided in the ``schema_groups`` tag.
 
 ``filter`` : object : Optional.
-    Filter rules for choosing which entries to process. ``filter`` contains key which are the
-    attributes to filter by. The value of each key is a list of entries (strings) that are
-    acceptable to process.
+    Regular expression filter rules for choosing which entries to process. ``filter`` contains
+    keys which are the input data attributes to filter on. The value of each key is a regular
+    expression string. For more details, see :ref:`filtering-with-regular-expressions`.
 
 ``provider`` : string : Optional.
-    Data provider name to auto-fill the column created during tabulation.
+    Data provider name to auto-fill the column *provider* created during tabulation.
 
-    
+``source`` : string : Optional.
+    Data source string. Our convention is that this is a URL. This is here purely for organization purposes.
+
+``licence`` : string : Optional.
+    Data source licence string. Our convention is that this is a URL. This is here purely for organization purposes.
+
 -----------
 Format tags
 -----------
 
-The ``format`` tag is a JSON object, specifying data format information so as to tell Opentabulate how to read the raw dataset.
+The ``format`` tag is a JSON object, specifying input data format information so as to tell Opentabulate how to parse the input data.
 
 
 ``type`` : string : Required.
@@ -128,271 +124,56 @@ The ``format`` tag is a JSON object, specifying data format information so as to
 Schema tags
 -----------
 
-The tag ``schema`` is defined as a JSON object, with valid tags described below. They are separated into different categories: general tags, address tags and by database type. References to them are indexed below.
+The tag ``schema`` is defined as a JSON object. It is special in the sense that its contents are largely customized by the user. The formatting of the contents of the ``schema`` tag is important and follows strict rules. First, recall that the output schema is specified in the ``[labels]`` section of the configuration file ``opentabulate.conf``. We might have something like ::
 
-- :ref:`general-tags`
-- :ref:`address-tags`
-- :ref:`business-tags`
-- :ref:`education-tags`
-- :ref:`hospital-tags`
-- :ref:`library-tags`
-- :ref:`fire-station-tags`
+  ...
+  [labels]
 
-.. _general-tags:
+  geocoordinates = ('longitude', 'latitude')
 
-^^^^^^^^^^^^
-General tags
-^^^^^^^^^^^^
+  facility = ('name',)
 
-These keys can be used for any ``database_type``. Currently, all of them refer to non-address location and contact information.
+The tags in ``schema`` must either be a data attribute mapping tag ::
 
-``address_str`` : string, list of strings : Optional.
-    Full address of business (concatenated street name, number, etc.).
-    
-``address_str_parse`` : string, list of strings : Optional, cannot be used with ``address_tokens``.
-    Full address of business. The entries for this key will used with an address parser!
-    
-``address_tokens`` : object : Optional, cannot be used with ``address_str_parse``.
-    Address metadata, such as street number, street name, postal code, etc.
-    
-``phone`` : string, list of strings : Optional.
-    Business phone number.
-    
-``fax`` : string, list of strings : Optional.
-    Business fax number.
-    
-``email`` : string, list of strings : Optional.
-    Business e-mail.
-    
-``website`` : string, list of strings : Optional.
-    Business website.
-    
-``tollfree`` : string, list of strings : Optional.
-    Business toll-free number.
-    
-``longitude`` : string, list of strings : Optional.
-    Longitude coordinate (in degrees) of location.
+  # example: "name": "Facility_Name"
+  "output_column" : "input_attribute"
 
-``latitude`` : string, list of strings : Optional.
-    Latitude coordinate (in degrees) of location.
-    
-.. _address-tags:
+or a group tag, with group name key and JSON object value, containing column names from that group ::
 
-^^^^^^^^^^^^^^^^^^
-Address schema tag
-^^^^^^^^^^^^^^^^^^
+  # example:
+  # "geocoordinates" : {
+  #     "longitude" : "LON",
+  #	"latitude" : "LAT"
+  # }
+  "group_name" : {
+      "output_column" : "input_attribute",
+      ...
+  }
 
-The ``address_tokens`` tag (formerly named ``address``) is a JSON object defined inside ``schema``. It cannot be used together with ``address_str_parse``, since the latter invokes an address parser, whereas this tag is reserved for datasets that have already separated the address tokens. *The tags below must be used inside* ``address_tokens``.
-
-``street_no`` : string, list of strings : Optional.
-    Street number.
-    
-``street_name`` : string, list of strings : Optional.
-    Street name, type, and direction.
-    
-``unit`` : string, list of strings : Optional.
-    Unit number.
-
-``city`` : string : Optional.
-    City name.
-    
-``province`` : string : Optional.
-    Province or territory name; *former tag name:* ``prov/terr``.
-    
-``country`` : string : Optional.
-   Country name.
-   
-``postal_code`` : string, list of strings : Optional.
-   Postal code; *former tag name:* ``postcode``.
-
-.. _business-tags:   
-   
-^^^^^^^^^^^^^^^^^^^^
-Business schema tags
-^^^^^^^^^^^^^^^^^^^^
-
-``legal_name`` : string, list of strings : Optional.
-    Business (legal) name; *former tag name:* ``bus_name``.
-    
-``trade_name`` : string, list of strings : Optional.
-    Trade name.
-    
-``business_type`` : string, list of strings : Optional.
-    Business type.
-    
-``business_no`` : string, list of strings : Optional.
-    CRA-assigned business number; *former tag name:* ``bus_no``.
-    
-``licence_type`` : string, list of strings : Optional.
-    Business licence type; *former tag name:* ``lic_type``.
-    
-``licence_no`` : string, list of strings : Optional.
-    Business license number; *former tag name:* ``lic_no``.
-    
-``start_date`` : string, list of strings : Optional.
-    Start date of business; *former tag name:* ``bus_start_date``.
-   
-``closure_date`` : string, list of strings : Optional.
-    Closure date of business; *former tag name:* ``bus_cease_date``.
-   
-``active`` : string, list of strings : Optional.
-    Is the business active?
-   
-``exports`` : string, list of strings : Optional.
-    Does this business export?
-   
-``exp_cn_#`` : string, list of strings : Optional, replace \#  with 1,2 or 3.
-    Export country.
-    
-``naics_#`` : string, list of strings : Optional, replace \# with 2,3,4,5 or 6.
-    NAICS \#-digit code.
-    
-``qc_cae_#`` : string, list of strings : Optional, replace \# with 1 or 2.
-    Quebec establishment economic activity code.
-    
-``qc_cae_desc_#`` : string, list of strings : Optional, replace \# with 1 or 2.
-    Quebec establishment economic activity description.
-    
-.. _education-tags:   
-
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Education facility schema tags
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-``institution_name`` : string, list of strings : Optional.
-    Institution (or school) name; *former tag name:* ``ins_name``.
-    
-``institution_type`` : string, list of strings : Optional.
-    Institution type (public, private, etc.); *former tag name:* ``ins_type``.
-    
-``education_level`` : string, list of strings : Optional.
-    Education level (elementary, secondary, post-secondary, etc.); *former tag name:* ``edu_level``.
-    
-``board_name`` : string, list of strings : Optional.
-    School board or district name.
-    
-``board_code`` : string, list of strings : Optional.
-    School board name or district code. (note: usually specific to the data provider)
-
-``range`` : string, list of strings : Optional.
-    Education level range (e.g. K-12).
-    
-``isced010`` : string, list of strings : Optional.
-    Boolean value representing the `ISCED`_ level for early childhood education.
-    
-``isced020`` : string, list of strings : Optional.
-    Boolean value representing the `ISCED`_ level for kindergarten.
-    
-``isced1`` : string, list of strings : Optional.
-    Boolean value representing the `ISCED`_ level for elementary.
-    
-``isced2`` : string, list of strings : Optional.
-    Boolean value representing the `ISCED`_ level for junior secondary.
-    
-``isced3`` : string, list of strings : Optional.
-    Boolean value representing the `ISCED`_ level for senior secondary.
-    
-``isced4+`` : string, list of strings : Optional.
-    Boolean value representing the `ISCED`_ level for post-secondary.
-
-.. _ISCED: https://en.wikipedia.org/wiki/International_Standard_Classification_of_Education
-
-.. _hospital-tags:   
-
-^^^^^^^^^^^^^^^^^^^^
-Hospital schema tags
-^^^^^^^^^^^^^^^^^^^^
-
-``hospital_name`` : string, list of strings : Optional.
-    Name of hospital or health centre.
-    
-``hospital_type`` : string, list of strings : Optional.
-    Type of health centre (e.g. Community Hospital, Community Health Centre, etc.)
-    
-``health_authority`` : string, list of strings : Optional.
-    Regional governing health authority.
-    
-.. _library-tags:
-    
-^^^^^^^^^^^^^^^^^^^
-Library schema tags
-^^^^^^^^^^^^^^^^^^^
-
-``library_name`` : string, list of strings : Optional.
-    Library name.
-
-``library_type`` : string, list of strings : Optional.
-    Library type (depends on the provider, example values are branch or head, or municipal).
-    
-``library_board`` : string, list of strings : Optional.
-    Name of governing library board.
-    
-.. _fire-station-tags:
-    
-^^^^^^^^^^^^^^^^^^^^^^^^
-Fire station schema tags
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-``fire_station_name`` : string, list of strings : Optional.
-    Fire station name; *former tag name:* ``fire_stn_name``.
-   
+The use of group tags are not necessary and do not change OpenTabulate's output. They are primarily there for readability.
 
 -------------------
 Additional features
 -------------------
 
-Extracting information from data to be tabulated sometimes requires methods beyond simply mapping data attributes, such as regular expression filtering and entry concatenation. To incorporate such methods into OpenTabulate, special keys have been added or specific syntax for key values is taken into account. Below is a complete list of the methods.
+Extracting information from data to be tabulated sometimes requires methods beyond simply mapping data attributes, such as regular expression filtering and entry concatenation. To incorporate such methods into OpenTabulate, special tags have been added or specific syntax for key values is taken into account. Below is a complete list of these features.
 
 * :ref:`concatenating-entries`
 * :ref:`manually-inject-or-fill-data`
 * :ref:`filtering-with-regular-expressions`
-* :ref:`writing-custom-processing-scripts`
 
   
-^^^^^^^^^^^^^^^^^^^^^^^
-Debugging syntax errors
-^^^^^^^^^^^^^^^^^^^^^^^
-
-OpenTabulate checks the syntax of your source file and will warn you if something is off, but this validation does not cover all situations. Moreover, it cannot make sense of logical errors until either during processing or when you inspect the tabulated output.
-
-.. IMPORTANT: need to update this issue
-   
-Before posting a question or issue, check this `GitHub issue <https://github.com/CSBP-CPSE/OpenTabulate/issues/12>`_ for clues to erroneous output or functionality.
-
-
 .. _concatenating-entries:
   
 ^^^^^^^^^^^^^^^^^^^^^
 Concatenating entries
 ^^^^^^^^^^^^^^^^^^^^^
 
-When writing tags, some keys above support having JSON lists as a value. For example ::
+When writing ``schema`` tags, all data attribute mapping tags support having JSON lists of strings as a value instead of just a string. This has the effect of concatenating data entries. For example, if we have ::
 
-  ...
-  "key": ["value1", "value2", "value3"],
-  ...
+  "col": ["attr_1", "attr_2", "attr_3"],
 
-OpenTabulate interprets this as "for each data point to process, concatenate (separating by spaces) the information under the attributes ``value1``, ``value2``, and ``value3`` (in that order) for the data point, and assign it to the standardized attribute ``key`` for further processing.
-
-A common use of this feature is for address parsing. Since address lines (address data that is concatenated into one string) are not supported keys and some datasets will only provide address information in this manner, we still want to tabulate the data. For example, if a dataset has the entry and columns ::
-
-  Business Name, ..., Address Line 1, Address Line 2, Address Line 3, ...
-  ...
-  "JOHN TITOR TIME MACHINES", ..., "2036 STEINS GATE", "CANADA", "T5T 5R5", ...
-  ...
-
-and our source file contains ::
-
-  ...
-  "address_str_parse": ["Address Line 1", "Address Line 2", "Address Line 3"],
-  ...
-
-then OpenTabulate will process the entry ::
-
-  "2036 STEINS GATE CANADA T5T 5R5"
-
-for ``"JOHN TITOR TIME MACHINES"`` in whatever way ``address_str_parse`` is handled. In this case, ``address_str_parse`` uses an address parser, and will parse the concatenated entry above.
-
+OpenTabulate interprets this as "for each entity in the data, concatenate (separating by spaces) the contents of the attributes ``attr_1``, ``attr_2``, and ``attr_3`` (in that order), and then proceed to process this and output to the column ``col``.
 
 .. _manually-inject-or-fill-data:
   
@@ -400,15 +181,15 @@ for ``"JOHN TITOR TIME MACHINES"`` in whatever way ``address_str_parse`` is hand
 Manually inject or fill data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Any string-valued tags that appear anywhere under ``schema`` support what we call the ``force`` value. If a ``force`` value is assigned to a key, OpenTabulate adds and fills the entire output column (corresponding to the key) with that value. A few situations in which this may be helpful are:
+Any data attribute tag in ``schema`` that contains the prefix ``force:`` in a string value is interpreted differently. Instead of searching for a data attribute in the input, the substring after the prefix is injected into the data entry for the corresponding output column. It can be used as a single value data filler. For example, if we have ::
 
-* The dataset to process represents a particular city or province, say Winnipeg and Manitoba, but the data does not explicitly have the city and province for any data point. If we want to include the city or province information in the tabulated data, we can add the tags ``"city": "force:Winnipeg"`` and ``"region": "force:Manitoba"`` to the source file. The resulting tabulated data will have columns ``city`` and ``region`` with filled values Winnipeg and Manitoba respectively.
-* A dataset on public schools does not describe its own institution type (namely, that the schools are public). Adding ``"institution_type": "force:public"`` to the source file means OpenTabulate will generate a tabulated dataset with an ``institution_type`` column with ``public`` in all of its entries.
-* The address parser you're using is more accurate with additional data that may not be explicitly in the dataset. For example, we may have a XML file with a ``<CivicAddress>`` XML tag that contains the street number, name, city, and province, a separate ``<PostalCode>`` XML tag, and no tags for the country. If you know your data resides in Canada, you can write ``"address_str_parse": ["CivicAddress", "force:Canada", "PostalCode"]"`` to inject "Canada" into the entry-concatenated address before running it through the address parser.
+  "a" : "force:b"
 
-The general syntax is ``"key": "force:value"`` for ``schema`` keys that support string values.
+then OpenTabulate's output will have a column named *a* filled with the character *b*. One can do something more complicated in combination with entry concatenation: ::
 
-**Note:** User-defined content under ``force`` applies *after* :ref:`pre-processing <writing-custom-processing-scripts>` and *before* OpenTabulate's standard processing.
+  "address" : ["STREET_ADDRESS", "CITY", "force:Canada"]
+
+This has the effect of taking every entity's street address and city name, concatenating them and appending *Canada* at the end of the concatenated string. The string then undergoes further processing and is output to the *address* column.
 
 
 .. _filtering-with-regular-expressions:
@@ -417,38 +198,12 @@ The general syntax is ``"key": "force:value"`` for ``schema`` keys that support 
 Filtering with regular expressions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Source files support a ``filter`` tag, which is defined in the first set of curly braces ``{...}``.
+As perhaps seen earlier, source files support a ``filter`` tag in the first layer. ``filter`` contains tags whose values are strings forming `regular expressions <https://docs.python.org/3/library/re.html>`_. Each key is an input data attribute to apply the regular expression to. A data entity is kept if and only if for every key *k*, the regular expression matches the entity's data entry for the attribute *k*. 
 
-Each key in ``filter`` is a desired data attribute to filter by. The value of each key is a `Python regular expression <https://docs.python.org/3/library/re.html>`_ which filters values under the attribute. For example, let us say that we have an attribute named ``Place of Interest`` in a dataset and we want to extract park and community center information. These correspond to the values ``Park`` and ``Community Center`` for every place of interest. We can define our filter as ::
+-----------------------
+Debugging syntax errors
+-----------------------
 
-  "filter" : { "Places of Interest": "Park|Community Center" }
+OpenTabulate checks the syntax of your source file and will warn you if something is off, but this validation does not cover all situations. Moreover, it cannot make sense of semantic errors in output until either during processing or when you inspect the output.
 
-Note that the filter keys are grouped by a logical ``AND``. For example, if a source file contains ::
-
-  "filter" : {
-	  "attribute1" : "regex1",
-	  "attribute2" : "regex2",
-	  "attribute3" : "regex3"
-  }
-
-then each data point is checked if every regular expression returns a match for each attribute-regex pair. Provided all regular expressions return a match, the data point will be marked for processing. Otherwise, the data point is ignored.
-
-
-.. _writing-custom-processing-scripts:
-
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Writing custom processing scripts
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Note: OpenTabulate currently does not secure or containerize custom scripts. Always check the code from unknown sources before running them!**
-
-The purpose of custom processing scripts is to support automating processing tasks that are not available in OpenTabulate. OpenTabulate handles two types of custom scripts, *pre-processing* and *post-processing*. Pre-processing scripts run strictly before processing in OpenTabulate and post-processing scripts run strictly after processing in OpenTabulate. 
-
-For example, a dataset may only be provided as a Microsoft Excel spreadsheet, which is an unsupported data format in OpenTabulate. In this situtation, writing a pre-processing script that converts the spreadsheet to CSV format is a way to automate its processing by OpenTabulate. 
-
-The requirements for an OpenTabulate custom script is described below. Note that the term "scripts" here refers to executable programs that accept command line arguments. The number of arguments and what they represent depend on if you are writing a pre-processing or post-processing script. 
-
-* For a *pre-processing script*, you must read the first two command line arguments (e.g. ``sys.argv[1]`` and ``sys.argv[2]`` in Python). OpenTabulate enters the path of the raw dataset stored locally into the first argument, and enters the path of the pre-processed output into the second argument.
-* For a *post-processing script*, you need to allow for one command line argument (e.g. ``sys.argv[1]`` in Python). OpenTabulate enters the path of the clean dataset into the single argument.
-
-To include the scripts in a source file, use the ``pre`` and ``post`` keys.
+Try your best to adhere to the standards and conventions as shown in the documentation. If you discover any bugs or have any further questions, please post an issue in our `GitHub repository <https://github.com/CSBP-CPSE/OpenTabulate/issues>`_.

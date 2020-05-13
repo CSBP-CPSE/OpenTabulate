@@ -4,41 +4,27 @@
 Frequently asked questions
 ==========================
 
--------------------------
-What is the OpenTabulate?
--------------------------
+^^^^^^^^^^^^^^^^^^^^^
+What is OpenTabulate?
+^^^^^^^^^^^^^^^^^^^^^
 
 OpenTabulate is an open source Python package developed by the Data Exploration and Integration Lab's (DEIL) at Statistics Canada. The goal is to provide a data processing framework to support DEIL's open data project, the *Linkable Open Data Environment* (LODE), where OpenTabulate plays the role of transforming data into a suitable format for record linkage. Our decided format to transform to is CSV (comma-separated values), hence the "Tabulate" in OpenTabulate.
 
-----------------------------------------------------
-What type of data content does OpenTabulate support?
-----------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+What kind of data can OpenTabulate process?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-OpenTabulate processes micro-level data (we simply call this *microdata*) such as contact information, addresses, geocoordinates, etc. of public facilities in Canada such as
+OpenTabulate can process text data when it is in well-formed CSV or XML format.
 
-* fire stations
-* libraries
-* hospitals
-* education facilities (e.g. universities)
-* businesses
-
-As the project evolves, the list above will grow.
-
-------------------------------------------------
-What data formats can OpenTabulate process from?
-------------------------------------------------
-
-CSV and XML format are currently supported.
-
----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 How do we use OpenTabulate?
----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Please view the `README <https://github.com/CSBP-CPSE/OpenTabulate>`_ and :ref:`running-opentabulate`.
+Please view these parts of the documentation: :ref:`installation` and :ref:`basic-usage`.
 
----------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Why was the OpenTabulate written?
----------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 After 2010, municipalities, provinces, federal departments and other organizations have started to release microdata as part of Canada's `open government initiative <https://open.canada.ca/en/about-open-government>`_. 
 
@@ -46,16 +32,19 @@ After 2010, municipalities, provinces, federal departments and other organizatio
 * is not consistently provided by each of the participating groups (although such information is public)
 * is subject to copyright or some proprietary license
 
-The LODE project aims to resolve the above to: process, link and distribute data under an `open government license <https://open.canada.ca/en/open-government-licence-canada>`_. OpenTabulate is a piece of the LODE project, providing a tool to reformat microdata to a standardized schema and format suitable for further processing.
+The LODE project aims to resolve the above to: process, link and distribute data under an `open government license <https://open.canada.ca/en/open-government-licence-canada>`_. OpenTabulate is a small component of the LODE project, which organizes our microdata and automates tabulating it to our standardized schema for further processing.
 
--------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 What limitations are present in the OpenTabulate?
--------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-There are numerous features and code adjustments that can be made to improve OpenTabulate. The project altogther is relatively young and has a lot of room for growth and improvement. If you feel there is something missing, address it in our GitHub `issues <https://github.com/CSBP-CPSE/OpenBusinessRepository/issues>`_.
+A good place to undestand the limitations of OpenTabulate are in our design specification (it's a short read). The project is young, there are numerous features and code adjustments that can be made to improve OpenTabulate, but it must adhere to the aforementioned specification.
 
----------------------------------------
+If you feel there is something missing, let us know on `Github <https://github.com/CSBP-CPSE/OpenTabulate/issues>`_.
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 What is the future of the OpenTabulate?
----------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-There are a few development paths that are in consideration. An important one is to turn OpenTabulate into a general purpose tool. For example, we may allow for customized schemas to be defined in configuration files, instead of hard-coding, so just about any data content can be handled. Another path is to directly integrate the tool with the LODE, as it was originally intended for.
+At this stage, OpenTabulate is fulfilling its purpose for DEIL. Bug fixes and minor updates will certainly come around, but no significant changes to the code base.
+

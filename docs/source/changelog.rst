@@ -8,18 +8,24 @@ Notable changes to OpenTabulate are listed below. This changelog format is based
 
 .. _release-2.0.0:
 
+------------
+[Unreleased]
+------------
+
+- Parallel processing of input data using multithreading
+
+  
 --------------------
-[2.0.0] - 2020-01-03
+[2.0.0] - 2020-05-15
 --------------------
 
 ^^^^^
 Added
 ^^^^^
 
+- Design specification
 - Project changelog
-- OpenTabulate configuration file 
-- Address tag that stores the full address without address parsing
-- (Incomplete) set of unit tests
+- Configuration file with processing and output schema configuration
 
 ^^^^^^^
 Changed
@@ -27,15 +33,14 @@ Changed
 
 - Refactored code (renamed variables, relocated classes into files,
   removal of redundant code, implemented new functions)
-- Renamed source file keys to improve human readability, some have been **deprecated** or **removed**.
-- Altered OpenTabulate ``--initialize``  flag to support new configuration file
-- Ported Markdown documentation to ReST/Sphinx, now hosted `here <https://opentabulate.readthedocs.io/en/latest/>`_
+- Ported Markdown documentation to ReST/Sphinx, now hosted `here <https://opentabulate.readthedocs.io/en/stable/>`_
 
 ^^^^^^^
 Removed
 ^^^^^^^
 
 - ZIP file handling
+- Address parsing
 
 --------------------
 [1.0.1] - 2019-04-29
