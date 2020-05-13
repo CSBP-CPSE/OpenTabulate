@@ -48,9 +48,16 @@ class Algorithm(object):
         self.source = source
         self.label_map = None
 
+        self.FORCE_REGEXP = re.compile('force:.*')
+
+        # flags
+        self.FILTER_FLAG = None
+        self.PROVIDER_FLAG = None
+        self.ADD_INDEX = None
+        self.NO_WHITESPACE = None
+        self.LOWERCASE = None
+
         if source is not None:
-            self.FORCE_REGEXP = re.compile('force:.*')
-            
             # flags from source file metadata
             self.FILTER_FLAG = True if 'filter' in source.metadata else False    
             self.PROVIDER_FLAG = True if 'provider' in source.metadata else False
@@ -66,7 +73,11 @@ class Algorithm(object):
 
     def char_encode_check(self):
         """
-        Heuristic test to identify the character encoding of a source.
+        Heuristic test to identify the character encoding of a source. Every
+        line in the file is attempted to be decoded over a set of supported
+        encodings in a fixed order. The first encoding that successfully
+        decodes the entire file is taken to be its encoding for the tabulation
+        step. Otherwise if all fail, then a RunTimeError is raised.
         
         Returns:
             e (str): Python character encoding string.
@@ -325,6 +336,9 @@ class XML_Algorithm(Algorithm):
             
             if self.PROVIDER_FLAG:
                 fieldnames.append('provider')
+
+            if self.ADD_INDEX:
+                fieldnames.insert(0, 'idx')
    
             csvwriter = csv.DictWriter(
                 csvfile,
@@ -335,6 +349,8 @@ class XML_Algorithm(Algorithm):
             )
 
             csvwriter.writeheader()
+
+            idx = 0
 
             for head_element in root.iter(header):
                 row = dict()
