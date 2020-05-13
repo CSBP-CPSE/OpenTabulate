@@ -4,6 +4,7 @@
 	"type": "xml",
 	"header": "Item"
     },
+    "encoding": "utf-8",
     "database_type": "business",
     "info": {
 	"legal_name": "Name",
