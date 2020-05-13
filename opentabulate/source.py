@@ -61,7 +61,6 @@ class Source(object):
         self.src_path = path
         try:
             with open(path) as f:
-                print("Loading", path)
                 self.metadata = json.load(f)
         except:
             raise # either raises JSONDecodeError or a file reading exception

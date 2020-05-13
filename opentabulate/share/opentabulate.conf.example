@@ -13,7 +13,7 @@
 # Add a positive integer index column for the tabulated output. Defaults
 # to 'false'.
 
-#add_index = false
+#add_index = true
 
 # Output data character encoding. See
 #
