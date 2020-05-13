@@ -2,7 +2,6 @@
 """
 Unit tests for processing components (algorithm.py) of OpenTabulate.
 
-
 Created and written by Maksym Neyra-Nesterenko, with support and funding from the
 *Center for Special Business Projects* (CSBP) at *Statistics Canada*.
 """
@@ -14,6 +13,7 @@ import unittest
 
 try:
     from opentabulate.source import Source
+    from opentabulate.config import Configuration
     from opentabulate.algorithm import XML_Algorithm
     from opentabulate.algorithm import Algorithm
 except ImportError:
@@ -37,7 +37,7 @@ def cmp_output_bytes(path1, path2):
         return True
 
 
-class TestAlgorithmProcess(unittest.TestCase):
+class TestAlgorithm(unittest.TestCase):
     """
     Algorithm class unit tests to verify correct output after running extract_labels() 
     and parse() methods.
@@ -47,6 +47,7 @@ class TestAlgorithmProcess(unittest.TestCase):
         cls.src_input = "xml-source.json"
         cls.target_output = "xml-target-output.csv"
         cls.test_output = "xml-test-output.csv"
+        cls.config_file = "opentabulate.conf"
         cls.a = Algorithm()
 
     def test_basic_process_csv(self):
@@ -59,84 +60,71 @@ class TestAlgorithmProcess(unittest.TestCase):
         """
         OpenTabulate XML parsing and tabulation test.
         """
-        source = Source(self.src_input, default_paths=False)
+        config = Configuration(self.config_file)
+        config.load()
+        config.validate()
+        
+        source = Source(self.src_input, config=config, default_paths=False)
         source.parse()
-        source.rawpath = source.localfile
-        source.dirtypath = self.test_output
+        
+        source.input_path = source.localfile
+        source.output_path = self.test_output
         
         xml_alg = XML_Algorithm(source)
-        xml_alg.extract_labels()
-        xml_alg.parse()
+        xml_alg.construct_label_map()
+        xml_alg.tabulate()
         
         self.assertTrue(
             cmp_output_bytes(self.target_output, self.test_output)
         )
-    #
-    #  work here -- 2020 March 12 --
-    #
-    def test___generate_field_names(self):
-        """
-        Test for Algorithm._generateFieldNames method. The method generates
-        headers (column names) for CSV files. 
-
-        If the address parse keyword 'address_parse_str' is missing, 
-        the output headers should be exactly the same as the input keys
-        Otherwise, address tokens should be inserted into the header in 
-        place of where the keyword appeared.
-        """
-        # 'address_parse_str' is absent
-        keys_without_parse = ['name']
-        self.assertEqual(
-            self.a._generateFieldNames(keys_without_parse), keys_without_parse
-        )
-
-        # 'address_parse_str' appears in the first index
-        keys_parse_left = ['address_str_parse', 'name']
-        target_left = [i for i in self.a.ADDR_FIELD_LABEL] + ['name']
-        self.assertEqual(
-            self.a._generateFieldNames(keys_parse_left), target_left
-        )
-
-        # 'address_parse_str' appears in the last index
-        keys_parse_right = ['name', 'address_str_parse']
-        target_right = ['name'] + [i for i in self.a.ADDR_FIELD_LABEL]
-        self.assertEqual(
-            self.a._generateFieldNames(keys_parse_right), target_right
-        )
         
-    def test___is_row_empty(self):
+    def test__is_row_empty(self):
         """
         Test for self.a._isRowEmpty method.
 
         A row contains all empty strings iff the method returns True.
         """
-        
         self.assertTrue(self.a._isRowEmpty({0 : '', 1 : '', 2 : ''}))
         self.assertTrue(self.a._isRowEmpty(dict()))
         self.assertFalse(self.a._isRowEmpty({0 : '', 1 : 'test'}))
         self.assertFalse(self.a._isRowEmpty({0 : 'test', 1 : ''}))
 
-    def test___quick_scrub(self):
+    def test__quick_clean_entry(self):
         """
-        Test for self.a._quickScrub method.
+        Test for self.a._quickCleanEntry method.
 
-        This method does basic cleaning to the input string. It should:
+        This method does basic cleaning to the input string. It has the
+        option to
           - remove redundant whitespace
           - lowercase the output
+        Any implementation of the cleaning here must have it so that the
+        options are done independently.
         """
-        self.assertEqual(self.a._quickScrub(''), '')
-        self.assertEqual(self.a._quickScrub('\t\n '), '')
-        self.assertEqual(self.a._quickScrub(' E '), 'e')
-        self.assertEqual(self.a._quickScrub('E '), 'e')
-        self.assertEqual(self.a._quickScrub(' E'), 'e')
-        self.assertEqual(self.a._quickScrub('\na\tb\t'), 'a b')
+        self.a.NO_WHITESPACE = True
+        
+        self.assertEqual(self.a._quickCleanEntry(''), '')
+        self.assertEqual(self.a._quickCleanEntry('\t\n '), '')
+        self.assertEqual(self.a._quickCleanEntry(' E '), 'E')
+        self.assertEqual(self.a._quickCleanEntry('E '), 'E')
+        self.assertEqual(self.a._quickCleanEntry(' E'), 'E')
+        self.assertEqual(self.a._quickCleanEntry('\na\tb\t'), 'a b')
 
-    def test___clean(self): # ! original function subject to change
-        pass
-    #
-    # end here -- 2020 March 12 --
-    #
+        self.a.NO_WHITESPACE = None
 
+        self.a.LOWERCASE = True
+
+        self.assertEqual(self.a._quickCleanEntry('ABCabc123!@$'), 'abcabc123!@$')
+
+        self.a.LOWERCASE = None
+
+    def test__is_force_value(self):
+        self.assertTrue(self.a._isForceValue('force:'))
+        self.assertTrue(self.a._isForceValue('force:a'))
+        self.assertFalse(self.a._isForceValue('Force:a'))
+        self.assertFalse(self.a._isForceValue('FORCE:a'))
+        self.assertFalse(self.a._isForceValue('force a'))
+        self.assertFalse(self.a._isForceValue('force'))
+        
     @classmethod
     def tearDownClass(cls):
         pass

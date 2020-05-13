@@ -5,20 +5,12 @@
 	"header": "Item"
     },
     "encoding": "utf-8",
-    "database_type": "business",
-    "info": {
-	"legal_name": "Name",
-	"address_str": "FullAddress",
-	"address_tokens": {
-	    "street_no": "StreetNumber",
-	    "street_name": "Street",
-	    "unit": "UnitNumber",
-	    "city": "City",
-	    "province": "Province",
-	    "postal_code": "PostalCode"
-	},
-	"phone": "Phone",
-	"longitude": "Longitude",
-	"latitude": "Latitude"
+    "schema_groups": ["label", "coordinates"],
+    "schema": {
+	"i" : "name",
+	"coordinates" : {
+	    "X" : "x",
+	    "Y" : "y"
+	}
     }
 }

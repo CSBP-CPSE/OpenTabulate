@@ -1,57 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <TestData>
   <Comment>
-    Data for OpenTabulate's XML parsing unit test. Tests for correct
-    handling of empty tags, missing tags and general output. Moreover,
-    injected data (to province
-
-    What this dataset is not tested for:
-    * SYNTAX FEATURES AND NUANCES (see docs) such as: manual data
-      injection, concatenation, filtering and custom scripts.
-    * Address parsing
-    * Cleaning
+    ...
   </Comment>
   <Item id="1" case="Standard fields">
-    <Name>Statistics Canada</Name>
-    <FullAddress>300 W Georgia St, Vancouver, BC, V6B6C7</FullAddress>
-    <AddressFields>
-      <UnitNumber>01</UnitNumber>
-      <StreetNumber>300</StreetNumber>
-      <Street>W Georgia St</Street>
-      <City>Vancouver</City>
-      <Province>BC</Province>
-      <PostalCode>V6B6C7</PostalCode>
-    </AddressFields>
-    <Phone>999-999-9999</Phone>
-    <Geocoordinates>
-      <Longitude>0.00</Longitude>
-      <Latitude>0.00</Latitude>
-    </Geocoordinates>
+    <name>A</name>
+    <coordinates>
+      <x>1</x>
+      <y>0</y>
+    </coordinates>
   </Item>
-  <Item id="2" case="Empty tags">
-    <Name>University of British Columbia</Name>
-    <FullAddress></FullAddress>
-    <AddressFields>
-      <UnitNumber/>
-      <StreetNumber/>
-      <Street/>
-      <City/>
-      <Province/>
-      <PostalCode/>
-    </AddressFields>
-    <Phone>000-000-0000</Phone>
-    <Geocoordinates>
-      <Longitude></Longitude>
-      <Latitude></Latitude>
-    </Geocoordinates>
+  <Item id="2" case="Standard fields">
+    <name>B</name>
+    <coordinates>
+      <x>4</x>
+      <y>0</y>
+    </coordinates>
   </Item>
-  <Item id="3" case="Missing tags">
-    <Name>Simon Fraser University</Name>
-    <FullAddress>8888 University Dr E, Burnaby, BC, V5A1S6</FullAddress>
-    <AddressFields>
-    </AddressFields>
+  <Item id="3" case="Standard fields">
+    <name>C</name>
+    <coordinates>
+      <x>3</x>
+      <y>2</y>
+    </coordinates>
   </Item>
-  <Item id="4" case="Empty data">
-    <Name/>
+  <Item id="4" case="Standard fields">
+    <name>D</name>
+    <coordinates>
+      <x>-9</x>
+      <y>5</y>
+    </coordinates>
   </Item>
 </TestData>
