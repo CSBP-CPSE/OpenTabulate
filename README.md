@@ -2,45 +2,43 @@
 
 OpenTabulate is a Python package designed to organize, tabulate, and process structured data. It currently aims to be a data processing framework for the [Linkable Open Data Environment](https://github.com/CSBP-CPSE/LODE-ECDO), an exploratory project by the Data Exploration and Integration Lab (DEIL) within the Center for Special Business Projects (CSBP) at Statistics Canada. OpenTabulate offers
 
-- automated data retrieval
-- a systematic way of organizing and retrieving data using *sources files* (inspired by [OpenAddresses](https://openaddresses.io/)),
-- tabulation of data into a standardized CSV format that is suitable for merging and linkage,
-- various methods to process data, including address parsing, cleaning and reformatting.
-
-OpenTabulate's API defines several classes and methods, such that when put together form a *processing pipeline*. This simplifies the processing procedure as a sequence of class method invocations. Moreover, this design allows for ease of addition, modification and removal of code.
+- a systematic way of organizing data using *sources files* (inspired by [OpenAddresses](https://openaddresses.io/)),
+- tabulation of data into a common format (CSV) and common schema that is suitable for merging and linkage,
+- basic data cleaning and formatting, data filtering and customizing output schema.
 
 ## Requirements
 
-A basic setup of the data processing software will at least require
+This package is meant to be run on a Linux-based distribution. Using the package only requires
 
 - [Python](https://www.python.org/downloads/) (version 3.5+)
-- [requests](http://docs.python-requests.org/en/master/), compatible with your verison of Python
-
-## Optional dependencies
-
-To process sources with the `address_str` key, an address parser is required. Below are the currently supported address parsers.
-
-- [libpostal](https://github.com/openvenues/libpostal) (and [pypostal](https://github.com/openvenues/pypostal) for Python bindings)
 
 ## Installation
 
-Be sure to have a Python package manager that can access the [Python Package Index](https://pypi.org). For example, if you have `pip`, run
+Install the `opentabulate` package from the [Python Package Index](https://pypi.org) using whatever Python package manager you choose. For example, with `pip` installed you may simply run
 
 ```
-$ pip install opentabulate
+$ pip3 install opentabulate
 ```
 
-After installing the package, initialize the OpenTabulate environment by running
+with any Python environment.
+
+After installing the package, copy the OpenTabulate configuration file using the built-in command line flag.
 
 ```
-$ opentab --initialize DATA_DIR
+$ opentab --copy-config
 ```
 
-where `DATA_DIR` is a path to a (preferably empty) directory. This configures OpenTabulate to read, write and organize data in `DATA_DIR`.
+This copies the file `opentabulate.conf.example` from the package installation to `$HOME/.config/opentabulate.conf`. Provide a directory for the `root_directory` variable in the configuration, which will specify where the datasets will be loaded from and tabulated to. Configure the remaining variables as needed. Next run
+
+```
+opentab --initialize
+```
+
+which creates the subdirectories in `root_directory`. Now OpenTabulate is ready to run.
 
 ## Documentation
 
-Please read our documentation [here](https://opentabulate.readthedocs.io/en/latest/).
+For more information, please read our documentation [here](https://opentabulate.readthedocs.io/en/stable/).
 
 ## Issues
 
