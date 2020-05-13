@@ -62,14 +62,17 @@ class Algorithm(object):
             self.FILTER_FLAG = True if 'filter' in source.metadata else False    
             self.PROVIDER_FLAG = True if 'provider' in source.metadata else False
 
-            if self.PROVIDER_FLAG == False:
-                source.logger.warning("No 'provider' flag given")
-
             if source.config is not None:
                 # configuration or command line flags
                 self.ADD_INDEX = True if source.config.getboolean('general', 'add_index') else False
                 self.NO_WHITESPACE = True if source.config.getboolean('general', 'clean_whitespace') else False
                 self.LOWERCASE = True if source.config.getboolean('general', 'lowercase_output') else False
+
+            source.logger.info("FILTER_FLAG set to %s" % self.FILTER_FLAG)
+            source.logger.info("PROVIDER_FLAG set to %s" % self.PROVIDER_FLAG)
+            source.logger.info("ADD_INDEX set to %s" % self.ADD_INDEX)
+            source.logger.info("NO_WHITESPACE set to %s" % self.NO_WHITESPACE)
+            source.logger.info("LOWERCASE set to %s" % self.LOWERCASE)
 
     def char_encode_check(self):
         """
