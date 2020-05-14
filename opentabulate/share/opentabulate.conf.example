@@ -22,12 +22,25 @@
 # for further details. As of 2.0, the program currently supports 'utf-8'
 # and 'cp1252'. Defaults to 'utf-8'.
 
-#target_encoding = 'utf-8'
+#target_encoding = utf-8
+
+# How to handle output encoding errors. Sometimes converting from one
+# character encoding to another is not possible due to a set of bytes
+# not having a defined character assignment in the target encoding.
+#
+# This parameter tells us how to handle it; the options are 'strict',
+# 'replace' and 'ignore'.
+#
+# - 'strict' throws an error upon a failed encoding and ceases processing
+# - 'replace' substitutes failed encodings with ?
+# - 'ignore' discards failed character encodings
+
+#output_encoding_errors = strict
 
 # Perform basic cleaning on the data input. The default values are 'false'.
 
 #clean_whitespace = true
-#lowercase_entries = true
+#lowercase_output = true
 
 # Verbosity level of OT command, with integer values from 0 to 3 inclusive.
 # The lower the value, the more detailed the output is.

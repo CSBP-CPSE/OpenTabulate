@@ -21,6 +21,7 @@ DEFAULT_PATHS = {'conf_dir' : os.path.expanduser('~') + '/.config',
                  'conf_file' :os.path.expanduser('~') + '/.config/opentabulate.conf'}
 
 SUPPORTED_ENCODINGS = ('utf-8', 'cp1252')
+ENCODING_ERRORS = ('strict', 'replace', 'ignore')
 
 class Configuration(ConfigParser):
     """
@@ -69,7 +70,8 @@ class Configuration(ConfigParser):
         base_sections = ('general', 'labels')
     
         general_section = ('root_directory', 'add_index', 'target_encoding',
-                           'clean_whitespace', 'lowercase_output', 'log_level')
+                           'output_encoding_errors', 'clean_whitespace', 'lowercase_output',
+                           'log_level')
 
         reserved_cols = ('idx', 'provider')
         
@@ -111,6 +113,7 @@ class Configuration(ConfigParser):
 
         # add default settings then validate
         defaults = {'target_encoding' : 'utf-8',
+                    'output_encoding_errors' : 'strict',
                     'add_index' : 'false',
                     'clean_whitespace' : 'false',
                     'lowercase_output' : 'false',
@@ -144,6 +147,13 @@ class Configuration(ConfigParser):
         if encoding not in SUPPORTED_ENCODINGS:
             print("Configuration error: '%s' is not a supported target encoding"
                   % encoding, file=sys.stderr)
+            sys.exit(1)
+
+        # validate output encoding error handling
+        handler = self.get('general', 'output_encoding_errors')
+        if handler not in ENCODING_ERRORS:
+            print("Configuration error: '%s' is not a valid output encoding"
+                  " error handler" % handler)
             sys.exit(1)
 
         # validate labels to make sure they are tuples and column names are not

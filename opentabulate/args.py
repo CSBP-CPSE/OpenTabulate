@@ -8,6 +8,7 @@ Created and written by Maksym Neyra-Nesterenko, with support and funding from th
 import os
 import sys
 import argparse
+import logging
 from opentabulate.config import DEFAULT_PATHS as def_paths
 
 def parse_arguments():
@@ -140,12 +141,12 @@ def validate_args_and_config(p_args, config):
                      3 : logging.ERROR}
     
     if p_args.log_level is not None:
-        if p_args.verbosity in log_level_map:
+        if p_args.log_level in log_level_map:
             logging.basicConfig(format='[%(levelname)s] <%(name)s>: %(message)s',
-                                level=log_level_map(p_args.log_level))
+                                level=log_level_map[p_args.log_level])
         else:
             print("Error! Log level must be 0, 1, 2 or 3 (the lower, the more detailed)", file=sys.stderr)
             sys.exit(1)
     else:
         logging.basicConfig(format='[%(levelname)s] <%(name)s>: %(message)s',
-                            level=log_level_map(config.get('general', 'log_level')))
+                            level=log_level_map[config.getint('general', 'log_level')])

@@ -51,6 +51,7 @@ class Algorithm(object):
         self.FORCE_REGEXP = re.compile('force:.*')
 
         # flags
+        self.OUTPUT_ENC_ERRORS = None
         self.FILTER_FLAG = None
         self.PROVIDER_FLAG = None
         self.ADD_INDEX = None
@@ -61,6 +62,8 @@ class Algorithm(object):
             # flags from source file metadata
             self.FILTER_FLAG = True if 'filter' in source.metadata else False    
             self.PROVIDER_FLAG = True if 'provider' in source.metadata else False
+
+            self.OUTPUT_ENC_ERRORS = source.config.get('general', 'output_encoding_errors')
 
             if source.config is not None:
                 # configuration or command line flags
@@ -73,6 +76,7 @@ class Algorithm(object):
             source.logger.info("ADD_INDEX set to %s" % self.ADD_INDEX)
             source.logger.info("NO_WHITESPACE set to %s" % self.NO_WHITESPACE)
             source.logger.info("LOWERCASE set to %s" % self.LOWERCASE)
+            source.logger.info("OUTPUT_ENC_ERRORS set to %s" % self.OUTPUT_ENC_ERRORS)
 
     def char_encode_check(self):
         """
@@ -179,7 +183,8 @@ class CSV_Algorithm(Algorithm):
 
         with open(self.source.input_path, 'r', encoding=enc) as csv_file_read, \
              open(self.source.output_path, 'w',
-                  encoding=self.source.config.get('general', 'target_encoding')
+                  encoding=self.source.config.get('general', 'target_encoding'),
+                  errors=self.OUTPUT_ENC_ERRORS
              ) as csv_file_write:
             # define column labels
             fieldnames = self._generateFieldNames(tags)
@@ -252,7 +257,7 @@ class CSV_Algorithm(Algorithm):
                         entry = entity[tags[key]]
 
                     row[key] = self._quickCleanEntry(entry)
-                                                    
+
                 if not self._isRowEmpty(row):
                     # add customized entries here (e.g. provider)
                     if self.PROVIDER_FLAG:
@@ -332,7 +337,8 @@ class XML_Algorithm(Algorithm):
         root = tree.getroot()
 
         with open(self.source.output_path, 'w',
-                  encoding=self.source.config.get('general', 'target_encoding')
+                  encoding=self.source.config.get('general', 'target_encoding'),
+                  errors=self.OUTPUT_ENC_ERRORS
         ) as csvfile:
             # write the initial row which identifies each column
             fieldnames = self._generateFieldNames(tags)
@@ -357,9 +363,9 @@ class XML_Algorithm(Algorithm):
 
             for head_element in root.iter(header):
                 row = dict()
-                
+
                 # filter entry
-                if not self._xml_keep_entry(head_element): 
+                if not self._xml_keep_entry(head_element):
                     continue
                 
                 for key in tags:
@@ -434,8 +440,7 @@ class XML_Algorithm(Algorithm):
     def _xml_is_element_missing(self, element, tag_name, head_element):
         """
         The xml.etree module returns 'None' if there is no text in a tag. Moreover, if
-        the element cannot be found, the element is None. In this latter case, we raise
-        an exception.
+        the element cannot be found, the element is None.
 
         Args:
             element (ElementTree.Element): Target node in XML tree.
@@ -444,16 +449,10 @@ class XML_Algorithm(Algorithm):
 
         Returns:
             str: Empty string if missing or empty tag, otherwise element.text.
-
-        Raises:
-            ElementTree.ParseError: Element is missing in header.
         """
         if element is None:
-            self.source.logger.error("Tag '%s' is missing in header with attributes: %s"
-                                     % (tag_name, head_element.attrib))
-            raise ElementTree.ParseError("Element is missing in header.")
-        
-        if not (element.text is None):
+            return ''
+        elif element.text is not None:
             return element.text
         else:
             return ''
