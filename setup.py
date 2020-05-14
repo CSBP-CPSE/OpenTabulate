@@ -22,9 +22,9 @@ setup(
     author='Maksym Neyra-Nesterenko',
     license='MIT',
     classifiers=[
-        'Development Status :: 4 - Beta',
         'License :: OSI Approved :: MIT License',
         'Topic :: Text Processing :: General',
+        'Topic :: Utilities',
         'Operating System :: POSIX :: Linux',
         'Environment :: Console',
         'Programming Language :: Python :: 3.5',
