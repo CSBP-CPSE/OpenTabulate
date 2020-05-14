@@ -33,9 +33,17 @@ The following are valid key-value pairs for the section ``[general]``.
     Add a positive integer index column to the output. The indices start at zero and then
     increment by one for each row added to the output.
 
-``target_encoding`` : string : 'utf-8'
+``target_encoding`` : string : utf-8
     The output dataset encoding. Currently supports *utf-8* and *cp1252*. For more details
     about encodings, see `here <https://docs.python.org/3/library/codecs.html#standard-encodings>`_.
+
+``output_encoding_errors`` : string : strict
+    Error handling for re-encoding the input to the target output encoding. The options are
+    *strict*, *replace* and *ignore*. 
+
+    * *strict* throws an error upon a failed encoding and ceases processing
+    * *replace* substitutes failed encodings with *?*
+    * *ignore* discards failed encodings from the output
 
 ``clean_whitespace`` : boolean : false
     A flag for whether or not OpenTabulate should clean extraneous whitespace in the input.

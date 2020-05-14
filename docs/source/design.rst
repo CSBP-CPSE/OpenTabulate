@@ -18,7 +18,7 @@ OT will be modular in sense of both code and configuration. The implementation o
 Tabulation
 ----------
 
-*OT will focus on adhering to its designated (main) purpose, tabulating structured data*. By structured, it is emphasized that the input data is assumed to be well-formed and should interrupt processing if it finds that the input data structure is not well formed (e.g. CSV row has more or less delimiters than columns, invalid XML).
+*OT will focus on adhering to its designated (main) purpose, tabulating structured data*. By structured, it is emphasized that the input data is assumed to be well-formed and should interrupt processing if it finds that the input data structure is not well-formed. By well-formed, we mean that the input should be valid and follow the standards of the data format. For example, CSV files should adhere to `RFC 4180 <https://tools.ietf.org/html/rfc4180>`_ and XML files should adhere to `W3's specification <https://www.w3.org/TR/xml/>`_.
 
 OT can support other functionality provided it does not stray away from its main purpose. For example, it can
 

@@ -4,9 +4,9 @@
 Installation
 ============
 
-------------------
-Linux installation
-------------------
+-----
+Linux
+-----
 
 To install the OpenTabulate package, one can use any tool that accesses the `Python Package Index <https://pypi.org>`_. In this guide, the command line tool ``pip`` is used to install OpenTabulate into a virtual environment in a recent version of Ubuntu or Debian Linux. Adapt and change the commands as needed.
 
