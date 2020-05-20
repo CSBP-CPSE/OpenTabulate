@@ -39,6 +39,7 @@ Changed
 Removed
 ^^^^^^^
 
+- Downloading data from a URL
 - ZIP file handling
 - Address parsing
 
