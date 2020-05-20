@@ -12,7 +12,7 @@ OpenTabulate is an open source Python package developed by the Data Exploration 
 * transforms data to a standardized CSV format that is suitable for merging,
 * configurable settings that apply simple cleanup and standardization to the data.
 
-OpenTabulate is meant to be a `simple tool <design principles>`_, one that complements a data processing pipeline. To get started, please see :ref:`Installation <installation>` and :ref:`Basic Usage <basic-usage>`.
+OpenTabulate is meant to be a :ref:`simple tool <design>`, one that complements a data processing pipeline. To get started, please see :ref:`Installation <installation>` and :ref:`Basic Usage <basic-usage>`.
 
 .. toctree::
    :maxdepth: 2

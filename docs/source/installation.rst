@@ -67,4 +67,4 @@ Finally, initialize the OpenTabulate processing directories using ::
 
   (virtualenv) $ opentab --initialize
 
-This completes the base installation to OpenTabulate. To get started using OpenTabulate, please read :ref: `Basic Usage <basic-usage>`.
+This completes the base installation to OpenTabulate. To get started using OpenTabulate, please read :ref:`Basic Usage <basic-usage>`.
