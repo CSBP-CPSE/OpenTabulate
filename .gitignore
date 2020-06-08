@@ -4,3 +4,4 @@ opentabulate.egg-info
 opentabulate/__pycache__
 virtualenv
 docs/_build
+.vscode
