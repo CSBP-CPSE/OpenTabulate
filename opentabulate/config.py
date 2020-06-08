@@ -49,7 +49,7 @@ class Configuration(ConfigParser):
         Load the configuration file.
         """
         if not os.path.exists(self.conf_path):
-            print("No configuration file found in %s." % conf_path, file=sys.stderr)
+            print("No configuration file found in %s." % self.conf_path, file=sys.stderr)
             sys.exit(1)
         else:
             try:
@@ -94,7 +94,7 @@ class Configuration(ConfigParser):
         for sec in self.sections():
             if sec not in base_sections:
                 print("Configuration error: section '%s' is not a valid section"
-                      % section, file=sys.stderr)
+                      % sec, file=sys.stderr)
                 sys.exit(1)
 
         # check if 'general' section has invalid options

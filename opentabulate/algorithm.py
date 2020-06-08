@@ -426,7 +426,7 @@ class XML_Algorithm(Algorithm):
                 regexp = self.source.metadata['filter'][attribute]
                 element = head_element.find(".//" + attribute)
                 element = self._xml_is_element_missing(element, attribute, head_element)
-                if regexp.search(el):
+                if regexp.search(element):
                     match = True
                 BOOL_MATCHES.append(match)
 
