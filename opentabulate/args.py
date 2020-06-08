@@ -10,26 +10,52 @@ import sys
 import argparse
 import logging
 from opentabulate.config import DEFAULT_PATHS as def_paths
+from opentabulate.config import SUPPORTED_ENCODINGS as supp_enc
+from opentabulate.config import ENCODING_ERRORS as enc_errs
 
 def parse_arguments():
     """
     Define the command line argument structure and parse it.
     """
     cmd_args = argparse.ArgumentParser(
-        description='OpenTabulate: a command-line data tabulation tool.'
+        description='OpenTabulate: a command-line data tabulation tool.',
+        usage='%(prog)s [options] [SOURCE [SOURCE ...]]',
+        add_help=False
     )
-    cmd_args.add_argument('-s', '--verify-source', action='store_true', default=False, \
-                          help='validate source files without processing data')
-    cmd_args.add_argument('-l', '--log-level', action='store', default=None, type=int, metavar='N', \
-                          help='specify data processing log verbosity')
-    cmd_args.add_argument('-c', '--copy-config', action='store_true',
-                          help='copy example config file to ~/.config/opentabulate')
-    cmd_args.add_argument('--initialize', action='store_true', \
-                          help='create processing directories')
-    #cmd_args.add_argument('-t', '--print-trace', action='store_true', \
-    #                      help='print traceback of errors')
+    # positional arguments
+    positional_args = cmd_args.add_argument_group('positional arguments')
+    positional_args.add_argument('SOURCE', nargs='*', default=None, help='path to source file')
 
-    cmd_args.add_argument('SOURCE', nargs='*', default=None, help='path to source file')
+    # runtime options
+    runtime_args = cmd_args.add_argument_group('runtime arguments')
+    runtime_args.add_argument('-h', '--help', action='help',
+                              help='show this help message and exit')
+
+    runtime_args.add_argument('--initialize', action='store_true', 
+                              help='create processing directories')
+    runtime_args.add_argument('-c', '--copy-config', action='store_true',
+                              help='copy example config file to ~/.config/opentabulate')
+    runtime_args.add_argument('-s', '--verify-source', action='store_true', default=False,
+                              help='validate source files without processing data')
+    #runtime_args.add_argument('-t', '--print-trace', action='store_true', \
+    #                      help='print traceback of errors')
+    
+    # configuration options
+    config_args = cmd_args.add_argument_group('configuration arguments',
+                                description='override configuration file options')
+    config_args.add_argument('--add-index', action='store', default=None, type=str, metavar='BOOL',
+                             help='insert index column to output')
+    config_args.add_argument('--target-enc', action='store', default=None, type=str, metavar='ENCODING',
+                             help='output character encoding')
+    config_args.add_argument('--output-enc-errors', action='store', default=None, type=str, metavar='HANDLER',
+                             help='error handler for character re-encoding')
+    config_args.add_argument('--clean-ws', action='store', default=None, type=str, metavar='BOOL',
+                             help='clean whitespace in output')
+    config_args.add_argument('--lowercase', action='store', default=None, type=str, metavar='BOOL',
+                             help='convert output to lowercase')
+    config_args.add_argument('-l', '--log-level', action='store', default=None, type=int, metavar='N',
+                             help='specify data processing log verbosity')
+    
     return cmd_args.parse_args()
 
 
@@ -129,7 +155,6 @@ def validate_args_and_config(p_args, config):
             sys.exit(1)
 
     # now we validate other command-line arguments here
-    
     if p_args.SOURCE == []:
         print("Error! The following arguments are required: SOURCE", file=sys.stderr)
         sys.exit(1)
@@ -139,7 +164,48 @@ def validate_args_and_config(p_args, config):
                      1 : logging.INFO,
                      2 : logging.WARNING,
                      3 : logging.ERROR}
-    
+
+    # override configuration options if command line flags are used 
+    if p_args.add_index is not None:
+        config['general']['add_index'] = p_args.add_index
+        try:
+            config.getboolean('general', 'add_index')
+        except ValueError:
+            print("Error! Add index flag must be a boolean value", file=sys.stderr)
+            sys.exit(1)
+        
+    if p_args.target_enc is not None:
+        if p_args.target_enc not in supp_enc:
+            print("Error! '%s' is not a supported target encoding" 
+                  % p_args.target_enc, file=sys.stderr)
+            sys.exit(1)
+        else:
+            config['general']['target_encoding'] = p_args.target_enc
+
+    if p_args.output_enc_errors is not None:
+        if p_args.output_enc_errors not in enc_errs:
+            print("Configuration error: '%s' is not a valid output encoding"
+                  " error handler" % p_args.output_enc_errors)
+            sys.exit(1)
+        else:
+            config['general']['output_encoding_errors'] = p_args.output_enc_errors
+
+    if p_args.clean_ws is not None:
+        config['general']['clean_whitespace'] = p_args.clean_ws
+        try:
+            config.getboolean('general', 'clean_whitespace')
+        except ValueError:
+            print("Error! Clean whitespace flag must be a boolean value", file=sys.stderr)
+            sys.exit(1)
+
+    if p_args.lowercase is not None:
+        config['general']['lowercase_output'] = p_args.lowercase
+        try:
+            config.getboolean('general', 'lowercase_output')
+        except ValueError:
+            print("Error! Lowercase flag must be a boolean value", file=sys.stderr)
+            sys.exit(1)
+            
     if p_args.log_level is not None:
         if p_args.log_level in log_level_map:
             logging.basicConfig(format='[%(levelname)s] <%(name)s>: %(message)s',
