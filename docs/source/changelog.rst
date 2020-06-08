@@ -42,6 +42,7 @@ Removed
 - Downloading data from a URL
 - ZIP file handling
 - Address parsing
+- Preprocessing and postprocessing script management
 
 --------------------
 [1.0.1] - 2019-04-29
