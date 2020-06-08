@@ -57,3 +57,10 @@ html_theme = 'alabaster'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static/custom.css']
 
+# Basic theme options for HTML pages.
+html_theme_options = {
+    'description' : 'A data tabulation tool.',
+    'github_button' : 'true',
+    'github_repo' : 'OpenTabulate',
+    'github_user' : 'CSBP-CPSE'
+}
