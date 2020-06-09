@@ -37,6 +37,10 @@ def parse_arguments():
                               help='copy example config file to ~/.config/opentabulate')
     runtime_args.add_argument('-s', '--verify-source', action='store_true', default=False,
                               help='validate source files without processing data')
+    runtime_args.add_argument('--clear-cache', action='store_true',
+                              help='clear processing redundancy cache')
+    runtime_args.add_argument('--ignore-cache', action='store_true',
+                              help='ignore processing redundancy cache')
     #runtime_args.add_argument('-t', '--print-trace', action='store_true', \
     #                      help='print traceback of errors')
     
