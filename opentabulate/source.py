@@ -34,7 +34,7 @@ class Source(object):
 
         default_paths (bool): For developers; set to False for unit test writing.
         
-        local_file (str): Data file name (not path).
+        localfile (str): Data file name (not path).
         input_path (str): Raw data path (in './data/input/').
         output_path (str): Tabulated data path (in './data/output/').
 
@@ -72,7 +72,7 @@ class Source(object):
         self.default_paths = default_paths
         
         # tabulation variables -- determined during parsing
-        self.local_file = None
+        self.localfile = None
         self.input_path = None
         self.output_path = None
 
