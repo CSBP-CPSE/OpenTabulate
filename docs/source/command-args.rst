@@ -31,6 +31,11 @@ Runtime arguments
 ``-s``, ``--verify-source`` : none
     Validate the given source files without processing their corresponding datasets. Use for checking source file syntax.
 
+``--clear-cache`` : none
+    Reset the data processing redundancy cache. The cache stores hash digests of the input data to prevent redundant processing of input in future runs. Note that if an input encounters an error during processing, its hash digest is not cached. The data processing redundancy cache is located at ``~/.cache/opentabulate/process_cache``.
+
+``--ignore-cache`` : none
+    Ignore hash digest comparisons with the redundancy cache when processing data. Note that the redundancy cache is still updated when using this flag. For more details on the redundancy cache, read the description for the ``--clear-cache`` flag above.
 
 ^^^^^^^^^^^^^^^^^^^^^^^
 Configuration arguments
