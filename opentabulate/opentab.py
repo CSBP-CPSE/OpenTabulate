@@ -20,14 +20,8 @@ def main():
     config = Configuration()
     parsed_args = parse_arguments()
     cache_mgr = CacheManager()
-
-    validate_args_and_config(parsed_args, config)
-
-    # clear cache and exit if --clear-cache flag is set
-    if parsed_args.clear_cache == True:
-        logging.info("Clearing cache.")
-        cache_mgr.write_cache() # this writes an empty cache
-        sys.exit(0)
+    
+    validate_args_and_config(parsed_args, config, cache_mgr)
 
     # parse source files
     source_list = parse_source_file(parsed_args, config)
@@ -37,35 +31,40 @@ def main():
         sys.exit(0)
 
     # start data processing
-    logging.info("Beginning data processing.")
+    print("Beginning data processing.")
 
-    cache_mgr.read_cache()
+    try:
+        cache_mgr.read_cache()
+    except IOError as io_err:
+        print(io_err, file=sys.stderr)
+        sys.exit(1)
 
     start_time = time.perf_counter()
     
     proc_results = []
-    
+
     for source in source_list:
+        source_log = logging.getLogger(source.localfile)
         current_digest = cache_mgr.compute_hash(source.input_path)
-        logging.info("Computed digest of %s: %s" % (source.localfile, current_digest))
+        source_log.debug("Computed digest: %s" % current_digest)
         if parsed_args.ignore_cache == False:
             idx, _, cached_digest = cache_mgr.query(source.localfile)
-            logging.info("Cached digest of %s: %s" % (source.localfile, cached_digest))
+            source_log.debug("Cached digest: %s" % cached_digest)
             if idx is not None: # data appears in cache
                 if not os.path.exists(source.output_path): # output is missing
-                    logging.info("Output data is missing, processing anyway")
+                    source_log.debug("Output data is missing, processing anyway")
                     rcode = process(source)
                 elif cached_digest != current_digest: # hashes differ
-                    logging.info("Hash digests differ")
+                    source_log.debug("Hash digests differ, proceeding with processing")
                     rcode = process(source)
                 else: # hashes are the same
-                    logging.info("Hash digests are equal")
+                    source_log.debug("Hash digests are equal, processing omitted")
                     rcode = 0
             else: # data is not in cache
-                logging.info("Processing due to absense of cache")
+                source_log.debug("Processing due to absense of cache")
                 rcode = process(source)
         else:
-            logging.info("Processing, ignoring cache")
+            source_log.debug("Processing, ignoring cache")
             rcode = process(source)
         
         if rcode == 0: # update cache if processing is successful
@@ -75,9 +74,13 @@ def main():
         
     end_time = time.perf_counter()
 
-    cache_mgr.write_cache()
+    try:
+        cache_mgr.write_cache()
+    except IOError as io_err:
+        print("Error: %s" % io_err, file=sys.stderr)
+        # do not exit here
 
-    print("Completed pool work in", end_time - start_time, "seconds.")
+    print("Completed processing in", end_time - start_time, "seconds.")
 
     # display detected errors
     errors_detected = False
@@ -91,9 +94,7 @@ def main():
         for i in range(0,len(source_list)):
             if proc_results[i] != 0:
                 print("  *!*", source_list[i].localfile)
-        print("Please refer to the [ERROR] tagged messages during output.")
-
-    print("Data processing complete.")
+        print("Please refer to the [ERROR] log messages during output.")
 
     
 if __name__ == '__main__':

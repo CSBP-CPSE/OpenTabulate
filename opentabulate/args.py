@@ -9,6 +9,7 @@ import os
 import sys
 import argparse
 import logging
+from opentabulate.config import ConfigError
 from opentabulate.config import DEFAULT_PATHS as def_paths
 from opentabulate.config import SUPPORTED_ENCODINGS as supp_enc
 from opentabulate.config import ENCODING_ERRORS as enc_errs
@@ -41,8 +42,6 @@ def parse_arguments():
                               help='clear processing redundancy cache')
     runtime_args.add_argument('--ignore-cache', action='store_true',
                               help='ignore processing redundancy cache')
-    #runtime_args.add_argument('-t', '--print-trace', action='store_true', \
-    #                      help='print traceback of errors')
     
     # configuration options
     config_args = cmd_args.add_argument_group('configuration arguments',
@@ -63,7 +62,7 @@ def parse_arguments():
     return cmd_args.parse_args()
 
 
-def validate_args_and_config(p_args, config):
+def validate_args_and_config(p_args, config, cache_manager):
     """
     Validate the configuration file and command line arguments, then perform
     actions based on the read parameters.
@@ -105,9 +104,16 @@ def validate_args_and_config(p_args, config):
         sys.exit(0)
 
     # load and validate configuration
-    config.load()
-    config.validate()
-
+    try:
+        config.load()
+        config.validate()
+    except ConfigError as conf_err:
+        print("Configuration error: %s" % conf_err, file=sys.stderr)
+        sys.exit(1)
+    except Exception as err: # other errors (such as loading file)
+        print("Error: %s" % err, file=sys.stderr)
+        sys.exit(1)
+   
     root_dir = config.get('general', 'root_directory')
 
     # check that root directory is an absolute path
@@ -130,15 +136,21 @@ def validate_args_and_config(p_args, config):
         os.chdir(root_dir)
 
         if len(os.listdir()) != 0:
-            print("OpenTabulate data directory is non-empty, cannot initialize",
+            print("OpenTabulate data directory is non-empty, cannot initialize.",
                   file=sys.stderr)
             sys.exit(1)
         else:
-            print("Populating OpenTabulate data directory.")
+            print("Populating OpenTabulate data directory...")
             for directory in data_folders:
                 os.makedirs(directory)
             print("Finished creating directories at: %s" % os.getcwd())
             sys.exit(0)
+
+    # clear cache and exit if --clear-cache flag is set
+    if p_args.clear_cache == True:
+        print("Clearing cache.")
+        cache_manager.write_cache() # this writes an empty cache
+        sys.exit(0)
 
     # update SOURCE paths to absolute paths *BEFORE* changing current working directory
     for i in range(len(p_args.SOURCE)):
@@ -148,19 +160,19 @@ def validate_args_and_config(p_args, config):
     try:
         os.chdir(root_dir)
     except (FileNotFoundError, NotADirectoryError):
-        print("Error! Configured OpenTabulate directory does not exist or"
+        print("Error: configured OpenTabulate directory does not exist or"
               " not a directory.", file=sys.stderr)
         sys.exit(1)
 
     # verify that the data directories are intact
     for directory in data_folders:
         if not os.path.isdir(directory):
-            print("Error! Data directories are misconfigured.", file=sys.stderr)
+            print("Error: data directories are misconfigured.", file=sys.stderr)
             sys.exit(1)
 
     # now we validate other command-line arguments here
     if p_args.SOURCE == []:
-        print("Error! The following arguments are required: SOURCE", file=sys.stderr)
+        print("Error: no SOURCE argument specified.", file=sys.stderr)
         sys.exit(1)
 
     
@@ -175,12 +187,12 @@ def validate_args_and_config(p_args, config):
         try:
             config.getboolean('general', 'add_index')
         except ValueError:
-            print("Error! Add index flag must be a boolean value", file=sys.stderr)
+            print("Error: add index flag must be a boolean value.", file=sys.stderr)
             sys.exit(1)
         
     if p_args.target_enc is not None:
         if p_args.target_enc not in supp_enc:
-            print("Error! '%s' is not a supported target encoding" 
+            print("Error: '%s' is not a supported output encoding." 
                   % p_args.target_enc, file=sys.stderr)
             sys.exit(1)
         else:
@@ -188,8 +200,8 @@ def validate_args_and_config(p_args, config):
 
     if p_args.output_enc_errors is not None:
         if p_args.output_enc_errors not in enc_errs:
-            print("Configuration error: '%s' is not a valid output encoding"
-                  " error handler" % p_args.output_enc_errors)
+            print("Error: '%s' is not an output encoding error handler."
+                  % p_args.output_enc_errors)
             sys.exit(1)
         else:
             config['general']['output_encoding_errors'] = p_args.output_enc_errors
@@ -199,7 +211,7 @@ def validate_args_and_config(p_args, config):
         try:
             config.getboolean('general', 'clean_whitespace')
         except ValueError:
-            print("Error! Clean whitespace flag must be a boolean value", file=sys.stderr)
+            print("Error: clean whitespace flag must be a boolean value.", file=sys.stderr)
             sys.exit(1)
 
     if p_args.lowercase is not None:
@@ -207,7 +219,7 @@ def validate_args_and_config(p_args, config):
         try:
             config.getboolean('general', 'lowercase_output')
         except ValueError:
-            print("Error! Lowercase flag must be a boolean value", file=sys.stderr)
+            print("Error: lowercase flag must be a boolean value.", file=sys.stderr)
             sys.exit(1)
             
     if p_args.log_level is not None:
@@ -215,7 +227,8 @@ def validate_args_and_config(p_args, config):
             logging.basicConfig(format='[%(levelname)s] <%(name)s>: %(message)s',
                                 level=log_level_map[p_args.log_level])
         else:
-            print("Error! Log level must be 0, 1, 2 or 3 (the lower, the more detailed)", file=sys.stderr)
+            print("Error: log level must be 0, 1, 2 or 3 (the lower, the more verbose).", 
+                  file=sys.stderr)
             sys.exit(1)
     else:
         logging.basicConfig(format='[%(levelname)s] <%(name)s>: %(message)s',

@@ -17,7 +17,6 @@ Created and written by Maksym Neyra-Nesterenko, with support and funding from th
 import csv
 import os
 import re
-from copy import deepcopy
 from xml.etree import ElementTree
 
 from opentabulate.config import SUPPORTED_ENCODINGS
@@ -71,12 +70,12 @@ class Algorithm(object):
                 self.NO_WHITESPACE = True if source.config.getboolean('general', 'clean_whitespace') else False
                 self.LOWERCASE = True if source.config.getboolean('general', 'lowercase_output') else False
 
-            source.logger.info("FILTER_FLAG set to %s" % self.FILTER_FLAG)
-            source.logger.info("PROVIDER_FLAG set to %s" % self.PROVIDER_FLAG)
-            source.logger.info("ADD_INDEX set to %s" % self.ADD_INDEX)
-            source.logger.info("NO_WHITESPACE set to %s" % self.NO_WHITESPACE)
-            source.logger.info("LOWERCASE set to %s" % self.LOWERCASE)
-            source.logger.info("OUTPUT_ENC_ERRORS set to %s" % self.OUTPUT_ENC_ERRORS)
+            source.logger.debug("FILTER_FLAG set to %s" % self.FILTER_FLAG)
+            source.logger.debug("PROVIDER_FLAG set to %s" % self.PROVIDER_FLAG)
+            source.logger.debug("ADD_INDEX set to %s" % self.ADD_INDEX)
+            source.logger.debug("NO_WHITESPACE set to %s" % self.NO_WHITESPACE)
+            source.logger.debug("LOWERCASE set to %s" % self.LOWERCASE)
+            source.logger.debug("OUTPUT_ENC_ERRORS set to %s" % self.OUTPUT_ENC_ERRORS)
 
     def char_encode_check(self):
         """
@@ -175,8 +174,7 @@ class CSV_Algorithm(Algorithm):
         Exceptions raised must be handled external to this module.
         """
         if not hasattr(self, 'label_map'):
-            self.source.logger.error("Missing 'label_map', 'construct_label_map' was not ran")
-            raise ValueError("Missing 'label_map' for parsing")
+            raise ValueError("Missing 'label_map' for parsing, 'construct_label_map' was not ran")
 
         tags = self.label_map
         enc = self.char_encode_check()
@@ -220,12 +218,14 @@ class CSV_Algorithm(Algorithm):
             for entity in csvreader:
                 row = dict()
 
+                no_row_entries = 0
+                for x in entity:
+                    if entity[x] is not None:
+                        no_row_entries += 1
+
                 # if there are more or less row entries than number of columns, throw error
-                if len(entity) != no_columns:
-                    self.source.logger.error(
-                        "Incorrect number of entries on line %s" % csvreader.line_num
-                    )
-                    raise csv.Error
+                if no_row_entries != no_columns:
+                    raise csv.Error("Incorrect number of entries on line %s" % csvreader.line_num)
                     
                 # filter entry
                 if not self._csv_keep_entry(entity):
@@ -325,8 +325,7 @@ class XML_Algorithm(Algorithm):
         Exceptions raised must be handled external to this module.
         """
         if not hasattr(self, 'label_map'):
-            self.source.logger.error("Missing 'label_map', 'construct_label_map' was not ran")
-            raise ValueError("Missing 'label_map' for parsing")
+            raise ValueError("Missing 'label_map' for parsing, 'construct_label_map' was not ran")
 
         tags = self.label_map
         header = self.source.metadata['format']['header']

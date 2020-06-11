@@ -48,14 +48,16 @@ class CacheManager():
     def read_cache(self):
         """
         Read and load cache file.
+
+        Raises:
+            IOError: read cache does not follow line structure defined by 'regex'
         """
         with open(self.CACHE_PATH, 'r') as cache_file:
             for line in cache_file:
                 match = self.regex.match(line)
                 
                 if match is None:
-                    print("Error reading cache, might be malformed. Try refreshing.", file=sys.stderr)
-                    sys.exit(1)
+                    raise IOError("Could not read cache, line structure is malformed")
 
                 self.cache.append(match.groups())
 
@@ -64,6 +66,9 @@ class CacheManager():
     def write_cache(self):
         """
         Commit cache changes by writing to disk.
+
+        Raises:
+            IOError: failed to write cache to disk.
         """
         os.rename(self.CACHE_PATH, self.CACHE_PATH + '.tmp')
         
@@ -72,10 +77,9 @@ class CacheManager():
                 for filename, digest in self.cache:
                     cache_file.write(filename + ' ' + digest + '\n')
         except:
-            print("Error! Could not write cache.", file=sys.stderr)
             os.remove(self.CACHE_PATH)
             os.rename(self.CACHE_PATH + '.tmp', self.CACHE_PATH)
-            return
+            raise IOError("Could not write cache.")
 
         os.remove(self.CACHE_PATH + '.tmp')
 

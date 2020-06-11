@@ -26,7 +26,7 @@ def parse_source_file(p_args, config):
     src_objects = list()
     src_errors = dict()
     
-    src_log = logging.getLogger('source')
+    src_log = logging.getLogger('parse_source')
     
     for source_path in p_args.SOURCE:
         src_log.debug("Creating source object: %s" % source_path)
@@ -81,8 +81,7 @@ def process(source):
     try:
         pipeline.tabulate()
     except Exception as e:
-        source_log.error("Error during tabulation: %s." % e)
-        traceback.print_exc()
+        source_log.error("%s exception: %s." % (type(e).__name__, e))
         return 1
 
     source_log.debug("Completed tabulation of '%s'" % pipeline.source.localfile)
