@@ -24,6 +24,7 @@ To review the code, the package is broken down into these parts:
 - opentab_funcs.py : wrapper functions for the command line tool
 - args.py : command line argument parsing and validation
 - config.py : configuration file parsing and validation
+- cache.py : cache manager class for avoiding redundant data processing
 - source.py : source file parsing and validation
 - tabulate.py : data processing wrappers
 - algorithm.py: data processing classes and methods
