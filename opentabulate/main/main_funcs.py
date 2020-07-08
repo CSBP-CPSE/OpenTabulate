@@ -10,8 +10,8 @@ Created and written by Maksym Neyra-Nesterenko, with support and funding from th
 import logging
 import sys
 import traceback
-import opentabulate.tabulate as tabulate
-from opentabulate.thread_exception import ThreadInterruptError
+import opentabulate.main.tabulate as tabulate
+from opentabulate.main.thread_exception import ThreadInterruptError
 
 def parse_source_file(p_args, config):
     """

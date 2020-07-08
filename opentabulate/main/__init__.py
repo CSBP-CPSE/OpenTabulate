@@ -18,11 +18,19 @@ Comprehensive documentation of OpenTabulate is linked here:
 https://opentabulate.readthedocs.io/en/stable/index.html
 
 
-The package is broken down into the following subfolders:
+In the 'main' module, consisting of the OpenTabulate code base, is broken down into
+these parts:
 
-- main    - OpenTabulate code base and main script entry point
-- share   - additional package data
-- tests   - OpenTabulate unit tests
+- main.py             - command line tool (used as console script entry point)
+- main_funcs.py       - wrapper functions for the command line tool
+- args.py             - command line argument parsing and validation
+- config.py           - configuration file parsing and validation
+- cache.py            - cache manager class for avoiding redundant data processing
+- source.py           - source file parsing and validation
+- tabulate.py         - data processing wrappers
+- algorithm.py        - data processing classes and methods
+- thread.py           - multithreading pool for OpenTabulate
+- thread_exception.py - exceptions for threading
 
 Created and written by Maksym Neyra-Nesterenko, with support and funding from the
 *Center for Special Business Projects* (CSBP) at *Statistics Canada*.

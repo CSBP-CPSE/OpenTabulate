@@ -12,8 +12,8 @@ from copy import deepcopy
 from threading import Thread, Event
 from queue import Queue, Empty
 
-from opentabulate.opentab_funcs import process
-from opentabulate.thread_exception import ThreadInterruptError
+from opentabulate.main.main_funcs import process
+from opentabulate.main.thread_exception import ThreadInterruptError
 
 class ThreadPool():
     """

@@ -14,7 +14,7 @@ with open("README.md", 'r') as readme:
 
 setup(
     name='opentabulate',
-    version='2.0.0',
+    version='2.1.0',
     description='Tabulates structured data into a mergeable CSV format',
     long_description=long_desc,
     long_description_content_type='text/markdown',
@@ -45,6 +45,6 @@ setup(
         'opentabulate' : ['share/opentabulate.example.conf']
     },
     entry_points={
-        'console_scripts': ['opentab=opentabulate.opentab:main']
+        'console_scripts': ['opentab=opentabulate.main.main:main']
     }
 )

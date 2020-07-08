@@ -9,10 +9,10 @@ import os
 import sys
 import argparse
 import logging
-from opentabulate.config import ConfigError
-from opentabulate.config import DEFAULT_PATHS as def_paths
-from opentabulate.config import SUPPORTED_ENCODINGS as supp_enc
-from opentabulate.config import ENCODING_ERRORS as enc_errs
+from opentabulate.main.config import ConfigError
+from opentabulate.main.config import DEFAULT_PATHS as def_paths
+from opentabulate.main.config import SUPPORTED_ENCODINGS as supp_enc
+from opentabulate.main.config import ENCODING_ERRORS as enc_errs
 
 def parse_arguments():
     """

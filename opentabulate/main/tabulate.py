@@ -21,8 +21,8 @@ import subprocess
 import sys
 from xml.etree import ElementTree
 
-from opentabulate.source import Source
-from opentabulate.algorithm import *
+from opentabulate.main.source import Source
+from opentabulate.main.algorithm import *
 
 class DataProcess(object):
     """

@@ -12,11 +12,11 @@ import signal
 import sys
 import time
 
-from opentabulate.args import parse_arguments, validate_args_and_config
-from opentabulate.config import Configuration
-from opentabulate.cache import CacheManager
-from opentabulate.opentab_funcs import parse_source_file
-from opentabulate.thread import ThreadPool
+from opentabulate.main.args import parse_arguments, validate_args_and_config
+from opentabulate.main.config import Configuration
+from opentabulate.main.cache import CacheManager
+from opentabulate.main.main_funcs import parse_source_file
+from opentabulate.main.thread import ThreadPool
 
 def main():
     config = Configuration()

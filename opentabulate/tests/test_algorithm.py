@@ -18,7 +18,7 @@ try:
     from opentabulate.algorithm import Algorithm
 except ImportError:
     print("ERROR, could not import OpenTabulate API.", file=sys.stderr)
-    exit(1)
+    sys.exit(1)
 
 
 def cmp_output_bytes(path1, path2):

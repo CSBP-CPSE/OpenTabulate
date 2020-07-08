@@ -19,8 +19,8 @@ import os
 import re
 from xml.etree import ElementTree
 
-from opentabulate.config import SUPPORTED_ENCODINGS
-from opentabulate.thread_exception import ThreadInterruptError
+from opentabulate.main.config import SUPPORTED_ENCODINGS
+from opentabulate.main.thread_exception import ThreadInterruptError
 
 #####################################
 # DATA PROCESSING ALGORITHM CLASSES #
