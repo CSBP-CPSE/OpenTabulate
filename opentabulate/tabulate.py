@@ -42,20 +42,23 @@ class DataProcess(object):
         self.source = source
         self.algorithm = algorithm
 
-    def prepareData(self):
+    def prepareData(self, interrupt=None):
         """
         Algorithm wrapper function.
 
         Selects a Algorithm subclass to be used to process data referred to by 
         the source file.
+
+        Args:
+            interrupt (threading.Event): Event to halt multi-threaded processing.
         """
         if self.source.metadata['format']['type'] == 'csv':
-            fmt_algorithm = CSV_Algorithm(self.source)
+            fmt_algorithm = CSV_Algorithm(self.source, interrupt)
             if 'encoding' not in self.source.metadata:
                 csv_encoding = fmt_algorithm.char_encode_check()
                 self.source.metadata['encoding'] = csv_encoding # prevents redundant encoding checks
         elif self.source.metadata['format']['type'] == 'xml':
-            fmt_algorithm = XML_Algorithm(self.source)
+            fmt_algorithm = XML_Algorithm(self.source, interrupt)
             
         # initialize self.algorithm for other methods
         self.algorithm = fmt_algorithm

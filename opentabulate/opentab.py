@@ -8,20 +8,23 @@ Center for Special Business Projects (CSBP) at Statistics Canada.
 """
 import logging
 import os
+import signal
 import sys
 import time
 
 from opentabulate.args import parse_arguments, validate_args_and_config
 from opentabulate.config import Configuration
 from opentabulate.cache import CacheManager
-from opentabulate.opentab_funcs import parse_source_file, process
+from opentabulate.opentab_funcs import parse_source_file
+from opentabulate.thread import ThreadPool
 
 def main():
     config = Configuration()
     parsed_args = parse_arguments()
-    cache_mgr = CacheManager()
+    input_cache_mgr = CacheManager(os.path.expanduser('~') + '/.cache/opentabulate/data_hashes.txt')
+    src_cache_mgr = CacheManager(os.path.expanduser('~') + '/.cache/opentabulate/src_hashes.txt')
     
-    validate_args_and_config(parsed_args, config, cache_mgr)
+    validate_args_and_config(parsed_args, config, [input_cache_mgr, src_cache_mgr])
 
     # parse source files
     source_list = parse_source_file(parsed_args, config)
@@ -34,48 +37,77 @@ def main():
     print("Beginning data processing.")
 
     try:
-        cache_mgr.read_cache()
+        input_cache_mgr.read_cache()
+        src_cache_mgr.read_cache()
     except IOError as io_err:
         print(io_err, file=sys.stderr)
         sys.exit(1)
 
-    start_time = time.perf_counter()
-    
-    proc_results = []
+    proc_sources = []
+    src_digests = []
+    data_digests = []
 
     for source in source_list:
         source_log = logging.getLogger(source.localfile)
-        current_digest = cache_mgr.compute_hash(source.input_path)
-        source_log.debug("Computed digest: %s" % current_digest)
+
+        current_input_digest = input_cache_mgr.compute_hash(source.input_path)
+        current_src_digest = src_cache_mgr.compute_hash(source.src_path)
+        
+        source_log.debug("Computed source file digest: %s" % current_src_digest)
+        source_log.debug("Computed input data digest: %s" % current_input_digest)
+       
         if parsed_args.ignore_cache == False:
-            idx, _, cached_digest = cache_mgr.query(source.localfile)
-            source_log.debug("Cached digest: %s" % cached_digest)
-            if idx is not None: # data appears in cache
-                if not os.path.exists(source.output_path): # output is missing
-                    source_log.debug("Output data is missing, processing anyway")
-                    rcode = process(source)
-                elif cached_digest != current_digest: # hashes differ
-                    source_log.debug("Hash digests differ, proceeding with processing")
-                    rcode = process(source)
-                else: # hashes are the same
-                    source_log.debug("Hash digests are equal, processing omitted")
-                    rcode = 0
-            else: # data is not in cache
-                source_log.debug("Processing due to absense of cache")
-                rcode = process(source)
+            s_idx, _, cached_src_digest = src_cache_mgr.query(source.src_path)
+            d_idx, _, cached_input_digest = input_cache_mgr.query(source.localfile)
+
+            source_log.debug("Cached source file digest: %s" % cached_src_digest)
+            source_log.debug("Cached input data digest: %s" % cached_input_digest)
+
+            add_to_proc = False
+
+            if not os.path.exists(source.output_path): # output is missing
+                source_log.debug("Output data is missing, proceeding anyway")
+                add_to_proc = True
+            elif (s_idx is None) or (d_idx is None): # hashes are not in cache
+                source_log.debug("Processing due to absense of cached digest")
+                add_to_proc = True
+            elif (cached_src_digest != current_src_digest) or \
+                 (cached_input_digest != current_input_digest): # hashes differ
+                source_log.debug("A pair of hash digests differ, proceeding with processing")
+                add_to_proc = True
+            else: # hashes are the same
+                source_log.debug("Both pairs of hash digests are equal, processing omitted")
+                add_to_proc = False
+
+            if add_to_proc:
+                proc_sources.append(source)
+                src_digests.append(current_src_digest)
+                data_digests.append(current_input_digest)
+        
         else:
             source_log.debug("Processing, ignoring cache")
-            rcode = process(source)
-        
-        if rcode == 0: # update cache if processing is successful
-            cache_mgr.insert(source.localfile, current_digest)
+            proc_sources.append(source)
+            src_digests.append(current_src_digest)
+            data_digests.append(current_input_digest)
 
-        proc_results.append(rcode)
-        
+    
+    start_time = time.perf_counter()
+    
+    with ThreadPool(proc_sources, num_threads=parsed_args.threads) as pool: # need num_threads to be command line args
+        pool.execute_threads()
+        proc_results = pool.get_rcodes()
+
     end_time = time.perf_counter()
 
+    
+    for i in range(len(proc_sources)):
+        if proc_results[i] == 0: # update cache if processing is successful
+            src_cache_mgr.insert(proc_sources[i].src_path, src_digests[i])
+            input_cache_mgr.insert(proc_sources[i].localfile, data_digests[i])
+
     try:
-        cache_mgr.write_cache()
+        src_cache_mgr.write_cache()
+        input_cache_mgr.write_cache()
     except IOError as io_err:
         print("Error: %s" % io_err, file=sys.stderr)
         # do not exit here
@@ -84,18 +116,30 @@ def main():
 
     # display detected errors
     errors_detected = False
-    for i in range(0,len(parsed_args.SOURCE)):
-        if proc_results[i] != 0:
+    incomplete_detected = False
+    
+    for val in proc_results:
+        if val != 0:
             errors_detected = True
             break
 
+    for val in proc_results:
+        if val is None:
+            incomplete_detected = True
+            break
+    
     if errors_detected:
-        print("Error occurred during processing of:") 
-        for i in range(0,len(source_list)):
-            if proc_results[i] != 0:
-                print("  *!*", source_list[i].localfile)
-        print("Please refer to the [ERROR] log messages during output.")
+        print("Error occurred during processing of:", file=sys.stderr) 
+        for i in range(len(proc_sources)):
+            if proc_results[i] == 1:
+                print("  *!*", proc_sources[i].localfile, file=sys.stderr)
+        print("Please refer to the [ERROR] log messages during output.", file=sys.stderr)
 
+    if incomplete_detected:
+        print("Sources listed below never processed or finished due to interrupt:", file=sys.stderr)
+        for i in range(len(proc_sources)):
+            if proc_results[i] is None:
+                print(" *x*", proc_sources[i].localfile, file=sys.stderr)
     
 if __name__ == '__main__':
     main()

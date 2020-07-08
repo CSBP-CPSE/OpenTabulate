@@ -20,31 +20,40 @@ import re
 from xml.etree import ElementTree
 
 from opentabulate.config import SUPPORTED_ENCODINGS
+from opentabulate.thread_exception import ThreadInterruptError
 
 #####################################
 # DATA PROCESSING ALGORITHM CLASSES #
 #####################################
         
-class Algorithm(object):
+class Algorithm():
     """
     Parent algorithm class for data processing.
 
     Attributes:
         source (Source): Dataset processing configuration and metadata.
+        interrupt (threading.Event): Event to halt multi-threaded processing. 
         label_map (dict): Column name mapping to output CSV.
         FORCE_REGEXP (re.Pattern): Regular expression for 'force' values in source.
+
+        OUTPUT_ENC_ERRORS (str): Flag for how to handle character encoding errors.
         FILTER_FLAG (bool): Flag for data filtering.
         PROVIDER_FLAG (bool): Flag for 'provider' column.
         ADD_INDEX (bool): Flag for 'idx' column.
+        NO_WHITESPACE (bool): Flag for handling unnecessary whitespace (e.g. new lines,
+            tabs, separation of words by multiple spaces)
+        LOWERCASE (bool): Flag to whether or not the output is made lowercase.
     """
-    def __init__(self, source=None):
+    def __init__(self, source=None, interrupt=None):
         """
         Initializes Algorithm object.
 
         Args:
             source (Source): Dataset abstraction.
+            interrupt (threading.Event): Event to halt multi-threaded processing. 
         """
         self.source = source
+        self.interrupt = interrupt
         self.label_map = None
 
         self.FORCE_REGEXP = re.compile('force:.*')
@@ -91,6 +100,7 @@ class Algorithm(object):
         Raises:
             ValueError: Invalid encoding from source.
             RunTimeError: Character encoding test failed.
+            ThreadInterruptError: Interrupt event occurred in main thread.
         """
         metadata = self.source.metadata
         if 'encoding' in metadata:
@@ -103,8 +113,9 @@ class Algorithm(object):
             for enc in SUPPORTED_ENCODINGS:
                 try:
                     with open(self.source.input_path, encoding=enc) as f:
-                        for line in f:
-                            pass
+                        for _ in f:
+                            if self.interrupt is not None and self.interrupt.is_set():
+                                raise ThreadInterruptError("Interrupt event occurred.")
                     return enc
                 except UnicodeDecodeError:
                     pass
@@ -116,12 +127,12 @@ class Algorithm(object):
     ##############################################
 
     def _generateFieldNames(self, keys):
-        """Generates headers (column names) for the target tabulated data."""
+        """Generate column names for the target tabulated data."""
         return [k for k in keys]
 
     def _isRowEmpty(self, row):
         """
-        Checks if a row (dict) has no non-empty entries.
+        Check if a row (dict) has no non-empty entries.
         
         Raises:
             AssertionError: Row value is not a string.
@@ -133,7 +144,7 @@ class Algorithm(object):
         return True
 
     def _quickCleanEntry(self, entry):
-        """Reformats a string using regex and returns it."""
+        """Reformat a string using regex and return it."""
         if isinstance(entry, bytes):
             entry = entry.decode()
 
@@ -172,6 +183,11 @@ class CSV_Algorithm(Algorithm):
         Parses a dataset in CSV format to transform into a standardized CSV format.
 
         Exceptions raised must be handled external to this module.
+
+        Raises:
+            ValueError: Label map for parsing data is missing.
+            csv.Error: Incorrect format of CSV data
+            ThreadInterruptError: Interrupt event occurred in main thread.
         """
         if not hasattr(self, 'label_map'):
             raise ValueError("Missing 'label_map' for parsing, 'construct_label_map' was not ran")
@@ -207,7 +223,7 @@ class CSV_Algorithm(Algorithm):
                 quoting=csv.QUOTE_MINIMAL
             )
 
-            # remove (possible) byte order mark (BOM)
+            # remove (possibly existing) byte order mark (BOM)
             csvreader.fieldnames[0] = re.sub(r"^\ufeff(.+)", r"\1", csvreader.fieldnames[0])
             no_columns = len(csvreader.fieldnames)
             
@@ -216,6 +232,9 @@ class CSV_Algorithm(Algorithm):
             idx = 0
             
             for entity in csvreader:
+                if self.interrupt is not None and self.interrupt.is_set():
+                    raise ThreadInterruptError("Interrupt event occurred")
+
                 row = dict()
 
                 no_row_entries = 0
@@ -323,6 +342,10 @@ class XML_Algorithm(Algorithm):
         Parses a dataset in XML format to transform into a standardized CSV format.
 
         Exceptions raised must be handled external to this module.
+
+        Raises:
+            ValueError: Label map for parsing data is missing.
+            ThreadInterruptError: Interrupt event occurred in main thread.
         """
         if not hasattr(self, 'label_map'):
             raise ValueError("Missing 'label_map' for parsing, 'construct_label_map' was not ran")
@@ -361,6 +384,9 @@ class XML_Algorithm(Algorithm):
             idx = 0
 
             for head_element in root.iter(header):
+                if self.interrupt is not None and self.interrupt.is_set():
+                    raise ThreadInterruptError("Interrupt event occurred")
+
                 row = dict()
 
                 # filter entry

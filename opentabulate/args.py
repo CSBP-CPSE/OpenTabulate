@@ -31,7 +31,6 @@ def parse_arguments():
     runtime_args = cmd_args.add_argument_group('runtime arguments')
     runtime_args.add_argument('-h', '--help', action='help',
                               help='show this help message and exit')
-
     runtime_args.add_argument('--initialize', action='store_true', 
                               help='create processing directories')
     runtime_args.add_argument('-c', '--copy-config', action='store_true',
@@ -42,6 +41,8 @@ def parse_arguments():
                               help='clear processing redundancy cache')
     runtime_args.add_argument('--ignore-cache', action='store_true',
                               help='ignore processing redundancy cache')
+    runtime_args.add_argument('-t', '--threads', action='store', default=1, type=int, metavar='N',
+                              help='multithread data processing on N threads')
     
     # configuration options
     config_args = cmd_args.add_argument_group('configuration arguments',
@@ -62,7 +63,7 @@ def parse_arguments():
     return cmd_args.parse_args()
 
 
-def validate_args_and_config(p_args, config, cache_manager):
+def validate_args_and_config(p_args, config, cache_mgrs):
     """
     Validate the configuration file and command line arguments, then perform
     actions based on the read parameters.
@@ -73,6 +74,7 @@ def validate_args_and_config(p_args, config, cache_manager):
     Args:
         p_args (argparse.Namespace): Parsed arguments.
         config (Configuration): OpenTabulate configuration.
+        cache_mgrs (list): List of CacheManager objects.
     """
     data_folders = ('./data', './data/input', './data/output', './sources')
     
@@ -149,7 +151,8 @@ def validate_args_and_config(p_args, config, cache_manager):
     # clear cache and exit if --clear-cache flag is set
     if p_args.clear_cache == True:
         print("Clearing cache.")
-        cache_manager.write_cache() # this writes an empty cache
+        for manager in cache_mgrs:
+            manager.write_cache() # this writes an empty cache
         sys.exit(0)
 
     # update SOURCE paths to absolute paths *BEFORE* changing current working directory
@@ -175,6 +178,9 @@ def validate_args_and_config(p_args, config, cache_manager):
         print("Error: no SOURCE argument specified.", file=sys.stderr)
         sys.exit(1)
 
+    if int(p_args.threads) <= 0:
+        print("Error: number of threads must be > 0.", file=sys.stderr)
+        sys.exit(1)
     
     log_level_map = {0 : logging.DEBUG,
                      1 : logging.INFO,

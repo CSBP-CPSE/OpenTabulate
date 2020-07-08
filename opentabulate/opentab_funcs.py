@@ -11,6 +11,7 @@ import logging
 import sys
 import traceback
 import opentabulate.tabulate as tabulate
+from opentabulate.thread_exception import ThreadInterruptError
 
 def parse_source_file(p_args, config):
     """
@@ -56,15 +57,17 @@ def parse_source_file(p_args, config):
         return src_objects
 
 
-def process(source):
+def process(source, interrupt):
     """
     Process and tabulate the data referenced by a Source object.
 
     Args:
         source (Source): Dataset processing configuration and metadata.
+        interrupt (threading.Event): Event to halt multi-threaded processing. 
 
     Returns:
         int: 1 if an error occurred, 0 otherwise.
+        None: an interrupt occurred during a call to prepareData.
     """
     pipeline = tabulate.DataProcess(source)
     source_log = logging.getLogger(source.localfile)
@@ -72,7 +75,13 @@ def process(source):
     source_log.debug("Tabulating '%s'" % pipeline.source.localfile)
 
     source_log.debug("Configuring algorithm objects ( pipeline.prepareData() )")
-    pipeline.prepareData()
+    try:
+        pipeline.prepareData(interrupt)
+    except ThreadInterruptError:
+        # if a thread interrupt occurs in prepareData, no tabulation has
+        # occurred, so this returns None (by default, sources that are in
+        # queue to process at assigned return code 'None')
+        return None 
 
     source_log.debug("Configuring output column names ( pipeline.extractLabels() )")
     pipeline.constructLabelMap()
@@ -80,7 +89,7 @@ def process(source):
     source_log.debug("Tabulating data ( pipeline.tabulate() )")
     try:
         pipeline.tabulate()
-    except Exception as e:
+    except Exception as e: # general exceptions are handled here
         source_log.error("%s exception: %s." % (type(e).__name__, e))
         return 1
 

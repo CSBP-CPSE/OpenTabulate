@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-Data processing cache management.
+Data processing cache management module.
 
-To avoid redundant processing, a hash of the input file is cached and is used to
-decide whether or not the input data will be processed. By default, no processing
-occurs for a given dataset if and only if its name and hash digest appear in the
-cache.
+To avoid redundant processing, a hash of the input file and corresponding source
+file is cached and used in future runs to decide whether or not the input data
+will be processed. By default, no processing occurs for a given dataset if and
+only if the source file and input file hashes appear in the caches.
 
 Created and written by Maksym Neyra-Nesterenko, with support and funding from the
 *Center for Special Business Projects* (CSBP) at *Statistics Canada*.
 """
-
 import hashlib
 import re
 import sys
@@ -29,20 +28,20 @@ class CacheManager():
     Attributes:
         regex (re.Pattern): regular expression used to parse the lines of cache
         cache (list): (sorted) list of '(filename, hash)' tuples
-        CACHE_PATH (str): hard-coded cache file path
+        cache_path (str): hard-coded cache file path
     """
-    def __init__(self):
+    def __init__(self, cache_path):
         """
         Constructor defines the cache manager attributes.
         """
         self.regex = re.compile('(.+) (.+)\n')
         self.cache = list()
-        self.CACHE_PATH = os.path.expanduser('~') + '/.cache/opentabulate/process_cache'
+        self.cache_path = cache_path
         
-        if not os.path.exists(self.CACHE_PATH):
-            dir_path = os.path.dirname(self.CACHE_PATH)
+        if not os.path.exists(self.cache_path):
+            dir_path = os.path.dirname(self.cache_path)
             os.makedirs(dir_path, exist_ok=True)
-            with open(self.CACHE_PATH, 'w'):
+            with open(self.cache_path, 'w'):
                 pass
 
     def read_cache(self):
@@ -52,7 +51,7 @@ class CacheManager():
         Raises:
             IOError: read cache does not follow line structure defined by 'regex'
         """
-        with open(self.CACHE_PATH, 'r') as cache_file:
+        with open(self.cache_path, 'r') as cache_file:
             for line in cache_file:
                 match = self.regex.match(line)
                 
@@ -70,18 +69,18 @@ class CacheManager():
         Raises:
             IOError: failed to write cache to disk.
         """
-        os.rename(self.CACHE_PATH, self.CACHE_PATH + '.tmp')
+        os.rename(self.cache_path, self.cache_path + '.tmp')
         
         try:
-            with open(self.CACHE_PATH, 'w') as cache_file:
+            with open(self.cache_path, 'w') as cache_file:
                 for filename, digest in self.cache:
                     cache_file.write(filename + ' ' + digest + '\n')
         except:
-            os.remove(self.CACHE_PATH)
-            os.rename(self.CACHE_PATH + '.tmp', self.CACHE_PATH)
+            os.remove(self.cache_path)
+            os.rename(self.cache_path + '.tmp', self.cache_path)
             raise IOError("Could not write cache.")
 
-        os.remove(self.CACHE_PATH + '.tmp')
+        os.remove(self.cache_path + '.tmp')
 
     def query(self, filename):
         """
