@@ -39,20 +39,21 @@ class TestAlgorithm(unittest.TestCase):
     """
     @classmethod
     def setUpClass(cls):
-        DATA_PATH = 'data/'
-        cls.config_file = DATA_PATH + "opentabulate.conf"
+        data_path = os.path.join(os.path.dirname(__file__), 'data')
+
+        cls.config_file = data_path + "/opentabulate.conf"
 
         # XML files for testing
-        cls.xml_src_input = DATA_PATH + "xml-source.json"
-        cls.xml_test_input = DATA_PATH + "xml-data.xml"
-        cls.xml_target_output = DATA_PATH + "xml-target-output.csv"
-        cls.xml_test_output = DATA_PATH + "xml-test-output.csv"
+        cls.xml_src_input = data_path + "/xml-source.json"
+        cls.xml_test_input = data_path + "/xml-data.xml"
+        cls.xml_target_output = data_path + "/xml-target-output.csv"
+        cls.xml_test_output = data_path + "/xml-test-output.csv"
 
         # CSV files for testing
-        cls.csv_src_input = DATA_PATH + "csv-source.json"
-        cls.csv_test_input = DATA_PATH + "csv-data.csv"
-        cls.csv_target_output = DATA_PATH + "csv-target-output.csv"
-        cls.csv_test_output = DATA_PATH + "csv-test-output.csv"
+        cls.csv_src_input = data_path + "/csv-source.json"
+        cls.csv_test_input = data_path + "/csv-data.csv"
+        cls.csv_target_output = data_path + "/csv-target-output.csv"
+        cls.csv_test_output = data_path + "/csv-test-output.csv"
         
         cls.a = Algorithm()
         cls.xa = XML_Algorithm()
@@ -103,7 +104,7 @@ class TestAlgorithm(unittest.TestCase):
         
     def test__is_row_empty(self):
         """
-        Test for self.a._isRowEmpty method.
+        Test for Algorithm._isRowEmpty method.
 
         A row contains all empty strings iff the method returns True.
         """
@@ -114,7 +115,7 @@ class TestAlgorithm(unittest.TestCase):
 
     def test__quick_clean_entry(self):
         """
-        Test for self.a._quickCleanEntry method.
+        Test for Algorithm._quickCleanEntry method.
 
         This method does basic cleaning to the input string. It has the
         option to
@@ -141,6 +142,11 @@ class TestAlgorithm(unittest.TestCase):
         self.a.LOWERCASE = None
 
     def test__is_force_value(self):
+        """
+        Test for Algorithm._isForceValue method.
+
+        Checks if a string matches the regular expression '^force:.*'.
+        """
         self.assertTrue(self.a._isForceValue('force:'))
         self.assertTrue(self.a._isForceValue('force:a'))
         self.assertFalse(self.a._isForceValue('Force:a'))
@@ -149,6 +155,12 @@ class TestAlgorithm(unittest.TestCase):
         self.assertFalse(self.a._isForceValue('force'))
 
     def test__xml_is_element_missing(self):
+        """
+        Test for XML_Algorithm._is_xml_element_missing method.
+        
+        Identifies if a XML element object has missing components, which should
+        return empty strings instead of None values.
+        """
         element = xmlElement('tag')
 
         self.assertEqual(self.xa._xml_is_element_missing(None, None, None), '')
@@ -162,7 +174,6 @@ class TestAlgorithm(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         pass
-        #os.remove(cls.xml_test_output)
 
 if __name__ == '__main__':
     unittest.main()
