@@ -85,7 +85,7 @@ def validate_args_and_config(p_args, config, cache_mgrs):
         
         conf_example = os.path.join(
             os.path.dirname(__file__),
-            'share/opentabulate.conf.example'
+            '../share/opentabulate.conf.example'
         )
         try:
             assert os.path.exists(conf_example)

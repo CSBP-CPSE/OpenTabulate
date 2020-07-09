@@ -38,8 +38,9 @@ setup(
         'Bug tracker': 'https://github.com/CSBP-CPSE/OpenTabulate/issues',
         'License': 'https://github.com/CSBP-CPSE/OpenTabulate/tree/master/LICENSE.md'
     },
-    packages=find_packages(exclude=['tests']),
     python_requires='>=3.5',
+    test_suite='opentabulate.tests',
+    packages=find_packages(exclude=['tests']),
     include_package_data=True,
     package_data={
         'opentabulate' : ['share/opentabulate.example.conf']
