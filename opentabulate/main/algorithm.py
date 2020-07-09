@@ -475,6 +475,8 @@ class XML_Algorithm(Algorithm):
         Returns:
             str: Empty string if missing or empty tag, otherwise element.text.
         """
+        # Note: tag_name and head_element were originally intended for logging and
+        # might be used this way in the future. It's current use is for debugging!
         if element is None:
             return ''
         elif element.text is not None:
