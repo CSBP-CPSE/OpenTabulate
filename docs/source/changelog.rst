@@ -8,13 +8,31 @@ Notable changes to OpenTabulate are listed below. This changelog format is based
 
 .. _release-2.0.0:
 
-------------
-[Unreleased]
-------------
+..
+  ------------
+  [Unreleased]
+  ------------
 
-- Parallel processing of input data using multithreading
+--------------------
+[2.1.0] - 2020-07-08
+--------------------
 
-  
+^^^^^
+Added
+^^^^^
+
+- Multithreading support to allow parallelized processing of input data
+- Caching using hash digests to avoid redundant data processing when invoking OpenTabulate more than once
+
+^^^^^^^
+Changed
+^^^^^^^
+
+- Improved error and logging messages
+- Reorganized package contents n a code base, additional package data and unit tests
+- Completed basic unit tests for ``algorithm.py``
+ 
+
 --------------------
 [2.0.0] - 2020-05-15
 --------------------
@@ -31,8 +49,7 @@ Added
 Changed
 ^^^^^^^
 
-- Refactored code (renamed variables, relocated classes into files,
-  removal of redundant code, implemented new functions)
+- Refactored code (renamed variables, relocated classes into files, removal of redundant code, implemented new functions)
 - Ported Markdown documentation to ReST/Sphinx, now hosted `here <https://opentabulate.readthedocs.io/en/stable/>`_
 
 ^^^^^^^
@@ -43,6 +60,7 @@ Removed
 - ZIP file handling
 - Address parsing
 - Preprocessing and postprocessing script management
+
 
 --------------------
 [1.0.1] - 2019-04-29

@@ -8,7 +8,7 @@ Welcome to OpenTabulate's documentation!
 
 OpenTabulate is an open source Python package developed by the Data Exploration and Integration Lab (DEIL) at Statistics Canada. Its original use was for DEIL's *Linkable Open Data Environment* (LODE) project, but has evolved since then. OpenTabulate provides the following core features:
 
-* a programmatic way of organizing processing and data using :ref:`sources files <source-files>` (inspired by `OpenAddresses <https://openaddress.io>`_),
+* a programmatic way of organizing data and processing using :ref:`sources files <source-files>` (inspired by `OpenAddresses <https://openaddress.io>`_),
 * transforms data to a standardized CSV format that is suitable for merging,
 * configurable settings that apply simple cleanup and standardization to the data.
 

@@ -37,6 +37,9 @@ Runtime arguments
 ``--ignore-cache`` : none
     Ignore hash digest comparisons with the redundancy cache when processing data. Note that the redundancy cache is still updated when using this flag. For more details on the redundancy cache, read the description for the ``--clear-cache`` flag above.
 
+``-t N``, ``--threads N`` : integer : *N > 0*
+    Run data processing tasks on *N* threads. This defaults to one thread if the option is not specified.
+
 ^^^^^^^^^^^^^^^^^^^^^^^
 Configuration arguments
 ^^^^^^^^^^^^^^^^^^^^^^^
