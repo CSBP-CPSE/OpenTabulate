@@ -1,0 +1,16 @@
+{
+    "localfile": "xml-data.xml",
+    "format": {
+	"type": "xml",
+	"header": "Item"
+    },
+    "encoding": "utf-8",
+    "schema_groups": ["label", "coordinates"],
+    "schema": {
+	"i" : "name",
+	"coordinates" : {
+	    "X" : "x",
+	    "Y" : "y"
+	}
+    }
+}

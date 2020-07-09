@@ -8,17 +8,12 @@ Created and written by Maksym Neyra-Nesterenko, with support and funding from th
 
 import re
 import os
-import sys
 import unittest
+from xml.etree.ElementTree import Element as xmlElement
 
-try:
-    from opentabulate.source import Source
-    from opentabulate.config import Configuration
-    from opentabulate.algorithm import XML_Algorithm
-    from opentabulate.algorithm import Algorithm
-except ImportError:
-    print("ERROR, could not import OpenTabulate API.", file=sys.stderr)
-    sys.exit(1)
+from opentabulate.main.source import Source
+from opentabulate.main.config import Configuration
+from opentabulate.main.algorithm import Algorithm, CSV_Algorithm, XML_Algorithm
 
 
 def cmp_output_bytes(path1, path2):
@@ -44,17 +39,45 @@ class TestAlgorithm(unittest.TestCase):
     """
     @classmethod
     def setUpClass(cls):
-        cls.src_input = "xml-source.json"
-        cls.target_output = "xml-target-output.csv"
-        cls.test_output = "xml-test-output.csv"
-        cls.config_file = "opentabulate.conf"
+        DATA_PATH = 'data/'
+        cls.config_file = DATA_PATH + "opentabulate.conf"
+
+        # XML files for testing
+        cls.xml_src_input = DATA_PATH + "xml-source.json"
+        cls.xml_test_input = DATA_PATH + "xml-data.xml"
+        cls.xml_target_output = DATA_PATH + "xml-target-output.csv"
+        cls.xml_test_output = DATA_PATH + "xml-test-output.csv"
+
+        # CSV files for testing
+        cls.csv_src_input = DATA_PATH + "csv-source.json"
+        cls.csv_test_input = DATA_PATH + "csv-data.csv"
+        cls.csv_target_output = DATA_PATH + "csv-target-output.csv"
+        cls.csv_test_output = DATA_PATH + "csv-test-output.csv"
+        
         cls.a = Algorithm()
+        cls.xa = XML_Algorithm()
 
     def test_basic_process_csv(self):
         """
         OpenTabulate CSV parsing and tabulation test.
         """
-        pass # TO DO..
+        config = Configuration(self.config_file)
+        config.load()
+        config.validate()
+
+        source = Source(self.csv_src_input, config=config, default_paths=False)
+        source.parse()
+
+        source.input_path = self.csv_test_input
+        source.output_path = self.csv_test_output
+
+        csv_alg = CSV_Algorithm(source)
+        csv_alg.construct_label_map()
+        csv_alg.tabulate()
+
+        self.assertTrue(
+            cmp_output_bytes(self.csv_target_output, self.csv_test_output)
+        )
       
     def test_basic_process_xml(self):
         """
@@ -64,18 +87,18 @@ class TestAlgorithm(unittest.TestCase):
         config.load()
         config.validate()
         
-        source = Source(self.src_input, config=config, default_paths=False)
+        source = Source(self.xml_src_input, config=config, default_paths=False)
         source.parse()
         
-        source.input_path = source.localfile
-        source.output_path = self.test_output
+        source.input_path = self.xml_test_input
+        source.output_path = self.xml_test_output
         
         xml_alg = XML_Algorithm(source)
         xml_alg.construct_label_map()
         xml_alg.tabulate()
         
         self.assertTrue(
-            cmp_output_bytes(self.target_output, self.test_output)
+            cmp_output_bytes(self.xml_target_output, self.xml_test_output)
         )
         
     def test__is_row_empty(self):
@@ -124,11 +147,22 @@ class TestAlgorithm(unittest.TestCase):
         self.assertFalse(self.a._isForceValue('FORCE:a'))
         self.assertFalse(self.a._isForceValue('force a'))
         self.assertFalse(self.a._isForceValue('force'))
+
+    def test__xml_is_element_missing(self):
+        element = xmlElement('tag')
+
+        self.assertEqual(self.xa._xml_is_element_missing(None, None, None), '')
+        self.assertEqual(self.xa._xml_is_element_missing(element, None, None), '')
+
+        text = 'hello world'
+        element.text = text
+
+        self.assertEqual(self.xa._xml_is_element_missing(element, None, None), text)
         
     @classmethod
     def tearDownClass(cls):
         pass
-        #os.remove(cls.test_output)
+        #os.remove(cls.xml_test_output)
 
 if __name__ == '__main__':
     unittest.main()

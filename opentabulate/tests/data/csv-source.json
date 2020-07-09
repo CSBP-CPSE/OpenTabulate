@@ -1,8 +1,9 @@
 {
-    "localfile": "data.xml",
+    "localfile": "csv-data.csv",
     "format": {
-	"type": "xml",
-	"header": "Item"
+	"type": "csv",
+	"delimiter": ",",
+	"quote": "\""
     },
     "encoding": "utf-8",
     "schema_groups": ["label", "coordinates"],
