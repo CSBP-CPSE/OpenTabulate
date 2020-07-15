@@ -22,7 +22,7 @@ copyright = '2016, Government of Canada'
 author = 'Maksym Neyra-Nesterenko'
 
 # The full version, including alpha/beta/rc tags
-release = '2.1.0'
+release = '2.1.1'
 
 
 # -- General configuration ---------------------------------------------------
