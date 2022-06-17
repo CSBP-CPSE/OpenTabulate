@@ -148,7 +148,7 @@ class Configuration(ConfigParser):
         # validate output encoding error handling
         handler = self.get('general', 'output_encoding_errors')
         if handler not in ENCODING_ERRORS:
-            raise ConfigError("'%s' is not an output encoding error handler") 
+            raise ConfigError("'%s' is not an output encoding error handler" % handler) 
 
         # validate labels to make sure they are tuples and column names are not
         # reserved words
