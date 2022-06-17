@@ -159,7 +159,7 @@ class Configuration(ConfigParser):
                 value = literal_eval(self.get('labels', option))
                 assert isinstance(value, tuple)
             except:
-                raise ConfigError("Value of label '%s' is not a tuple")
+                raise ConfigError("Value of label '%s' is not a tuple" % option)
 
             for col in value:
                 if col in reserved_cols:
