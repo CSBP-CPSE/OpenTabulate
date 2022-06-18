@@ -48,7 +48,7 @@ The following are valid key-value pairs for the section ``[general]``.
 ``clean_whitespace`` : boolean : false
     A flag for whether or not OpenTabulate should clean extraneous whitespace in the input.
 
-``lowercase_entries`` : boolean : false
+``lowercase_output`` : boolean : false
     A flag for whether or not OpenTabulate should lowercase all the entries in the input.
 
 ``verbosity_level`` : integer : 3

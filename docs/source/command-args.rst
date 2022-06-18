@@ -65,7 +65,7 @@ These options override those configured in the :ref:`configuration file<configur
     Toggle whether or not extraneous whitespace should be cleaned. This overrides the ``clean_whitespace`` configuration option.
 
 ``--lowercase BOOL`` : boolean
-    Toggle whether or not all output characters should be lowercase. This overrides the ``lowercase_entries`` configuration option.
+    Toggle whether or not all output characters should be lowercase. This overrides the ``lowercase_output`` configuration option.
 
 ``-l N``, ``--log-level N`` : integer : *0*, *1*, *2*, *3*
     Set the logger level verbosity. The lower the level, the more verbose. Primarily used for debugging.  This overrides the ``verbosity_level`` configuration option.
