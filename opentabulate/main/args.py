@@ -115,8 +115,9 @@ def validate_args_and_config(p_args, config, cache_mgrs):
     except Exception as err: # other errors (such as loading file)
         print("Error: %s" % err, file=sys.stderr)
         sys.exit(1)
-   
-    root_dir = config.get('general', 'root_directory')
+
+    # remove quotes from around root dir
+    root_dir = config.get('general', 'root_directory').replace('"', '').replace("'", "")
 
     # check that root directory is an absolute path
     try:

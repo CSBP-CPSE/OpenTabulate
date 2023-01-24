@@ -16,6 +16,7 @@ Created and written by Maksym Neyra-Nesterenko, with support and funding from th
 
 import csv
 import os
+import platform
 import re
 from xml.etree import ElementTree
 
@@ -195,10 +196,18 @@ class CSV_Algorithm(Algorithm):
         tags = self.label_map
         enc = self.char_encode_check()
 
+        # on Windows, remove extra newline
+        # https://docs.python.org/3/library/csv.html#examples
+        if platform.system() == "Windows":
+            newl = ''
+        else:
+            newl = '\n'
+
         with open(self.source.input_path, 'r', encoding=enc) as csv_file_read, \
              open(self.source.output_path, 'w',
                   encoding=self.source.config.get('general', 'target_encoding'),
-                  errors=self.OUTPUT_ENC_ERRORS
+                  errors=self.OUTPUT_ENC_ERRORS,
+                  newline=newl
              ) as csv_file_write:
             # define column labels
             fieldnames = self._generateFieldNames(tags)
