@@ -1,0 +1,46 @@
+{
+	"type" : "FeatureCollection",
+	"name" : "TestData",
+	"features" : [
+		{
+			"type" : "Feature",
+			"geometry" : {
+				"type" : "Point",
+				"coordinates" : [ 0, -1 ]
+			},
+			"properties" : {
+				"name" : "A,B"
+			}
+		},
+		{
+			"type" : "Feature",
+			"geometry" : {
+				"type" : "Point",
+				"coordinates" : [ 1, 0 ]
+			},
+			"properties" : {
+				"name" : "C D"
+			}
+		},
+		{
+			"type" : "Feature",
+			"geometry" : {
+				"type" : "Point",
+				"coordinates" : [ 0, 0 ]
+			},
+			"properties" : {
+				"name" : "A,D"
+			}
+		},
+		{
+			"type" : "Feature",
+			"geometry" : {
+				"type" : "Point",
+				"coordinates" : [ -1, 1 ]
+			},
+			"properties" : {
+				"name" : "C C"
+			}
+		}
+	]
+}

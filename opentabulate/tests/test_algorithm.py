@@ -13,7 +13,7 @@ from xml.etree.ElementTree import Element as xmlElement
 
 from opentabulate.main.source import Source
 from opentabulate.main.config import Configuration
-from opentabulate.main.algorithms import Algorithm, CSV_Algorithm, XML_Algorithm
+from opentabulate.main.algorithms import Algorithm, CSV_Algorithm, XML_Algorithm, GeoJSON_Algorithm
 
 
 def cmp_output_bytes(path1, path2):
@@ -48,6 +48,12 @@ class TestAlgorithm(unittest.TestCase):
         data_path = os.path.join(os.path.dirname(__file__), 'data')
 
         cls.config_file = data_path + "/opentabulate.conf"
+
+        # GeoJSON files for testing
+        cls.geojson_src_input = data_path + "/geojson-source.json"
+        cls.geojson_test_input = data_path + "/geojson-data.geojson"
+        cls.geojson_target_output = data_path + "/geojson-target-output.csv"
+        cls.geojson_test_output = data_path + "/geojson-test-output.csv"
 
         # XML files for testing
         cls.xml_src_input = data_path + "/xml-source.json"
@@ -107,7 +113,29 @@ class TestAlgorithm(unittest.TestCase):
         self.assertTrue(
             cmp_output_bytes(self.xml_target_output, self.xml_test_output)
         )
+
+    def test_basic_process_geojson(self):
+        """
+        OpenTabulate GeoJSON parsing and tabulation test.
+        """
+        config = Configuration(self.config_file)
+        config.load()
+        config.validate()
         
+        source = Source(self.geojson_src_input, config=config, default_paths=False)
+        source.parse()
+        
+        source.input_path = self.geojson_test_input
+        source.output_path = self.geojson_test_output
+        
+        geojson_alg = GeoJSON_Algorithm(source)
+        geojson_alg.construct_label_map()
+        geojson_alg.tabulate()
+        
+        self.assertTrue(
+            cmp_output_bytes(self.geojson_target_output, self.geojson_test_output)
+        )
+
     def test__is_row_empty(self):
         """
         Test for Algorithm._isRowEmpty method.

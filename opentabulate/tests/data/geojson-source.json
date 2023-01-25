@@ -1,0 +1,16 @@
+{
+    "localfile": "geojson-data.geojson",
+    "format": {
+	"type": "geojson",
+	"crs": "epsg:4326"
+    },
+    "encoding": "utf-8",
+    "schema_groups": ["label", "coordinates"],
+    "schema": {
+	"i" : "name",
+	"coordinates" : {
+	    "X" : "LONGITUDE",
+	    "Y" : "LATITUDE"
+	}
+    }
+}
