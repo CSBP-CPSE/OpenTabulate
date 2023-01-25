@@ -13,7 +13,7 @@ from xml.etree.ElementTree import Element as xmlElement
 
 from opentabulate.main.source import Source
 from opentabulate.main.config import Configuration
-from opentabulate.main.algorithm import Algorithm, CSV_Algorithm, XML_Algorithm
+from opentabulate.main.algorithms import Algorithm, CSV_Algorithm, XML_Algorithm
 
 
 def cmp_output_bytes(path1, path2):
@@ -31,6 +31,12 @@ def cmp_output_bytes(path1, path2):
                 break
         return True
 
+
+# Mock class for testing Algorithm
+# Implements empty tabulate
+class MockAlgorithm(Algorithm):
+    def tabulate(self):
+        pass
 
 class TestAlgorithm(unittest.TestCase):
     """
@@ -55,7 +61,7 @@ class TestAlgorithm(unittest.TestCase):
         cls.csv_target_output = data_path + "/csv-target-output.csv"
         cls.csv_test_output = data_path + "/csv-test-output.csv"
         
-        cls.a = Algorithm()
+        cls.a  = MockAlgorithm()
         cls.xa = XML_Algorithm()
 
     def test_basic_process_csv(self):
@@ -140,6 +146,18 @@ class TestAlgorithm(unittest.TestCase):
         self.assertEqual(self.a._quickCleanEntry('ABCabc123!@$'), 'abcabc123!@$')
 
         self.a.LOWERCASE = None
+
+        self.a.TITLECASE = True
+
+        self.assertEqual(self.a._quickCleanEntry('ABCabc123!@$'), 'Abcabc123!@$')
+
+        self.a.TITLECASE = None
+
+        self.a.UPPERCASE = True
+
+        self.assertEqual(self.a._quickCleanEntry('ABCabc123!@$'), 'ABCABC123!@$')
+
+        self.a.UPPERCASE = None
 
     def test__is_force_value(self):
         """

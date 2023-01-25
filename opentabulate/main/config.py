@@ -79,7 +79,8 @@ class Configuration(ConfigParser):
         base_sections = ('general', 'labels')
     
         general_section = ('root_directory', 'add_index', 'target_encoding',
-                           'output_encoding_errors', 'clean_whitespace', 'lowercase_output',
+                           'output_encoding_errors', 'clean_whitespace', 
+                           'lowercase_output', 'titlecase_output', 'uppercase_output',
                            'log_level')
 
         reserved_cols = ('idx', 'provider')
@@ -117,6 +118,8 @@ class Configuration(ConfigParser):
                     'add_index' : 'false',
                     'clean_whitespace' : 'false',
                     'lowercase_output' : 'false',
+                    'titlecase_output' : 'false',
+                    'uppercase_output' : 'false',
                     'log_level' : '3'}
 
         for def_opt in defaults:
@@ -124,7 +127,7 @@ class Configuration(ConfigParser):
                 self.set('general', def_opt, defaults[def_opt])
 
         # validate boolean options
-        boolean_options = ('add_index', 'clean_whitespace', 'lowercase_output')
+        boolean_options = ('add_index', 'clean_whitespace', 'lowercase_output', 'titlecase_output', 'uppercase_output')
         for option in boolean_options:
             try:
                 self.getboolean('general', option)
