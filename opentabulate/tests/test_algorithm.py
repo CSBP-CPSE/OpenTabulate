@@ -13,7 +13,7 @@ from xml.etree.ElementTree import Element as xmlElement
 
 from opentabulate.main.source import Source
 from opentabulate.main.config import Configuration
-from opentabulate.main.algorithms import Algorithm, CSV_Algorithm, XML_Algorithm, GeoJSON_Algorithm
+from opentabulate.main.algorithms import Algorithm, CSV_Algorithm, XML_Algorithm, GeoJSON_Algorithm, JSON_Algorithm
 
 
 def cmp_output_bytes(path1, path2):
@@ -220,6 +220,64 @@ class TestAlgorithm(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         pass
+
+class TestJSON_Algorithm(unittest.TestCase):
+    """
+    Algorithm class unit tests to verify correct output after running extract_labels() 
+    and parse() methods.
+    """
+    @classmethod
+    def setUpClass(cls):
+        data_path = os.path.join(os.path.dirname(__file__), 'data')
+
+        cls.config_file = data_path + "/opentabulate.conf"
+
+        # JSON files - split format
+        cls.split_src_input = data_path + "/json-split-source.json"
+        cls.split_test_input = data_path + "/json-split-data.json"
+        cls.split_target_output = data_path + "/json-split-target-output.csv"
+        cls.split_test_output = data_path + "/json-split-test-output.csv"
+
+        # XML files for testing
+        #cls.xml_src_input = data_path + "/xml-source.json"
+        #cls.xml_test_input = data_path + "/xml-data.xml"
+        #cls.xml_target_output = data_path + "/xml-target-output.csv"
+        #cls.xml_test_output = data_path + "/xml-test-output.csv"
+
+        # CSV files for testing
+        #cls.csv_src_input = data_path + "/csv-source.json"
+        #cls.csv_test_input = data_path + "/csv-data.csv"
+        #cls.csv_target_output = data_path + "/csv-target-output.csv"
+        #cls.csv_test_output = data_path + "/csv-test-output.csv"
+        
+    def test_basic_process_split_data(self):
+        """
+        OpenTabulate JSON parsing and tabulation test - split data format
+        """
+
+        config = Configuration(self.config_file)
+        config.load()
+        config.validate()
+        
+        source = Source(self.split_src_input, config=config, default_paths=False)
+        source.parse()
+
+        source.input_path = self.split_test_input
+        source.output_path = self.split_test_output
+        
+        json_alg = JSON_Algorithm(source)
+        json_alg.construct_label_map()
+        json_alg.tabulate()
+        
+        self.assertTrue(
+            cmp_output_bytes(self.split_target_output, self.split_test_output)
+        )
+
+
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
 
 if __name__ == '__main__':
     unittest.main()

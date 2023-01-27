@@ -13,14 +13,9 @@ Created and written by Marcello Barisonzi, with support and funding from the
 # MODULES AND IMPORTS #
 #######################
 
-import csv
-import os
-import re
 import pandas as pd
 
 from .algorithm import Algorithm
-from opentabulate.main.config import SUPPORTED_ENCODINGS
-from opentabulate.main.thread_exception import ThreadInterruptError
 
 #####################################
 # DATA PROCESSING ALGORITHM CLASSES #
@@ -58,7 +53,7 @@ class JSON_Algorithm(Algorithm):
 
         # read input file into DataFrame
         with open(self.source.input_path, 'r', encoding=enc) as f:
-            df = pd.read_json(f, 'r', encoding=enc, orient=orient)
+            df = pd.read_json(f, encoding=enc, orient=orient)
 
             df.rename(columns=tags, inplace=True)
 
