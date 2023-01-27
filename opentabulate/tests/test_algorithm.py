@@ -243,11 +243,10 @@ class TestJSON_Algorithm(unittest.TestCase):
         cls.records_test_input = data_path + "/json-records-data.json"
         cls.records_test_output = data_path + "/json-records-test-output.csv"
 
-        # CSV files for testing
-        #cls.csv_src_input = data_path + "/csv-source.json"
-        #cls.csv_test_input = data_path + "/csv-data.csv"
-        #cls.csv_target_output = data_path + "/csv-target-output.csv"
-        #cls.csv_test_output = data_path + "/csv-test-output.csv"
+        # JSON files - index format
+        cls.index_src_input = data_path + "/json-index-source.json"
+        cls.index_test_input = data_path + "/json-index-data.json"
+        cls.index_test_output = data_path + "/json-index-test-output.csv"
         
     def test_basic_process_split_data(self):
         """
@@ -293,6 +292,29 @@ class TestJSON_Algorithm(unittest.TestCase):
         
         self.assertTrue(
             cmp_output_bytes(self.target_output, self.records_test_output)
+        )
+
+    def test_basic_process_index_data(self):
+        """
+        OpenTabulate JSON parsing and tabulation test - index data format
+        """
+
+        config = Configuration(self.config_file)
+        config.load()
+        config.validate()
+        
+        source = Source(self.index_src_input, config=config, default_paths=False)
+        source.parse()
+
+        source.input_path = self.index_test_input
+        source.output_path = self.index_test_output
+        
+        json_alg = JSON_Algorithm(source)
+        json_alg.construct_label_map()
+        json_alg.tabulate()
+        
+        self.assertTrue(
+            cmp_output_bytes(self.target_output, self.index_test_output)
         )
 
     @classmethod
