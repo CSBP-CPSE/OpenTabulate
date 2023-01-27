@@ -231,18 +231,17 @@ class TestJSON_Algorithm(unittest.TestCase):
         data_path = os.path.join(os.path.dirname(__file__), 'data')
 
         cls.config_file = data_path + "/opentabulate.conf"
+        cls.target_output = data_path + "/json-target-output.csv"
 
         # JSON files - split format
         cls.split_src_input = data_path + "/json-split-source.json"
         cls.split_test_input = data_path + "/json-split-data.json"
-        cls.split_target_output = data_path + "/json-split-target-output.csv"
         cls.split_test_output = data_path + "/json-split-test-output.csv"
 
-        # XML files for testing
-        #cls.xml_src_input = data_path + "/xml-source.json"
-        #cls.xml_test_input = data_path + "/xml-data.xml"
-        #cls.xml_target_output = data_path + "/xml-target-output.csv"
-        #cls.xml_test_output = data_path + "/xml-test-output.csv"
+        # JSON files - records format
+        cls.records_src_input = data_path + "/json-records-source.json"
+        cls.records_test_input = data_path + "/json-records-data.json"
+        cls.records_test_output = data_path + "/json-records-test-output.csv"
 
         # CSV files for testing
         #cls.csv_src_input = data_path + "/csv-source.json"
@@ -270,9 +269,31 @@ class TestJSON_Algorithm(unittest.TestCase):
         json_alg.tabulate()
         
         self.assertTrue(
-            cmp_output_bytes(self.split_target_output, self.split_test_output)
+            cmp_output_bytes(self.target_output, self.split_test_output)
         )
 
+    def test_basic_process_records_data(self):
+        """
+        OpenTabulate JSON parsing and tabulation test - records data format
+        """
+
+        config = Configuration(self.config_file)
+        config.load()
+        config.validate()
+        
+        source = Source(self.records_src_input, config=config, default_paths=False)
+        source.parse()
+
+        source.input_path = self.records_test_input
+        source.output_path = self.records_test_output
+        
+        json_alg = JSON_Algorithm(source)
+        json_alg.construct_label_map()
+        json_alg.tabulate()
+        
+        self.assertTrue(
+            cmp_output_bytes(self.target_output, self.records_test_output)
+        )
 
     @classmethod
     def tearDownClass(cls):
