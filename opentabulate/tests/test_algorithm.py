@@ -253,6 +253,11 @@ class TestJSON_Algorithm(unittest.TestCase):
         cls.columns_test_input = data_path + "/json-columns-data.json"
         cls.columns_test_output = data_path + "/json-columns-test-output.csv"
 
+        # JSON files - table format
+        cls.table_src_input = data_path + "/json-table-source.json"
+        cls.table_test_input = data_path + "/json-table-data.json"
+        cls.table_test_output = data_path + "/json-table-test-output.csv"
+
     def test_basic_process_split_data(self):
         """
         OpenTabulate JSON parsing and tabulation test - split data format
@@ -343,6 +348,29 @@ class TestJSON_Algorithm(unittest.TestCase):
         
         self.assertTrue(
             cmp_output_bytes(self.target_output, self.columns_test_output)
+        )
+
+    def test_basic_process_table_data(self):
+        """
+        OpenTabulate JSON parsing and tabulation test - table data format
+        """
+
+        config = Configuration(self.config_file)
+        config.load()
+        config.validate()
+        
+        source = Source(self.table_src_input, config=config, default_paths=False)
+        source.parse()
+
+        source.input_path = self.table_test_input
+        source.output_path = self.table_test_output
+        
+        json_alg = JSON_Algorithm(source)
+        json_alg.construct_label_map()
+        json_alg.tabulate()
+        
+        self.assertTrue(
+            cmp_output_bytes(self.target_output, self.table_test_output)
         )
 
     @classmethod

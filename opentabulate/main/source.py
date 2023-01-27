@@ -181,7 +181,7 @@ class Source(object):
         elif (self.metadata['format']['type'] == 'json'):
             # -- JSON --
             # json orientation for pandas
-            orients = ['split','records','index', 'columns','values', 'table']
+            orients = ['split','records','index', 'columns', 'table']
             if 'orient' not in self.metadata['format']:
                 raise LookupError("%s 'format.orient' tag is missing for format 'json'" % src_basename)
             elif not isinstance(self.metadata['format']['orient'], str):
