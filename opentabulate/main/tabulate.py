@@ -22,7 +22,7 @@ import sys
 from xml.etree import ElementTree
 
 from opentabulate.main.source import Source
-from opentabulate.main.algorithm import *
+from opentabulate.main.algorithms import *
 
 class DataProcess(object):
     """
@@ -51,14 +51,24 @@ class DataProcess(object):
 
         Args:
             interrupt (threading.Event): Event to halt multi-threaded processing.
+
+        Raises:
+            Data format unknown.
         """
-        if self.source.metadata['format']['type'] == 'csv':
+        format = self.source.metadata['format']['type'] 
+        if format == 'csv':
             fmt_algorithm = CSV_Algorithm(self.source, interrupt)
             if 'encoding' not in self.source.metadata:
                 csv_encoding = fmt_algorithm.char_encode_check()
                 self.source.metadata['encoding'] = csv_encoding # prevents redundant encoding checks
-        elif self.source.metadata['format']['type'] == 'xml':
+        elif format == 'xml':
             fmt_algorithm = XML_Algorithm(self.source, interrupt)
+        elif format == 'geojson':
+            fmt_algorithm = GeoJSON_Algorithm(self.source, interrupt)
+        elif format == 'json':
+            fmt_algorithm = JSON_Algorithm(self.source, interrupt)
+        else:
+            raise ValueError("Data format %s unknown." % format)
             
         # initialize self.algorithm for other methods
         self.algorithm = fmt_algorithm

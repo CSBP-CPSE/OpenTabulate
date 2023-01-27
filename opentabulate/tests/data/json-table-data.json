@@ -1,0 +1,52 @@
+{
+    "schema": {
+        "fields": [
+            {
+                "name": "index",
+                "type": "integer"
+            },
+            {
+                "name": "name",
+                "type": "string"
+            },
+            {
+                "name": "x",
+                "type": "integer"
+            },
+            {
+                "name": "y",
+                "type": "integer"
+            }
+        ],
+        "primaryKey": [
+            "index"
+        ],
+        "pandas_version": "1.4.0"
+    },
+    "data": [
+        {
+            "index": 0,
+            "name": "A,B",
+            "x": 0,
+            "y": -1
+        },
+        {
+            "index": 1,
+            "name": "C D",
+            "x": 1,
+            "y": 0
+        },
+        {
+            "index": 2,
+            "name": "A,D",
+            "x": 0,
+            "y": 0
+        },
+        {
+            "index": 3,
+            "name": "C C",
+            "x": -1,
+            "y": 1
+        }
+    ]
+}

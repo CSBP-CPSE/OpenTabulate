@@ -16,7 +16,7 @@ import json
 import logging
 import os
 import re
-import sys
+
 from ast import literal_eval
 
 class Source(object):
@@ -177,6 +177,26 @@ class Source(object):
                 raise LookupError("%s 'format.header' tag is missing for format 'xml'" % src_basename)
             elif not isinstance(self.metadata['format']['header'], str):
                 raise TypeError("%s 'format.header' must be a string." % src_basename)
+
+        elif (self.metadata['format']['type'] == 'json'):
+            # -- JSON --
+            # json orientation for pandas
+            orients = ['split','records','index', 'columns', 'table']
+            if 'orient' not in self.metadata['format']:
+                raise LookupError("%s 'format.orient' tag is missing for format 'json'" % src_basename)
+            elif not isinstance(self.metadata['format']['orient'], str):
+                raise TypeError("%s 'format.orient' must be a string." % src_basename)
+            elif self.metadata['format']['orient'] not in orients:
+                raise TypeError("%s 'format.orient' must be one of: %s." % (src_basename, ", ".join(orients)))
+
+        elif (self.metadata['format']['type'] == 'geojson'):
+            # -- GeoJSON --
+            # CRS
+            if 'crs' not in self.metadata['format']:
+                raise LookupError("%s 'format.crs' tag is missing for format 'geojson'" % src_basename)
+            elif not isinstance(self.metadata['format']['crs'], str):
+                raise TypeError("%s 'format.crs' must be a string." % src_basename)
+
         else:
             # -- unsupported format --
             raise ValueError("%s Unsupported data format '%s'" % (src_basename, self.metadata['format']['type']))
@@ -215,7 +235,7 @@ class Source(object):
                 'input' : './data/input',
                 'output' : './data/output'
             }
-            extensions = ('.csv', '.xml')
+            extensions = ('.csv', '.xml', '.json', '.geojson')
             basename = os.path.splitext(self.localfile)
 
             assert basename[1] in extensions, \
@@ -227,7 +247,7 @@ class Source(object):
         # check entire source to make sure correct keys are being used
         root_layer = ('localfile', 'format', 'schema_groups', 'encoding', 'schema',
                       'filter', 'provider', 'licence', 'source')
-        format_layer = ('type', 'header', 'quote', 'delimiter')
+        format_layer = ('type', 'header', 'quote', 'delimiter', 'orient', 'crs')
         
         for i in self.metadata:
             if i not in root_layer:

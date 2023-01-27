@@ -1,0 +1,16 @@
+{
+    "localfile": "json-table-data.json",
+    "format": {
+	"type": "json",
+	"orient": "table"
+    },
+    "encoding": "utf-8",
+    "schema_groups": ["label", "coordinates"],
+    "schema": {
+	"i" : "name",
+	"coordinates" : {
+	    "X" : "x",
+	    "Y" : "y"
+	}
+    }
+}

@@ -13,7 +13,7 @@ from xml.etree.ElementTree import Element as xmlElement
 
 from opentabulate.main.source import Source
 from opentabulate.main.config import Configuration
-from opentabulate.main.algorithm import Algorithm, CSV_Algorithm, XML_Algorithm
+from opentabulate.main.algorithms import Algorithm, CSV_Algorithm, XML_Algorithm, GeoJSON_Algorithm, JSON_Algorithm
 
 
 def cmp_output_bytes(path1, path2):
@@ -32,6 +32,12 @@ def cmp_output_bytes(path1, path2):
         return True
 
 
+# Mock class for testing Algorithm
+# Implements empty tabulate
+class MockAlgorithm(Algorithm):
+    def tabulate(self):
+        pass
+
 class TestAlgorithm(unittest.TestCase):
     """
     Algorithm class unit tests to verify correct output after running extract_labels() 
@@ -42,6 +48,12 @@ class TestAlgorithm(unittest.TestCase):
         data_path = os.path.join(os.path.dirname(__file__), 'data')
 
         cls.config_file = data_path + "/opentabulate.conf"
+
+        # GeoJSON files for testing
+        cls.geojson_src_input = data_path + "/geojson-source.json"
+        cls.geojson_test_input = data_path + "/geojson-data.geojson"
+        cls.geojson_target_output = data_path + "/geojson-target-output.csv"
+        cls.geojson_test_output = data_path + "/geojson-test-output.csv"
 
         # XML files for testing
         cls.xml_src_input = data_path + "/xml-source.json"
@@ -55,7 +67,7 @@ class TestAlgorithm(unittest.TestCase):
         cls.csv_target_output = data_path + "/csv-target-output.csv"
         cls.csv_test_output = data_path + "/csv-test-output.csv"
         
-        cls.a = Algorithm()
+        cls.a  = MockAlgorithm()
         cls.xa = XML_Algorithm()
 
     def test_basic_process_csv(self):
@@ -101,7 +113,29 @@ class TestAlgorithm(unittest.TestCase):
         self.assertTrue(
             cmp_output_bytes(self.xml_target_output, self.xml_test_output)
         )
+
+    def test_basic_process_geojson(self):
+        """
+        OpenTabulate GeoJSON parsing and tabulation test.
+        """
+        config = Configuration(self.config_file)
+        config.load()
+        config.validate()
         
+        source = Source(self.geojson_src_input, config=config, default_paths=False)
+        source.parse()
+        
+        source.input_path = self.geojson_test_input
+        source.output_path = self.geojson_test_output
+        
+        geojson_alg = GeoJSON_Algorithm(source)
+        geojson_alg.construct_label_map()
+        geojson_alg.tabulate()
+        
+        self.assertTrue(
+            cmp_output_bytes(self.geojson_target_output, self.geojson_test_output)
+        )
+
     def test__is_row_empty(self):
         """
         Test for Algorithm._isRowEmpty method.
@@ -141,6 +175,18 @@ class TestAlgorithm(unittest.TestCase):
 
         self.a.LOWERCASE = None
 
+        self.a.TITLECASE = True
+
+        self.assertEqual(self.a._quickCleanEntry('ABCabc123!@$'), 'Abcabc123!@$')
+
+        self.a.TITLECASE = None
+
+        self.a.UPPERCASE = True
+
+        self.assertEqual(self.a._quickCleanEntry('ABCabc123!@$'), 'ABCABC123!@$')
+
+        self.a.UPPERCASE = None
+
     def test__is_force_value(self):
         """
         Test for Algorithm._isForceValue method.
@@ -174,6 +220,163 @@ class TestAlgorithm(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         pass
+
+class TestJSON_Algorithm(unittest.TestCase):
+    """
+    Algorithm class unit tests to verify correct output after running extract_labels() 
+    and parse() methods.
+    """
+    @classmethod
+    def setUpClass(cls):
+        data_path = os.path.join(os.path.dirname(__file__), 'data')
+
+        cls.config_file = data_path + "/opentabulate.conf"
+        cls.target_output = data_path + "/json-target-output.csv"
+
+        # JSON files - split format
+        cls.split_src_input = data_path + "/json-split-source.json"
+        cls.split_test_input = data_path + "/json-split-data.json"
+        cls.split_test_output = data_path + "/json-split-test-output.csv"
+
+        # JSON files - records format
+        cls.records_src_input = data_path + "/json-records-source.json"
+        cls.records_test_input = data_path + "/json-records-data.json"
+        cls.records_test_output = data_path + "/json-records-test-output.csv"
+
+        # JSON files - index format
+        cls.index_src_input = data_path + "/json-index-source.json"
+        cls.index_test_input = data_path + "/json-index-data.json"
+        cls.index_test_output = data_path + "/json-index-test-output.csv"
+
+        # JSON files - columns format
+        cls.columns_src_input = data_path + "/json-columns-source.json"
+        cls.columns_test_input = data_path + "/json-columns-data.json"
+        cls.columns_test_output = data_path + "/json-columns-test-output.csv"
+
+        # JSON files - table format
+        cls.table_src_input = data_path + "/json-table-source.json"
+        cls.table_test_input = data_path + "/json-table-data.json"
+        cls.table_test_output = data_path + "/json-table-test-output.csv"
+
+    def test_basic_process_split_data(self):
+        """
+        OpenTabulate JSON parsing and tabulation test - split data format
+        """
+
+        config = Configuration(self.config_file)
+        config.load()
+        config.validate()
+        
+        source = Source(self.split_src_input, config=config, default_paths=False)
+        source.parse()
+
+        source.input_path = self.split_test_input
+        source.output_path = self.split_test_output
+        
+        json_alg = JSON_Algorithm(source)
+        json_alg.construct_label_map()
+        json_alg.tabulate()
+        
+        self.assertTrue(
+            cmp_output_bytes(self.target_output, self.split_test_output)
+        )
+
+    def test_basic_process_records_data(self):
+        """
+        OpenTabulate JSON parsing and tabulation test - records data format
+        """
+
+        config = Configuration(self.config_file)
+        config.load()
+        config.validate()
+        
+        source = Source(self.records_src_input, config=config, default_paths=False)
+        source.parse()
+
+        source.input_path = self.records_test_input
+        source.output_path = self.records_test_output
+        
+        json_alg = JSON_Algorithm(source)
+        json_alg.construct_label_map()
+        json_alg.tabulate()
+        
+        self.assertTrue(
+            cmp_output_bytes(self.target_output, self.records_test_output)
+        )
+
+    def test_basic_process_index_data(self):
+        """
+        OpenTabulate JSON parsing and tabulation test - index data format
+        """
+
+        config = Configuration(self.config_file)
+        config.load()
+        config.validate()
+        
+        source = Source(self.index_src_input, config=config, default_paths=False)
+        source.parse()
+
+        source.input_path = self.index_test_input
+        source.output_path = self.index_test_output
+        
+        json_alg = JSON_Algorithm(source)
+        json_alg.construct_label_map()
+        json_alg.tabulate()
+        
+        self.assertTrue(
+            cmp_output_bytes(self.target_output, self.index_test_output)
+        )
+
+    def test_basic_process_columns_data(self):
+        """
+        OpenTabulate JSON parsing and tabulation test - columns data format
+        """
+
+        config = Configuration(self.config_file)
+        config.load()
+        config.validate()
+        
+        source = Source(self.columns_src_input, config=config, default_paths=False)
+        source.parse()
+
+        source.input_path = self.columns_test_input
+        source.output_path = self.columns_test_output
+        
+        json_alg = JSON_Algorithm(source)
+        json_alg.construct_label_map()
+        json_alg.tabulate()
+        
+        self.assertTrue(
+            cmp_output_bytes(self.target_output, self.columns_test_output)
+        )
+
+    def test_basic_process_table_data(self):
+        """
+        OpenTabulate JSON parsing and tabulation test - table data format
+        """
+
+        config = Configuration(self.config_file)
+        config.load()
+        config.validate()
+        
+        source = Source(self.table_src_input, config=config, default_paths=False)
+        source.parse()
+
+        source.input_path = self.table_test_input
+        source.output_path = self.table_test_output
+        
+        json_alg = JSON_Algorithm(source)
+        json_alg.construct_label_map()
+        json_alg.tabulate()
+        
+        self.assertTrue(
+            cmp_output_bytes(self.target_output, self.table_test_output)
+        )
+
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
 
 if __name__ == '__main__':
     unittest.main()
